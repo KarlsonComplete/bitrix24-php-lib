@@ -8,6 +8,13 @@ use Bitrix24\Lib\AggregateRoot;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonInterface;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonStatus;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\FullName;
+use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonBlockedEvent;
+use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonDeletedEvent;
+use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonEmailChangedEvent;
+use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonEmailVerifiedEvent;
+use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonMobilePhoneVerifiedEvent;
+use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
+use Bitrix24\SDK\Core\Exceptions\LogicException;
 use Carbon\CarbonImmutable;
 use Darsyn\IP\Version\Multi as IP;
 use libphonenumber\PhoneNumber;
@@ -15,7 +22,10 @@ use Symfony\Component\Uid\Uuid;
 
 class ContactPerson extends AggregateRoot implements ContactPersonInterface
 {
-
+    /**
+     * @var bool
+     */
+    public $isMobilePhoneVerified;
     private readonly CarbonImmutable $createdAt;
 
     private CarbonImmutable $updatedAt;
@@ -23,154 +33,249 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     public function __construct(
         private readonly Uuid $id,
         private ContactPersonStatus $status,
-        private FullName $fullName,
+        private readonly FullName $fullName,
         private ?string $email,
         private bool $isEmailVerified,
         private ?CarbonImmutable $emailVerifiedAt,
-        private ?PhoneNumber $phoneNumber,
-        private bool $isPhoneNumberVerified,
+        private readonly ?PhoneNumber $phoneNumber,
         private ?CarbonImmutable $phoneNumberVerifiedAt,
         private ?string $comment,
         private ?string $externalId,
-        private ?int $bitrix24AccountId,
+        private readonly ?int $bitrix24UserId,
         private ?Uuid $bitrix24PartnerId,
-        private ?string $userAgent,
-        private ?string $userAgentReferent,
-        private ?IP $userAgentIp,
-    )
-    {
+        private readonly ?string $userAgent,
+        private readonly ?string $userAgentReferent,
+        private readonly ?IP $userAgentIp,
+    ) {
         $this->createdAt = new CarbonImmutable();
         $this->updatedAt = new CarbonImmutable();
-
     }
 
+    #[\Override]
     public function getId(): Uuid
     {
-        // TODO: Implement getId() method.
+        return $this->id;
     }
 
+    #[\Override]
     public function getStatus(): ContactPersonStatus
     {
-        // TODO: Implement getStatus() method.
+        return $this->status;
     }
 
+    #[\Override]
     public function markAsActive(?string $comment): void
     {
-        // TODO: Implement markAsActive() method.
+        if (ContactPersonStatus::active !== $this->status) {
+            throw new LogicException(
+                sprintf(
+                    'you must be in status blocked or deleted , now status is «%s»',
+                    $this->status->value
+                )
+            );
+        }
+
+        $this->status = ContactPersonStatus::active;
+        $this->updatedAt = new CarbonImmutable();
+        if (null !== $comment) {
+            $this->comment = $comment;
+        }
     }
 
+    #[\Override]
     public function markAsBlocked(?string $comment): void
     {
-        // TODO: Implement markAsBlocked() method.
+        if (ContactPersonStatus::blocked !== $this->status) {
+            throw new LogicException(
+                sprintf(
+                    'you must be in status active or deleted, now status is «%s»',
+                    $this->status->value
+                )
+            );
+        }
+
+        $this->status = ContactPersonStatus::blocked;
+        $this->updatedAt = new CarbonImmutable();
+        if (null !== $comment) {
+            $this->comment = $comment;
+        }
+
+        $this->events[] = new ContactPersonBlockedEvent(
+            $this->id,
+            $this->updatedAt,
+        );
     }
 
+    #[\Override]
     public function markAsDeleted(?string $comment): void
     {
-        // TODO: Implement markAsDeleted() method.
+        if (ContactPersonStatus::deleted !== $this->status) {
+            throw new LogicException(
+                sprintf(
+                    'you must be in status active or blocked, now status is «%s»',
+                    $this->status->value
+                )
+            );
+        }
+
+        $this->status = ContactPersonStatus::deleted;
+        $this->updatedAt = new CarbonImmutable();
+        if (null !== $comment) {
+            $this->comment = $comment;
+        }
+
+        $this->events[] = new ContactPersonDeletedEvent(
+            $this->id,
+            $this->updatedAt,
+        );
     }
 
+    #[\Override]
     public function getFullName(): FullName
     {
-        // TODO: Implement getFullName() method.
+        return $this->fullName;
     }
 
+    #[\Override]
     public function changeFullName(FullName $fullName): void
     {
         // TODO: Implement changeFullName() method.
     }
 
+    #[\Override]
     public function getCreatedAt(): CarbonImmutable
     {
-        // TODO: Implement getCreatedAt() method.
+        return $this->createdAt;
     }
 
+    #[\Override]
     public function getUpdatedAt(): CarbonImmutable
     {
-        // TODO: Implement getUpdatedAt() method.
+        return $this->updatedAt;
     }
 
+    #[\Override]
     public function getEmail(): ?string
     {
-        // TODO: Implement getEmail() method.
+        return $this->email;
     }
 
+    #[\Override]
     public function changeEmail(?string $email, ?bool $isEmailVerified = null): void
     {
-        // TODO: Implement changeEmail() method.
+        $this->email = $email;
+        $this->isEmailVerified = $isEmailVerified;
+        $this->events[] = new ContactPersonEmailChangedEvent(
+            $this->id,
+            $this->updatedAt,
+        );
     }
 
+    #[\Override]
     public function markEmailAsVerified(): void
     {
-        // TODO: Implement markEmailAsVerified() method.
+        $this->isEmailVerified = true;
+        $this->emailVerifiedAt = new CarbonImmutable();
+        $this->events[] = new ContactPersonEmailVerifiedEvent(
+            $this->id,
+            $this->emailVerifiedAt,
+        );
     }
 
+    #[\Override]
     public function getEmailVerifiedAt(): ?CarbonImmutable
     {
-        // TODO: Implement getEmailVerifiedAt() method.
+        return $this->emailVerifiedAt;
     }
 
+    #[\Override]
     public function changeMobilePhone(?PhoneNumber $phoneNumber, ?bool $isMobilePhoneVerified = null): void
     {
         // TODO: Implement changeMobilePhone() method.
     }
 
+    #[\Override]
     public function getMobilePhone(): ?PhoneNumber
     {
-        // TODO: Implement getMobilePhone() method.
+        $phoneNumber = new PhoneNumber();
+        $phoneNumber->unserialize($this->phoneNumber);
+
+        return $phoneNumber;
     }
 
+    #[\Override]
     public function getMobilePhoneVerifiedAt(): ?CarbonImmutable
     {
-        // TODO: Implement getMobilePhoneVerifiedAt() method.
+        return $this->phoneNumberVerifiedAt;
     }
 
+    #[\Override]
     public function markMobilePhoneAsVerified(): void
     {
-        // TODO: Implement markMobilePhoneAsVerified() method.
+        $this->isMobilePhoneVerified = true;
+        $this->phoneNumberVerifiedAt = new CarbonImmutable();
+        $this->events[] = new ContactPersonMobilePhoneVerifiedEvent(
+            $this->id,
+            $this->phoneNumberVerifiedAt,
+        );
     }
 
+    #[\Override]
     public function getComment(): ?string
     {
-        // TODO: Implement getComment() method.
+        return $this->comment;
     }
 
+    #[\Override]
     public function setExternalId(?string $externalId): void
     {
-        // TODO: Implement setExternalId() method.
+        if ('' === $externalId) {
+            throw new InvalidArgumentException('ExternalId cannot be empty string');
+        }
+
+        $this->externalId = $externalId;
     }
 
+    #[\Override]
     public function getExternalId(): ?string
     {
-        // TODO: Implement getExternalId() method.
+        return $this->externalId;
     }
 
+    #[\Override]
     public function getBitrix24UserId(): ?int
     {
-        // TODO: Implement getBitrix24UserId() method.
+        return $this->bitrix24UserId;
     }
 
+    #[\Override]
     public function getBitrix24PartnerId(): ?Uuid
     {
-        // TODO: Implement getBitrix24PartnerId() method.
+        return $this->bitrix24PartnerId;
     }
 
+    #[\Override]
     public function setBitrix24PartnerId(?Uuid $uuid): void
     {
-        // TODO: Implement setBitrix24PartnerId() method.
+        $this->bitrix24PartnerId = $uuid;
+        $this->updatedAt = new CarbonImmutable();
     }
 
+    #[\Override]
     public function getUserAgent(): ?string
     {
-        // TODO: Implement getUserAgent() method.
+        return $this->userAgent;
     }
 
+    #[\Override]
     public function getUserAgentReferer(): ?string
     {
-        // TODO: Implement getUserAgentReferer() method.
+        return $this->userAgentReferent;
     }
 
+    #[\Override]
     public function getUserAgentIp(): ?IP
     {
-        // TODO: Implement getUserAgentIp() method.
+        return $this->userAgentIp;
     }
 }

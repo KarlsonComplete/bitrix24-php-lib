@@ -16,7 +16,7 @@
         <field name="phoneNumberVerifiedAt" type="carbon_immutable" column="phone_number_verified_at" nullable="true"/>
         <field name="comment" type="string" column="comment" nullable="true"/>
         <field name="externalId" type="string" column="external_id" nullable="true"/>
-        <field name="bitrix24AccountId" type="integer" column="bitrix24_account_id" nullable="true"/>
+        <field name="bitrix24UserId" type="integer" column="bitrix24_user_id" nullable="true"/>
         <field name="bitrix24PartnerId" type="uuid" column="bitrix24_partner_id" nullable="true"/>
         <field name="userAgent" type="string" column="user_agent" nullable="true"/>
         <field name="userAgentReferent" type="string" column="user_agent_referent" nullable="true"/>
