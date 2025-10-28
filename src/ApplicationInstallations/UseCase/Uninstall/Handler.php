@@ -43,7 +43,7 @@ readonly class Handler
         ]);
 
         /** @var AggregateRootEventsEmitterInterface|ApplicationInstallationInterface $activeInstallation */
-        //todo fix https://github.com/mesilov/bitrix24-php-lib/issues/60
+        // todo fix https://github.com/mesilov/bitrix24-php-lib/issues/60
         /** @phpstan-ignore-next-line */
         $activeInstallation = $this->applicationInstallationRepository->findByApplicationToken($command->applicationToken);
 
