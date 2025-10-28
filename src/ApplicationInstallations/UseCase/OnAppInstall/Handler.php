@@ -39,6 +39,8 @@ readonly class Handler
         ]);
 
         /** @var null|AggregateRootEventsEmitterInterface|ApplicationInstallationInterface $applicationInstallation */
+        // todo fix https://github.com/mesilov/bitrix24-php-lib/issues/59
+        /** @phpstan-ignore-next-line */
         $applicationInstallation = $this->applicationInstallationRepository->findByBitrix24AccountMemberId($command->memberId);
 
         $applicationStatus = new ApplicationStatus($command->applicationStatus);
@@ -61,8 +63,14 @@ readonly class Handler
         $this->logger->info('ApplicationInstallation.OnAppInstall.finish');
     }
 
+    /**
+     * @throws MultipleBitrix24AccountsFoundException
+     * @throws Bitrix24AccountNotFoundException
+     */
     private function findMasterAccountByMemberId(string $memberId): Bitrix24AccountInterface
     {
+        // todo fixme
+        /** @phpstan-ignore-next-line */
         $bitrix24Accounts = $this->bitrix24AccountRepository->findByMemberId(
             $memberId,
             Bitrix24AccountStatus::active,

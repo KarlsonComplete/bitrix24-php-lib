@@ -109,7 +109,6 @@ class ApplicationInstallationRepository extends EntityRepository implements Appl
      *
      * @throws InvalidArgumentException
      */
-    #[\Override]
     public function findByApplicationToken(string $applicationToken): ?ApplicationInstallationInterface
     {
         if ('' === trim($applicationToken)) {
@@ -132,7 +131,6 @@ class ApplicationInstallationRepository extends EntityRepository implements Appl
         ;
     }
 
-    #[\Override]
     public function findByBitrix24AccountMemberId(string $memberId): ?ApplicationInstallationInterface
     {
         if ('' === trim($memberId)) {

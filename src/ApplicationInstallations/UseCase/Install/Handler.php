@@ -44,6 +44,8 @@ readonly class Handler
         ]);
 
         /** @var null|AggregateRootEventsEmitterInterface|ApplicationInstallationInterface $activeInstallation */
+        // todo fix https://github.com/mesilov/bitrix24-php-lib/issues/59
+        /** @phpstan-ignore-next-line */
         $activeInstallation = $this->applicationInstallationRepository->findByBitrix24AccountMemberId($command->memberId);
 
         if (null !== $activeInstallation) {
