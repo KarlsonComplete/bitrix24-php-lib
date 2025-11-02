@@ -15,6 +15,8 @@ use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMSetup;
 use Symfony\Bridge\Doctrine\Types\UuidType;
+use Bitrix24\Lib\Services\Doctrine\PhoneNumberType;
+use Bitrix24\Lib\Services\Doctrine\IpAddressType;
 
 class EntityManagerFactory
 {
@@ -64,6 +66,14 @@ class EntityManagerFactory
 
             if (!Type::hasType('carbon_immutable')) {
                 Type::addType('carbon_immutable', CarbonImmutableType::class);
+            }
+
+            if (!Type::hasType('phone_number')) {
+                Type::addType('phone_number', PhoneNumberType::class);
+            }
+
+            if (!Type::hasType('ip_address')) {
+                Type::addType('ip_address', IpAddressType::class);
             }
 
             $configuration = ORMSetup::createXMLMetadataConfiguration($paths, $isDevMode);

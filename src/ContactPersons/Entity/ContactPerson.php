@@ -22,10 +22,6 @@ use Symfony\Component\Uid\Uuid;
 
 class ContactPerson extends AggregateRoot implements ContactPersonInterface
 {
-    /**
-     * @var bool
-     */
-    public $isMobilePhoneVerified;
     private readonly CarbonImmutable $createdAt;
 
     private CarbonImmutable $updatedAt;
@@ -35,7 +31,7 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
         private ContactPersonStatus $status,
         private readonly FullName $fullName,
         private ?string $email,
-        private bool $isEmailVerified,
+        private ?bool $isEmailVerified,
         private ?CarbonImmutable $emailVerifiedAt,
         private readonly ?PhoneNumber $phoneNumber,
         private ?CarbonImmutable $phoneNumberVerifiedAt,
@@ -44,7 +40,7 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
         private readonly ?int $bitrix24UserId,
         private ?Uuid $bitrix24PartnerId,
         private readonly ?string $userAgent,
-        private readonly ?string $userAgentReferent,
+        private readonly ?string $userAgentReferer,
         private readonly ?IP $userAgentIp,
     ) {
         $this->createdAt = new CarbonImmutable();
@@ -66,13 +62,8 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     #[\Override]
     public function markAsActive(?string $comment): void
     {
-        if (ContactPersonStatus::active !== $this->status) {
-            throw new LogicException(
-                sprintf(
-                    'you must be in status blocked or deleted , now status is «%s»',
-                    $this->status->value
-                )
-            );
+        if (!in_array($this->status, [ContactPersonStatus::blocked, ContactPersonStatus::deleted], true)) {
+            throw new LogicException(sprintf('you must be in status blocked or deleted , now status is «%s»', $this->status->value));
         }
 
         $this->status = ContactPersonStatus::active;
@@ -85,13 +76,8 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     #[\Override]
     public function markAsBlocked(?string $comment): void
     {
-        if (ContactPersonStatus::blocked !== $this->status) {
-            throw new LogicException(
-                sprintf(
-                    'you must be in status active or deleted, now status is «%s»',
-                    $this->status->value
-                )
-            );
+        if (!in_array($this->status, [ContactPersonStatus::active, ContactPersonStatus::deleted], true)) {
+            throw new LogicException(sprintf('you must be in status active or deleted, now status is «%s»', $this->status->value));
         }
 
         $this->status = ContactPersonStatus::blocked;
@@ -109,13 +95,8 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     #[\Override]
     public function markAsDeleted(?string $comment): void
     {
-        if (ContactPersonStatus::deleted !== $this->status) {
-            throw new LogicException(
-                sprintf(
-                    'you must be in status active or blocked, now status is «%s»',
-                    $this->status->value
-                )
-            );
+        if (!in_array($this->status, [ContactPersonStatus::active, ContactPersonStatus::blocked], true)) {
+            throw new LogicException(sprintf('you must be in status active or blocked, now status is «%s»', $this->status->value));
         }
 
         $this->status = ContactPersonStatus::deleted;
@@ -165,6 +146,13 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     {
         $this->email = $email;
         $this->isEmailVerified = $isEmailVerified;
+
+        $this->emailVerifiedAt = null;
+        if (true === $isEmailVerified) {
+            $this->emailVerifiedAt = new CarbonImmutable();
+        }
+
+        $this->updatedAt = new CarbonImmutable();
         $this->events[] = new ContactPersonEmailChangedEvent(
             $this->id,
             $this->updatedAt,
@@ -197,10 +185,7 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     #[\Override]
     public function getMobilePhone(): ?PhoneNumber
     {
-        $phoneNumber = new PhoneNumber();
-        $phoneNumber->unserialize($this->phoneNumber);
-
-        return $phoneNumber;
+        return $this->phoneNumber;
     }
 
     #[\Override]
@@ -212,7 +197,6 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     #[\Override]
     public function markMobilePhoneAsVerified(): void
     {
-        $this->isMobilePhoneVerified = true;
         $this->phoneNumberVerifiedAt = new CarbonImmutable();
         $this->events[] = new ContactPersonMobilePhoneVerifiedEvent(
             $this->id,
@@ -233,7 +217,12 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
             throw new InvalidArgumentException('ExternalId cannot be empty string');
         }
 
+        if ($this->externalId === $externalId) {
+            return;
+        }
+
         $this->externalId = $externalId;
+        $this->updatedAt = new CarbonImmutable();
     }
 
     #[\Override]
@@ -270,7 +259,7 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     #[\Override]
     public function getUserAgentReferer(): ?string
     {
-        return $this->userAgentReferent;
+        return $this->userAgentReferer;
     }
 
     #[\Override]
