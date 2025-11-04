@@ -34,6 +34,7 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
         private ?bool $isEmailVerified,
         private ?CarbonImmutable $emailVerifiedAt,
         private readonly ?PhoneNumber $phoneNumber,
+        private ?bool $isMobilePhoneVerified,
         private ?CarbonImmutable $phoneNumberVerifiedAt,
         private ?string $comment,
         private ?string $externalId,
