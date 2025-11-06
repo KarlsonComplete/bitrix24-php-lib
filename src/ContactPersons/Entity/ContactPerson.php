@@ -8,6 +8,7 @@ use Bitrix24\Lib\AggregateRoot;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonInterface;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonStatus;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\FullName;
+use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\UserAgentInfo;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonBlockedEvent;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonDeletedEvent;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonEmailChangedEvent;
@@ -16,7 +17,6 @@ use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonMobile
 use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Bitrix24\SDK\Core\Exceptions\LogicException;
 use Carbon\CarbonImmutable;
-use Darsyn\IP\Version\Multi as IP;
 use libphonenumber\PhoneNumber;
 use Symfony\Component\Uid\Uuid;
 
@@ -26,26 +26,28 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
 
     private CarbonImmutable $updatedAt;
 
+    private ?bool $isEmailVerified;
+
+    private ?bool $isMobilePhoneVerified;
+
     public function __construct(
         private readonly Uuid $id,
         private ContactPersonStatus $status,
         private readonly FullName $fullName,
         private ?string $email,
-        private ?bool $isEmailVerified,
         private ?CarbonImmutable $emailVerifiedAt,
         private readonly ?PhoneNumber $phoneNumber,
-        private ?bool $isMobilePhoneVerified,
         private ?CarbonImmutable $phoneNumberVerifiedAt,
         private ?string $comment,
         private ?string $externalId,
         private readonly ?int $bitrix24UserId,
         private ?Uuid $bitrix24PartnerId,
-        private readonly ?string $userAgent,
-        private readonly ?string $userAgentReferer,
-        private readonly ?IP $userAgentIp,
+        private ?UserAgentInfo $userAgentInfo,
     ) {
         $this->createdAt = new CarbonImmutable();
         $this->updatedAt = new CarbonImmutable();
+        $this->isEmailVerified = false;
+        $this->isMobilePhoneVerified = false;
     }
 
     #[\Override]
@@ -251,21 +253,18 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
         $this->updatedAt = new CarbonImmutable();
     }
 
-    #[\Override]
-    public function getUserAgent(): ?string
+    public function isEmailVerified(): bool
     {
-        return $this->userAgent;
+        return $this->isEmailVerified;
     }
 
-    #[\Override]
-    public function getUserAgentReferer(): ?string
+    public function isMobilePhoneVerified(): bool
     {
-        return $this->userAgentReferer;
+       return $this->isMobilePhoneVerified;
     }
 
-    #[\Override]
-    public function getUserAgentIp(): ?IP
+    public function getUserAgentInfo(): UserAgentInfo
     {
-        return $this->userAgentIp;
+        return $this->userAgentInfo;
     }
 }

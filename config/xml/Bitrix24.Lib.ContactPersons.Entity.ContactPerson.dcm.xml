@@ -19,9 +19,7 @@
         <field name="externalId" type="string" column="external_id" nullable="true"/>
         <field name="bitrix24UserId" type="integer" column="bitrix24_user_id" nullable="true"/>
         <field name="bitrix24PartnerId" type="uuid" column="bitrix24_partner_id" nullable="true"/>
-        <field name="userAgent" type="string" column="user_agent" nullable="true"/>
-        <field name="userAgentReferer" type="string" column="user_agent_referer" nullable="true"/>
-        <field name="userAgentIp" type="ip_address" column="user_agent_ip" nullable="true"/>
         <embedded name="fullName" class="Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\FullName"/>
+        <embedded name="userAgentInfo" class="Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\UserAgentInfo"/>
     </entity>
 </doctrine-mapping>
