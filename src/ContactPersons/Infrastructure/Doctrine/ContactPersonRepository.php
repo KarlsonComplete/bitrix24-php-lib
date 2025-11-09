@@ -9,16 +9,17 @@ use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonInterf
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonStatus;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Exceptions\ContactPersonNotFoundException;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Repository\ContactPersonRepositoryInterface;
+use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use libphonenumber\PhoneNumber;
 use Symfony\Component\Uid\Uuid;
-use Doctrine\ORM\EntityManagerInterface;
-use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 
 class ContactPersonRepository implements ContactPersonRepositoryInterface
 {
     private EntityManagerInterface $entityManager;
     private EntityRepository $repository; // Внутренний репозиторий для базовых операций
+
     public function __construct(EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
@@ -57,13 +58,13 @@ class ContactPersonRepository implements ContactPersonRepositoryInterface
     public function getById(Uuid $uuid): ContactPersonInterface
     {
         $contactPerson = $this->repository
-        ->createQueryBuilder('contactPerson')
-        ->where('contactPerson.id = :id')
-        ->andWhere('contactPerson.status != :status')
-        ->setParameter('id', $uuid)
-        ->setParameter('status', ContactPersonStatus::deleted)
-        ->getQuery()
-        ->getOneOrNullResult()
+            ->createQueryBuilder('contactPerson')
+            ->where('contactPerson.id = :id')
+            ->andWhere('contactPerson.status != :status')
+            ->setParameter('id', $uuid)
+            ->setParameter('status', ContactPersonStatus::deleted)
+            ->getQuery()
+            ->getOneOrNullResult()
         ;
 
         if (null === $contactPerson) {
@@ -78,7 +79,7 @@ class ContactPersonRepository implements ContactPersonRepositoryInterface
     #[\Override]
     public function findByEmail(string $email, ?ContactPersonStatus $contactPersonStatus = null, ?bool $isEmailVerified = null): array
     {
-        if ('' === trim($email)){
+        if ('' === trim($email)) {
             throw new InvalidArgumentException('email cannot be an empty string');
         }
 
@@ -93,7 +94,6 @@ class ContactPersonRepository implements ContactPersonRepositoryInterface
         }
 
         return $this->repository->findBy($criteria);
-
     }
 
     #[\Override]
@@ -101,7 +101,6 @@ class ContactPersonRepository implements ContactPersonRepositoryInterface
     {
         // TODO: Implement findByPhone() method.
     }
-
 
     public function findByExternalId(string $externalId, ?ContactPersonStatus $contactPersonStatus = null): array
     {
@@ -117,5 +116,4 @@ class ContactPersonRepository implements ContactPersonRepositoryInterface
 
         return $this->repository->findBy($criteria);
     }
-
 }

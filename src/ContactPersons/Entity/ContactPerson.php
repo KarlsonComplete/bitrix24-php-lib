@@ -13,11 +13,13 @@ use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonBlocke
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonDeletedEvent;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonEmailChangedEvent;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonEmailVerifiedEvent;
+use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonFullNameChangedEvent;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonMobilePhoneVerifiedEvent;
 use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Bitrix24\SDK\Core\Exceptions\LogicException;
 use Carbon\CarbonImmutable;
 use libphonenumber\PhoneNumber;
+use libphonenumber\PhoneNumberUtil;
 use Symfony\Component\Uid\Uuid;
 
 class ContactPerson extends AggregateRoot implements ContactPersonInterface
@@ -33,10 +35,10 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     public function __construct(
         private readonly Uuid $id,
         private ContactPersonStatus $status,
-        private readonly FullName $fullName,
+        private FullName $fullName,
         private ?string $email,
         private ?CarbonImmutable $emailVerifiedAt,
-        private readonly ?PhoneNumber $phoneNumber,
+        private ?PhoneNumber $phoneNumber,
         private ?CarbonImmutable $phoneNumberVerifiedAt,
         private ?string $comment,
         private ?string $externalId,
@@ -123,7 +125,16 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     #[\Override]
     public function changeFullName(FullName $fullName): void
     {
-        // TODO: Implement changeFullName() method.
+        if ('' === trim($fullName->name)) {
+            throw new InvalidArgumentException('FullName name cannot be empty.');
+        }
+
+        $this->fullName = $fullName;
+        $this->updatedAt = new CarbonImmutable();
+        $this->events[] = new ContactPersonFullNameChangedEvent(
+            $this->id,
+            $this->updatedAt,
+        );
     }
 
     #[\Override]
@@ -182,7 +193,23 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     #[\Override]
     public function changeMobilePhone(?PhoneNumber $phoneNumber, ?bool $isMobilePhoneVerified = null): void
     {
-        // TODO: Implement changeMobilePhone() method.
+        if (null !== $phoneNumber) {
+            $phoneUtil = PhoneNumberUtil::getInstance();
+            $isValidNumber = $phoneUtil->isValidNumber($phoneNumber);
+
+            if (!$isValidNumber) {
+                throw new InvalidArgumentException('Invalid phone number.');
+            }
+
+            $this->phoneNumber = $phoneNumber;
+        }
+
+        if (null !== $isMobilePhoneVerified) {
+            $this->isMobilePhoneVerified = $isMobilePhoneVerified;
+            $this->markMobilePhoneAsVerified();
+        }
+
+        $this->updatedAt = new CarbonImmutable();
     }
 
     #[\Override]
@@ -260,7 +287,7 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
 
     public function isMobilePhoneVerified(): bool
     {
-       return $this->isMobilePhoneVerified;
+        return $this->isMobilePhoneVerified;
     }
 
     public function getUserAgentInfo(): UserAgentInfo
