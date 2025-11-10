@@ -56,7 +56,7 @@ class ContactPersonRepositoryTest extends ContactPersonRepositoryInterfaceTest
             $externalId,
             $bitrix24UserId,
             $bitrix24PartnerId,
-            new UserAgentInfo($userAgent,$userAgent,$userAgentReferer),
+            new UserAgentInfo($userAgentIp,$userAgent,$userAgentReferer),
         );
     }
 

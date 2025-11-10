@@ -156,15 +156,9 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     }
 
     #[\Override]
-    public function changeEmail(?string $email, ?bool $isEmailVerified = null): void
+    public function changeEmail(?string $email): void
     {
         $this->email = $email;
-        $this->isEmailVerified = $isEmailVerified;
-
-        $this->emailVerifiedAt = null;
-        if (true === $isEmailVerified) {
-            $this->emailVerifiedAt = new CarbonImmutable();
-        }
 
         $this->updatedAt = new CarbonImmutable();
         $this->events[] = new ContactPersonEmailChangedEvent(
