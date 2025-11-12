@@ -14,7 +14,7 @@
         <field name="emailVerifiedAt" type="carbon_immutable" column="email_verified_at" nullable="true"/>
         <field name="phoneNumber" type="phone_number" column="phone_number" nullable="true"/>
         <field name="isMobilePhoneVerified" type="boolean" column="is_mobile_phone_verified" nullable="false"/>
-        <field name="phoneNumberVerifiedAt" type="carbon_immutable" column="phone_number_verified_at" nullable="true"/>
+        <field name="mobilePhoneVerifiedAt" type="carbon_immutable" column="mobile_phone_verified_at" nullable="true"/>
         <field name="comment" type="string" column="comment" nullable="true"/>
         <field name="externalId" type="string" column="external_id" nullable="true"/>
         <field name="bitrix24UserId" type="integer" column="bitrix24_user_id" nullable="true"/>

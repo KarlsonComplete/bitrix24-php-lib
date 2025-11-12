@@ -33,18 +33,18 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     private ?bool $isMobilePhoneVerified;
 
     public function __construct(
-        private readonly Uuid $id,
+        private readonly Uuid       $id,
         private ContactPersonStatus $status,
-        private FullName $fullName,
-        private ?string $email,
-        private ?CarbonImmutable $emailVerifiedAt,
-        private ?PhoneNumber $phoneNumber,
-        private ?CarbonImmutable $phoneNumberVerifiedAt,
-        private ?string $comment,
-        private ?string $externalId,
-        private readonly ?int $bitrix24UserId,
-        private ?Uuid $bitrix24PartnerId,
-        private ?UserAgentInfo $userAgentInfo,
+        private FullName            $fullName,
+        private ?string             $email,
+        private ?CarbonImmutable    $emailVerifiedAt,
+        private ?PhoneNumber        $phoneNumber,
+        private ?CarbonImmutable    $mobilePhoneVerifiedAt,
+        private ?string             $comment,
+        private ?string             $externalId,
+        private readonly ?int       $bitrix24UserId,
+        private ?Uuid               $bitrix24PartnerId,
+        private ?UserAgentInfo      $userAgentInfo,
     ) {
         $this->createdAt = new CarbonImmutable();
         $this->updatedAt = new CarbonImmutable();
@@ -215,16 +215,16 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     #[\Override]
     public function getMobilePhoneVerifiedAt(): ?CarbonImmutable
     {
-        return $this->phoneNumberVerifiedAt;
+        return $this->mobilePhoneVerifiedAt;
     }
 
     #[\Override]
     public function markMobilePhoneAsVerified(): void
     {
-        $this->phoneNumberVerifiedAt = new CarbonImmutable();
+        $this->mobilePhoneVerifiedAt = new CarbonImmutable();
         $this->events[] = new ContactPersonMobilePhoneVerifiedEvent(
             $this->id,
-            $this->phoneNumberVerifiedAt,
+            $this->mobilePhoneVerifiedAt,
         );
     }
 

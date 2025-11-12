@@ -76,7 +76,6 @@ class ContactPersonRepository implements ContactPersonRepositoryInterface
         return $contactPerson;
     }
 
-    #[\Override]
     public function findByEmail(string $email, ?ContactPersonStatus $contactPersonStatus = null, ?bool $isEmailVerified = null): array
     {
         if ('' === trim($email)) {
@@ -96,10 +95,19 @@ class ContactPersonRepository implements ContactPersonRepositoryInterface
         return $this->repository->findBy($criteria);
     }
 
-    #[\Override]
     public function findByPhone(PhoneNumber $phoneNumber, ?ContactPersonStatus $contactPersonStatus = null, ?bool $isPhoneVerified = null): array
     {
-        // TODO: Implement findByPhone() method.
+            $criteria = ['phoneNumber' => $phoneNumber];
+
+            if (null !== $contactPersonStatus) {
+                $criteria['status'] = $contactPersonStatus->name;
+            }
+
+            if (null !== $isPhoneVerified) {
+                $criteria['isMobilePhoneVerified'] = $isPhoneVerified;
+            }
+
+            return $this->repository->findBy($criteria);
     }
 
     public function findByExternalId(string $externalId, ?ContactPersonStatus $contactPersonStatus = null): array
