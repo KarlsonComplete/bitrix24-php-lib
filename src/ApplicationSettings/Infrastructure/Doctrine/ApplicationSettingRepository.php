@@ -242,4 +242,26 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->getQuery()
             ->execute();
     }
+
+    /**
+     * Find setting by application installation ID and key
+     * Alias for findGlobalByKey for backward compatibility
+     */
+    #[\Override]
+    public function findByApplicationInstallationIdAndKey(
+        Uuid $applicationInstallationId,
+        string $key
+    ): ?ApplicationSettingInterface {
+        return $this->findGlobalByKey($applicationInstallationId, $key);
+    }
+
+    /**
+     * Find all settings for application installation ID
+     * Alias for findAll for backward compatibility
+     */
+    #[\Override]
+    public function findByApplicationInstallationId(Uuid $applicationInstallationId): array
+    {
+        return $this->findAll($applicationInstallationId);
+    }
 }
