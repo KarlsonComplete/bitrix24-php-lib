@@ -16,4 +16,13 @@ class AggregateRoot implements AggregateRootEventsEmitterInterface
 
         return $events;
     }
+
+    /**
+     * Get pending events without clearing them
+     * Useful for testing
+     */
+    public function getEvents(): array
+    {
+        return $this->events;
+    }
 }
