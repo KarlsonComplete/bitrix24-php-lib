@@ -25,22 +25,22 @@ readonly class InstallSettings
     /**
      * Create default settings for application installation.
      *
-     * @param Uuid                                                $applicationInstallationId Application installation UUID
-     * @param array<string, array{value: string, required: bool}> $defaultSettings           Settings with value and required flag
+     * @param Uuid                                                $uuid            Application installation UUID
+     * @param array<string, array{value: string, required: bool}> $defaultSettings Settings with value and required flag
      */
     public function createDefaultSettings(
-        Uuid $applicationInstallationId,
+        Uuid $uuid,
         array $defaultSettings
     ): void {
         $this->logger->info('InstallSettings.createDefaultSettings.start', [
-            'applicationInstallationId' => $applicationInstallationId->toRfc4122(),
+            'applicationInstallationId' => $uuid->toRfc4122(),
             'settingsCount' => count($defaultSettings),
         ]);
 
         foreach ($defaultSettings as $key => $config) {
             // Use Set UseCase to create or update setting
             $command = new Command(
-                applicationInstallationId: $applicationInstallationId,
+                applicationInstallationId: $uuid,
                 key: $key,
                 value: $config['value'],
                 isRequired: $config['required']
@@ -55,7 +55,7 @@ readonly class InstallSettings
         }
 
         $this->logger->info('InstallSettings.createDefaultSettings.finish', [
-            'applicationInstallationId' => $applicationInstallationId->toRfc4122(),
+            'applicationInstallationId' => $uuid->toRfc4122(),
         ]);
     }
 }

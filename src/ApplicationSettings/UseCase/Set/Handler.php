@@ -42,7 +42,7 @@ readonly class Handler
             $command->b24DepartmentId
         );
 
-        if (null !== $setting) {
+        if ($setting instanceof ApplicationSettingInterface) {
             // Update existing setting
             $setting->updateValue($command->value, $command->changedByBitrix24UserId);
             $this->logger->debug('ApplicationSettings.Set.updated', [

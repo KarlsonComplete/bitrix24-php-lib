@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bitrix24\Lib\ApplicationSettings\UseCase\Delete;
 
+use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingInterface;
 use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingRepositoryInterface;
 use Bitrix24\Lib\Services\Flusher;
 use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
@@ -34,7 +35,7 @@ readonly class Handler
             $command->key
         );
 
-        if (null === $setting) {
+        if (!$setting instanceof ApplicationSettingInterface) {
             throw new InvalidArgumentException(
                 sprintf(
                     'Setting with key "%s" not found for application installation "%s"',

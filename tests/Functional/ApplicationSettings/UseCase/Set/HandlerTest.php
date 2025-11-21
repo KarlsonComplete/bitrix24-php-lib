@@ -22,8 +22,10 @@ use Symfony\Component\Uid\Uuid;
 class HandlerTest extends TestCase
 {
     private Handler $handler;
+
     private ApplicationSettingRepository $repository;
 
+    #[\Override]
     protected function setUp(): void
     {
         $entityManager = EntityManagerFactory::get();
@@ -40,9 +42,9 @@ class HandlerTest extends TestCase
 
     public function testCanCreateNewSetting(): void
     {
-        $applicationInstallationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
         $command = new Command(
-            $applicationInstallationId,
+            $uuidV7,
             'new.setting',
             '{"test":"value"}'
         );
@@ -52,7 +54,7 @@ class HandlerTest extends TestCase
         EntityManagerFactory::get()->clear();
 
         $setting = $this->repository->findGlobalByKey(
-            $applicationInstallationId,
+            $uuidV7,
             'new.setting'
         );
 
@@ -63,11 +65,11 @@ class HandlerTest extends TestCase
 
     public function testCanUpdateExistingSetting(): void
     {
-        $applicationInstallationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
 
         // Create initial setting
         $createCommand = new Command(
-            $applicationInstallationId,
+            $uuidV7,
             'update.test',
             'initial_value'
         );
@@ -76,7 +78,7 @@ class HandlerTest extends TestCase
 
         // Update the setting
         $updateCommand = new Command(
-            $applicationInstallationId,
+            $uuidV7,
             'update.test',
             'updated_value'
         );
@@ -85,7 +87,7 @@ class HandlerTest extends TestCase
 
         // Verify update
         $setting = $this->repository->findGlobalByKey(
-            $applicationInstallationId,
+            $uuidV7,
             'update.test'
         );
 
@@ -95,16 +97,16 @@ class HandlerTest extends TestCase
 
     public function testMultipleSettingsForSameInstallation(): void
     {
-        $applicationInstallationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
 
-        $command1 = new Command($applicationInstallationId, 'setting1', 'value1');
-        $command2 = new Command($applicationInstallationId, 'setting2', 'value2');
+        $command1 = new Command($uuidV7, 'setting1', 'value1');
+        $command2 = new Command($uuidV7, 'setting2', 'value2');
 
         $this->handler->handle($command1);
         $this->handler->handle($command2);
         EntityManagerFactory::get()->clear();
 
-        $settings = $this->repository->findByApplicationInstallationId($applicationInstallationId);
+        $settings = $this->repository->findByApplicationInstallationId($uuidV7);
 
         $this->assertCount(2, $settings);
     }

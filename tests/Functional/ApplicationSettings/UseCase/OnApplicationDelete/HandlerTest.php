@@ -24,8 +24,10 @@ use Symfony\Component\Uid\Uuid;
 class HandlerTest extends TestCase
 {
     private Handler $handler;
+
     private ApplicationSettingRepository $repository;
 
+    #[\Override]
     protected function setUp(): void
     {
         $entityManager = EntityManagerFactory::get();
@@ -42,12 +44,12 @@ class HandlerTest extends TestCase
 
     public function testCanSoftDeleteAllSettingsForInstallation(): void
     {
-        $applicationInstallationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
 
         // Create multiple settings
         $setting1 = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'setting1',
             'value1',
             false
@@ -55,7 +57,7 @@ class HandlerTest extends TestCase
 
         $setting2 = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'setting2',
             'value2',
             false
@@ -63,7 +65,7 @@ class HandlerTest extends TestCase
 
         $setting3 = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'setting3',
             'value3',
             true // required
@@ -76,13 +78,13 @@ class HandlerTest extends TestCase
         EntityManagerFactory::get()->clear();
 
         // Execute soft-delete
-        $command = new Command($applicationInstallationId);
+        $command = new Command($uuidV7);
         $this->handler->handle($command);
 
         EntityManagerFactory::get()->clear();
 
         // Settings should not be found by regular find methods
-        $activeSettings = $this->repository->findAllForInstallation($applicationInstallationId);
+        $activeSettings = $this->repository->findAllForInstallation($uuidV7);
         $this->assertCount(0, $activeSettings);
 
         // But should still exist in database with deleted status
@@ -91,26 +93,26 @@ class HandlerTest extends TestCase
             ->select('s')
             ->from(ApplicationSetting::class, 's')
             ->where('s.applicationInstallationId = :appId')
-            ->setParameter('appId', $applicationInstallationId)
+            ->setParameter('appId', $uuidV7)
             ->getQuery()
             ->getResult();
 
         $this->assertCount(3, $allSettings);
 
-        foreach ($allSettings as $setting) {
-            $this->assertFalse($setting->isActive());
+        foreach ($allSettings as $allSetting) {
+            $this->assertFalse($allSetting->isActive());
         }
     }
 
     public function testDoesNotAffectOtherInstallations(): void
     {
-        $installation1 = Uuid::v7();
+        $uuidV7 = Uuid::v7();
         $installation2 = Uuid::v7();
 
         // Create settings for two installations
         $setting1 = new ApplicationSetting(
             Uuid::v7(),
-            $installation1,
+            $uuidV7,
             'setting',
             'value1',
             false
@@ -130,13 +132,13 @@ class HandlerTest extends TestCase
         EntityManagerFactory::get()->clear();
 
         // Delete only first installation settings
-        $command = new Command($installation1);
+        $command = new Command($uuidV7);
         $this->handler->handle($command);
 
         EntityManagerFactory::get()->clear();
 
         // First installation settings should be soft-deleted
-        $installation1Settings = $this->repository->findAllForInstallation($installation1);
+        $installation1Settings = $this->repository->findAllForInstallation($uuidV7);
         $this->assertCount(0, $installation1Settings);
 
         // Second installation settings should remain active
@@ -147,12 +149,12 @@ class HandlerTest extends TestCase
 
     public function testOnlyDeletesActiveSettings(): void
     {
-        $applicationInstallationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
 
         // Create active and already deleted settings
         $activeSetting = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'active',
             'value',
             false
@@ -160,7 +162,7 @@ class HandlerTest extends TestCase
 
         $deletedSetting = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'deleted',
             'value',
             false,
@@ -178,7 +180,7 @@ class HandlerTest extends TestCase
         EntityManagerFactory::get()->clear();
 
         // Execute soft-delete
-        $command = new Command($applicationInstallationId);
+        $command = new Command($uuidV7);
         $this->handler->handle($command);
 
         EntityManagerFactory::get()->clear();

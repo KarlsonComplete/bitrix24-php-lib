@@ -19,28 +19,28 @@ class ApplicationSettingTest extends TestCase
 {
     public function testCanCreateGlobalSetting(): void
     {
-        $id = Uuid::v7();
+        $uuidV7 = Uuid::v7();
         $applicationInstallationId = Uuid::v7();
         $key = 'test.setting.key';
         $value = '{"foo":"bar"}';
 
-        $setting = new ApplicationSetting($id, $applicationInstallationId, $key, $value, false);
+        $applicationSetting = new ApplicationSetting($uuidV7, $applicationInstallationId, $key, $value, false);
 
-        $this->assertEquals($id, $setting->getId());
-        $this->assertEquals($applicationInstallationId, $setting->getApplicationInstallationId());
-        $this->assertEquals($key, $setting->getKey());
-        $this->assertEquals($value, $setting->getValue());
-        $this->assertNull($setting->getB24UserId());
-        $this->assertNull($setting->getB24DepartmentId());
-        $this->assertTrue($setting->isGlobal());
-        $this->assertFalse($setting->isPersonal());
-        $this->assertFalse($setting->isDepartmental());
-        $this->assertFalse($setting->isRequired());
+        $this->assertEquals($uuidV7, $applicationSetting->getId());
+        $this->assertEquals($applicationInstallationId, $applicationSetting->getApplicationInstallationId());
+        $this->assertEquals($key, $applicationSetting->getKey());
+        $this->assertEquals($value, $applicationSetting->getValue());
+        $this->assertNull($applicationSetting->getB24UserId());
+        $this->assertNull($applicationSetting->getB24DepartmentId());
+        $this->assertTrue($applicationSetting->isGlobal());
+        $this->assertFalse($applicationSetting->isPersonal());
+        $this->assertFalse($applicationSetting->isDepartmental());
+        $this->assertFalse($applicationSetting->isRequired());
     }
 
     public function testCanCreatePersonalSetting(): void
     {
-        $setting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSetting(
             Uuid::v7(),
             Uuid::v7(),
             'user.preference',
@@ -49,16 +49,16 @@ class ApplicationSettingTest extends TestCase
             123 // b24UserId
         );
 
-        $this->assertEquals(123, $setting->getB24UserId());
-        $this->assertNull($setting->getB24DepartmentId());
-        $this->assertFalse($setting->isGlobal());
-        $this->assertTrue($setting->isPersonal());
-        $this->assertFalse($setting->isDepartmental());
+        $this->assertEquals(123, $applicationSetting->getB24UserId());
+        $this->assertNull($applicationSetting->getB24DepartmentId());
+        $this->assertFalse($applicationSetting->isGlobal());
+        $this->assertTrue($applicationSetting->isPersonal());
+        $this->assertFalse($applicationSetting->isDepartmental());
     }
 
     public function testCanCreateDepartmentalSetting(): void
     {
-        $setting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSetting(
             Uuid::v7(),
             Uuid::v7(),
             'dept.config',
@@ -68,11 +68,11 @@ class ApplicationSettingTest extends TestCase
             456    // b24DepartmentId
         );
 
-        $this->assertNull($setting->getB24UserId());
-        $this->assertEquals(456, $setting->getB24DepartmentId());
-        $this->assertFalse($setting->isGlobal());
-        $this->assertFalse($setting->isPersonal());
-        $this->assertTrue($setting->isDepartmental());
+        $this->assertNull($applicationSetting->getB24UserId());
+        $this->assertEquals(456, $applicationSetting->getB24DepartmentId());
+        $this->assertFalse($applicationSetting->isGlobal());
+        $this->assertFalse($applicationSetting->isPersonal());
+        $this->assertTrue($applicationSetting->isDepartmental());
     }
 
     public function testCannotCreateSettingWithBothUserAndDepartment(): void
@@ -93,7 +93,7 @@ class ApplicationSettingTest extends TestCase
 
     public function testCanUpdateValue(): void
     {
-        $setting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSetting(
             Uuid::v7(),
             Uuid::v7(),
             'test.key',
@@ -101,18 +101,15 @@ class ApplicationSettingTest extends TestCase
             false
         );
 
-        $initialUpdatedAt = $setting->getUpdatedAt();
+        $initialUpdatedAt = $applicationSetting->getUpdatedAt();
         usleep(1000);
 
-        $setting->updateValue('new.value');
+        $applicationSetting->updateValue('new.value');
 
-        $this->assertEquals('new.value', $setting->getValue());
-        $this->assertGreaterThan($initialUpdatedAt, $setting->getUpdatedAt());
+        $this->assertEquals('new.value', $applicationSetting->getValue());
+        $this->assertGreaterThan($initialUpdatedAt, $applicationSetting->getUpdatedAt());
     }
 
-    /**
-     * @param string $invalidKey
-     */
     #[DataProvider('invalidKeyProvider')]
     public function testThrowsExceptionForInvalidKey(string $invalidKey): void
     {
@@ -145,13 +142,10 @@ class ApplicationSettingTest extends TestCase
         ];
     }
 
-    /**
-     * @param string $validKey
-     */
     #[DataProvider('validKeyProvider')]
     public function testAcceptsValidKeys(string $validKey): void
     {
-        $setting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSetting(
             Uuid::v7(),
             Uuid::v7(),
             $validKey,
@@ -159,7 +153,7 @@ class ApplicationSettingTest extends TestCase
             false
         );
 
-        $this->assertEquals($validKey, $setting->getKey());
+        $this->assertEquals($validKey, $applicationSetting->getKey());
     }
 
     /**
@@ -224,7 +218,7 @@ class ApplicationSettingTest extends TestCase
 
     public function testCanCreateRequiredSetting(): void
     {
-        $setting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSetting(
             Uuid::v7(),
             Uuid::v7(),
             'required.setting',
@@ -232,12 +226,12 @@ class ApplicationSettingTest extends TestCase
             true // isRequired
         );
 
-        $this->assertTrue($setting->isRequired());
+        $this->assertTrue($applicationSetting->isRequired());
     }
 
     public function testCanTrackWhoChangedSetting(): void
     {
-        $setting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSetting(
             Uuid::v7(),
             Uuid::v7(),
             'tracking.test',
@@ -248,18 +242,18 @@ class ApplicationSettingTest extends TestCase
             123 // changedByBitrix24UserId
         );
 
-        $this->assertEquals(123, $setting->getChangedByBitrix24UserId());
+        $this->assertEquals(123, $applicationSetting->getChangedByBitrix24UserId());
 
         // Update value with different user
-        $setting->updateValue('new.value', 456);
+        $applicationSetting->updateValue('new.value', 456);
 
-        $this->assertEquals(456, $setting->getChangedByBitrix24UserId());
-        $this->assertEquals('new.value', $setting->getValue());
+        $this->assertEquals(456, $applicationSetting->getChangedByBitrix24UserId());
+        $this->assertEquals('new.value', $applicationSetting->getValue());
     }
 
     public function testDefaultStatusIsActive(): void
     {
-        $setting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSetting(
             Uuid::v7(),
             Uuid::v7(),
             'status.test',
@@ -267,12 +261,12 @@ class ApplicationSettingTest extends TestCase
             false
         );
 
-        $this->assertTrue($setting->isActive());
+        $this->assertTrue($applicationSetting->isActive());
     }
 
     public function testCanMarkAsDeleted(): void
     {
-        $setting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSetting(
             Uuid::v7(),
             Uuid::v7(),
             'delete.test',
@@ -280,19 +274,19 @@ class ApplicationSettingTest extends TestCase
             false
         );
 
-        $this->assertTrue($setting->isActive());
+        $this->assertTrue($applicationSetting->isActive());
 
-        $initialUpdatedAt = $setting->getUpdatedAt();
+        $initialUpdatedAt = $applicationSetting->getUpdatedAt();
         usleep(1000);
-        $setting->markAsDeleted();
+        $applicationSetting->markAsDeleted();
 
-        $this->assertFalse($setting->isActive());
-        $this->assertGreaterThan($initialUpdatedAt, $setting->getUpdatedAt());
+        $this->assertFalse($applicationSetting->isActive());
+        $this->assertGreaterThan($initialUpdatedAt, $applicationSetting->getUpdatedAt());
     }
 
     public function testMarkAsDeletedIsIdempotent(): void
     {
-        $setting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSetting(
             Uuid::v7(),
             Uuid::v7(),
             'idempotent.test',
@@ -300,12 +294,13 @@ class ApplicationSettingTest extends TestCase
             false
         );
 
-        $setting->markAsDeleted();
-        $firstUpdatedAt = $setting->getUpdatedAt();
+        $applicationSetting->markAsDeleted();
+
+        $firstUpdatedAt = $applicationSetting->getUpdatedAt();
 
         usleep(1000);
-        $setting->markAsDeleted(); // Second call should not change updatedAt
+        $applicationSetting->markAsDeleted(); // Second call should not change updatedAt
 
-        $this->assertEquals($firstUpdatedAt, $setting->getUpdatedAt());
+        $this->assertEquals($firstUpdatedAt, $applicationSetting->getUpdatedAt());
     }
 }

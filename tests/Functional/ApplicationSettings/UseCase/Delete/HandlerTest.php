@@ -24,8 +24,10 @@ use Symfony\Component\Uid\Uuid;
 class HandlerTest extends TestCase
 {
     private Handler $handler;
+
     private ApplicationSettingRepository $repository;
 
+    #[\Override]
     protected function setUp(): void
     {
         $entityManager = EntityManagerFactory::get();
@@ -42,27 +44,27 @@ class HandlerTest extends TestCase
 
     public function testCanDeleteExistingSetting(): void
     {
-        $applicationInstallationId = Uuid::v7();
-        $setting = new ApplicationSetting(
+        $uuidV7 = Uuid::v7();
+        $applicationSetting = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'delete.test',
             'value',
             false
         );
 
-        $this->repository->save($setting);
+        $this->repository->save($applicationSetting);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
-        $command = new Command($applicationInstallationId, 'delete.test');
+        $command = new Command($uuidV7, 'delete.test');
         $this->handler->handle($command);
 
         EntityManagerFactory::get()->clear();
 
         // Setting should not be found by regular find methods (soft-deleted)
         $deletedSetting = $this->repository->findGlobalByKey(
-            $applicationInstallationId,
+            $uuidV7,
             'delete.test'
         );
 
@@ -75,7 +77,7 @@ class HandlerTest extends TestCase
             ->from(\Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSetting::class, 's')
             ->where('s.applicationInstallationId = :appId')
             ->andWhere('s.key = :key')
-            ->setParameter('appId', $applicationInstallationId)
+            ->setParameter('appId', $uuidV7)
             ->setParameter('key', 'delete.test')
             ->getQuery()
             ->getOneOrNullResult();

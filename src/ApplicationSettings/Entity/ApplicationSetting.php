@@ -22,58 +22,58 @@ use Symfony\Component\Uid\Uuid;
 class ApplicationSetting extends AggregateRoot implements ApplicationSettingInterface
 {
     private readonly CarbonImmutable $createdAt;
+
     private CarbonImmutable $updatedAt;
-    private string $value;
-    private ?int $changedByBitrix24UserId = null;
-    private ApplicationSettingStatus $status;
 
     public function __construct(
         private readonly Uuid $id,
         private readonly Uuid $applicationInstallationId,
         private readonly string $key,
-        string $value,
+        private string $value,
         private readonly bool $isRequired = false,
         private readonly ?int $b24UserId = null,
         private readonly ?int $b24DepartmentId = null,
-        ?int $changedByBitrix24UserId = null,
-        ApplicationSettingStatus $status = ApplicationSettingStatus::Active
+        private ?int $changedByBitrix24UserId = null,
+        private ApplicationSettingStatus $status = ApplicationSettingStatus::Active
     ) {
         $this->validateKey($key);
-        $this->validateValue($value);
+        $this->validateValue();
         $this->validateScope($b24UserId, $b24DepartmentId);
-
-        $this->value = $value;
-        $this->changedByBitrix24UserId = $changedByBitrix24UserId;
-        $this->status = $status;
         $this->createdAt = new CarbonImmutable();
         $this->updatedAt = new CarbonImmutable();
     }
 
+    #[\Override]
     public function getId(): Uuid
     {
         return $this->id;
     }
 
+    #[\Override]
     public function getApplicationInstallationId(): Uuid
     {
         return $this->applicationInstallationId;
     }
 
+    #[\Override]
     public function getKey(): string
     {
         return $this->key;
     }
 
+    #[\Override]
     public function getValue(): string
     {
         return $this->value;
     }
 
+    #[\Override]
     public function getCreatedAt(): CarbonImmutable
     {
         return $this->createdAt;
     }
 
+    #[\Override]
     public function getUpdatedAt(): CarbonImmutable
     {
         return $this->updatedAt;
@@ -129,7 +129,7 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
     #[\Override]
     public function updateValue(string $value, ?int $changedByBitrix24UserId = null): void
     {
-        $this->validateValue($value);
+        $this->validateValue();
 
         if ($this->value !== $value) {
             $oldValue = $this->value;
@@ -191,7 +191,7 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
         }
 
         // Key should contain only lowercase latin letters and dots
-        if (!preg_match('/^[a-z.]+$/', $key)) {
+        if (in_array(preg_match('/^[a-z.]+$/', $key), [0, false], true)) {
             throw new InvalidArgumentException(
                 'Setting key can only contain lowercase latin letters and dots'
             );
@@ -222,7 +222,7 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
     /**
      * Validate setting value.
      */
-    private function validateValue(string $value): void
+    private function validateValue(): void
     {
         // Value can be empty but not null (handled by type hint)
         // We store value as string, could be JSON or plain text

@@ -27,19 +27,19 @@ interface ApplicationSettingRepositoryInterface
     /**
      * Find setting by ID.
      */
-    public function findById(Uuid $id): ?ApplicationSettingInterface;
+    public function findById(Uuid $uuid): ?ApplicationSettingInterface;
 
     /**
      * Find global setting by key
      * Returns setting that is not tied to user or department.
      */
-    public function findGlobalByKey(Uuid $applicationInstallationId, string $key): ?ApplicationSettingInterface;
+    public function findGlobalByKey(Uuid $uuid, string $key): ?ApplicationSettingInterface;
 
     /**
      * Find personal setting by key and user ID.
      */
     public function findPersonalByKey(
-        Uuid $applicationInstallationId,
+        Uuid $uuid,
         string $key,
         int $b24UserId
     ): ?ApplicationSettingInterface;
@@ -48,7 +48,7 @@ interface ApplicationSettingRepositoryInterface
      * Find departmental setting by key and department ID.
      */
     public function findDepartmentalByKey(
-        Uuid $applicationInstallationId,
+        Uuid $uuid,
         string $key,
         int $b24DepartmentId
     ): ?ApplicationSettingInterface;
@@ -58,7 +58,7 @@ interface ApplicationSettingRepositoryInterface
      * Provides flexible search based on scope.
      */
     public function findByKey(
-        Uuid $applicationInstallationId,
+        Uuid $uuid,
         string $key,
         ?int $b24UserId = null,
         ?int $b24DepartmentId = null
@@ -69,33 +69,33 @@ interface ApplicationSettingRepositoryInterface
      *
      * @return ApplicationSettingInterface[]
      */
-    public function findAllGlobal(Uuid $applicationInstallationId): array;
+    public function findAllGlobal(Uuid $uuid): array;
 
     /**
      * Find all personal settings for specific user.
      *
      * @return ApplicationSettingInterface[]
      */
-    public function findAllPersonal(Uuid $applicationInstallationId, int $b24UserId): array;
+    public function findAllPersonal(Uuid $uuid, int $b24UserId): array;
 
     /**
      * Find all departmental settings for specific department.
      *
      * @return ApplicationSettingInterface[]
      */
-    public function findAllDepartmental(Uuid $applicationInstallationId, int $b24DepartmentId): array;
+    public function findAllDepartmental(Uuid $uuid, int $b24DepartmentId): array;
 
     /**
      * Find all settings for application installation (all scopes).
      *
      * @return ApplicationSettingInterface[]
      */
-    public function findAllForInstallation(Uuid $applicationInstallationId): array;
+    public function findAllForInstallation(Uuid $uuid): array;
 
     /**
      * Delete all settings for application installation.
      */
-    public function deleteByApplicationInstallationId(Uuid $applicationInstallationId): void;
+    public function deleteByApplicationInstallationId(Uuid $uuid): void;
 
     /**
      * Find all settings for application installation ID (alias for findAllForInstallation).
@@ -104,5 +104,5 @@ interface ApplicationSettingRepositoryInterface
      *
      * @return ApplicationSettingInterface[]
      */
-    public function findByApplicationInstallationId(Uuid $applicationInstallationId): array;
+    public function findByApplicationInstallationId(Uuid $uuid): array;
 }

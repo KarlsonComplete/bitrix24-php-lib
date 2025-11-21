@@ -19,6 +19,7 @@ class ApplicationSettingRepositoryTest extends TestCase
 {
     private ApplicationSettingRepository $repository;
 
+    #[\Override]
     protected function setUp(): void
     {
         $entityManager = EntityManagerFactory::get();
@@ -27,47 +28,47 @@ class ApplicationSettingRepositoryTest extends TestCase
 
     public function testCanSaveAndFindById(): void
     {
-        $id = Uuid::v7();
+        $uuidV7 = Uuid::v7();
         $applicationInstallationId = Uuid::v7();
 
-        $setting = new ApplicationSetting(
-            $id,
+        $applicationSetting = new ApplicationSetting(
+            $uuidV7,
             $applicationInstallationId,
             'test.key',
             'test_value',
             false
         );
 
-        $this->repository->save($setting);
+        $this->repository->save($applicationSetting);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
-        $foundSetting = $this->repository->findById($id);
+        $foundSetting = $this->repository->findById($uuidV7);
 
         $this->assertNotNull($foundSetting);
-        $this->assertEquals($id->toRfc4122(), $foundSetting->getId()->toRfc4122());
+        $this->assertEquals($uuidV7->toRfc4122(), $foundSetting->getId()->toRfc4122());
         $this->assertEquals('test.key', $foundSetting->getKey());
         $this->assertEquals('test_value', $foundSetting->getValue());
     }
 
     public function testCanFindByApplicationInstallationIdAndKey(): void
     {
-        $applicationInstallationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
 
-        $setting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'find.by.key',
             'value123',
             false
         );
 
-        $this->repository->save($setting);
+        $this->repository->save($applicationSetting);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
         $foundSetting = $this->repository->findGlobalByKey(
-            $applicationInstallationId,
+            $uuidV7,
             'find.by.key'
         );
 
@@ -88,11 +89,11 @@ class ApplicationSettingRepositoryTest extends TestCase
 
     public function testCanFindAllByApplicationInstallationId(): void
     {
-        $applicationInstallationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
 
         $setting1 = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'key1',
             'value1',
             false
@@ -100,7 +101,7 @@ class ApplicationSettingRepositoryTest extends TestCase
 
         $setting2 = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'key2',
             'value2',
             false
@@ -120,7 +121,7 @@ class ApplicationSettingRepositoryTest extends TestCase
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
-        $settings = $this->repository->findByApplicationInstallationId($applicationInstallationId);
+        $settings = $this->repository->findByApplicationInstallationId($uuidV7);
 
         $this->assertCount(2, $settings);
         $this->assertEquals('key1', $settings[0]->getKey());
@@ -129,33 +130,33 @@ class ApplicationSettingRepositoryTest extends TestCase
 
     public function testCanDeleteSetting(): void
     {
-        $id = Uuid::v7();
-        $setting = new ApplicationSetting(
-            $id,
+        $uuidV7 = Uuid::v7();
+        $applicationSetting = new ApplicationSetting(
+            $uuidV7,
             Uuid::v7(),
             'delete.test',
             'value',
             false
         );
 
-        $this->repository->save($setting);
+        $this->repository->save($applicationSetting);
         EntityManagerFactory::get()->flush();
 
-        $this->repository->delete($setting);
+        $this->repository->delete($applicationSetting);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
-        $foundSetting = $this->repository->findById($id);
+        $foundSetting = $this->repository->findById($uuidV7);
         $this->assertNull($foundSetting);
     }
 
     public function testCanDeleteAllByApplicationInstallationId(): void
     {
-        $applicationInstallationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
 
         $setting1 = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'bulk.delete.1',
             'value1',
             false
@@ -163,7 +164,7 @@ class ApplicationSettingRepositoryTest extends TestCase
 
         $setting2 = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'bulk.delete.2',
             'value2',
             false
@@ -173,21 +174,21 @@ class ApplicationSettingRepositoryTest extends TestCase
         $this->repository->save($setting2);
         EntityManagerFactory::get()->flush();
 
-        $this->repository->deleteByApplicationInstallationId($applicationInstallationId);
+        $this->repository->deleteByApplicationInstallationId($uuidV7);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
-        $settings = $this->repository->findByApplicationInstallationId($applicationInstallationId);
+        $settings = $this->repository->findByApplicationInstallationId($uuidV7);
         $this->assertCount(0, $settings);
     }
 
     public function testUniqueConstraintOnApplicationInstallationIdAndKey(): void
     {
-        $applicationInstallationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
 
         $setting1 = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'unique.key',
             'value1',
             false
@@ -195,7 +196,7 @@ class ApplicationSettingRepositoryTest extends TestCase
 
         $setting2 = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'unique.key', // Same key
             'value2',
             false
@@ -212,24 +213,24 @@ class ApplicationSettingRepositoryTest extends TestCase
 
     public function testCanFindPersonalSettingByKey(): void
     {
-        $applicationInstallationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
         $userId = 123;
 
-        $personalSetting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'personal.key',
             'personal_value',
             false,
             $userId
         );
 
-        $this->repository->save($personalSetting);
+        $this->repository->save($applicationSetting);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
         $foundSetting = $this->repository->findPersonalByKey(
-            $applicationInstallationId,
+            $uuidV7,
             'personal.key',
             $userId
         );
@@ -243,12 +244,12 @@ class ApplicationSettingRepositoryTest extends TestCase
 
     public function testCanFindDepartmentalSettingByKey(): void
     {
-        $applicationInstallationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
         $departmentId = 456;
 
-        $departmentalSetting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'dept.key',
             'dept_value',
             false,
@@ -256,12 +257,12 @@ class ApplicationSettingRepositoryTest extends TestCase
             $departmentId
         );
 
-        $this->repository->save($departmentalSetting);
+        $this->repository->save($applicationSetting);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
         $foundSetting = $this->repository->findDepartmentalByKey(
-            $applicationInstallationId,
+            $uuidV7,
             'dept.key',
             $departmentId
         );
@@ -275,11 +276,11 @@ class ApplicationSettingRepositoryTest extends TestCase
 
     public function testCanFindAllGlobalSettings(): void
     {
-        $applicationInstallationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
 
         $globalSetting1 = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'global.key1',
             'value1',
             false
@@ -287,7 +288,7 @@ class ApplicationSettingRepositoryTest extends TestCase
 
         $globalSetting2 = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'global.key2',
             'value2',
             false
@@ -295,7 +296,7 @@ class ApplicationSettingRepositoryTest extends TestCase
 
         $personalSetting = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'personal.key',
             'value',
             false,
@@ -308,22 +309,22 @@ class ApplicationSettingRepositoryTest extends TestCase
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
-        $globalSettings = $this->repository->findAllGlobal($applicationInstallationId);
+        $globalSettings = $this->repository->findAllGlobal($uuidV7);
 
         $this->assertCount(2, $globalSettings);
-        foreach ($globalSettings as $setting) {
-            $this->assertTrue($setting->isGlobal());
+        foreach ($globalSettings as $globalSetting) {
+            $this->assertTrue($globalSetting->isGlobal());
         }
     }
 
     public function testCanFindAllPersonalSettings(): void
     {
-        $applicationInstallationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
         $userId = 123;
 
         $personalSetting1 = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'personal.key1',
             'value1',
             false,
@@ -332,7 +333,7 @@ class ApplicationSettingRepositoryTest extends TestCase
 
         $personalSetting2 = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'personal.key2',
             'value2',
             false,
@@ -341,7 +342,7 @@ class ApplicationSettingRepositoryTest extends TestCase
 
         $globalSetting = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'global.key',
             'value',
             false
@@ -353,23 +354,23 @@ class ApplicationSettingRepositoryTest extends TestCase
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
-        $personalSettings = $this->repository->findAllPersonal($applicationInstallationId, $userId);
+        $personalSettings = $this->repository->findAllPersonal($uuidV7, $userId);
 
         $this->assertCount(2, $personalSettings);
-        foreach ($personalSettings as $setting) {
-            $this->assertTrue($setting->isPersonal());
-            $this->assertEquals($userId, $setting->getB24UserId());
+        foreach ($personalSettings as $personalSetting) {
+            $this->assertTrue($personalSetting->isPersonal());
+            $this->assertEquals($userId, $personalSetting->getB24UserId());
         }
     }
 
     public function testCanFindAllDepartmentalSettings(): void
     {
-        $applicationInstallationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
         $departmentId = 456;
 
         $deptSetting1 = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'dept.key1',
             'value1',
             false,
@@ -379,7 +380,7 @@ class ApplicationSettingRepositoryTest extends TestCase
 
         $deptSetting2 = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'dept.key2',
             'value2',
             false,
@@ -389,7 +390,7 @@ class ApplicationSettingRepositoryTest extends TestCase
 
         $globalSetting = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'global.key',
             'value',
             false
@@ -401,22 +402,22 @@ class ApplicationSettingRepositoryTest extends TestCase
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
-        $deptSettings = $this->repository->findAllDepartmental($applicationInstallationId, $departmentId);
+        $deptSettings = $this->repository->findAllDepartmental($uuidV7, $departmentId);
 
         $this->assertCount(2, $deptSettings);
-        foreach ($deptSettings as $setting) {
-            $this->assertTrue($setting->isDepartmental());
-            $this->assertEquals($departmentId, $setting->getB24DepartmentId());
+        foreach ($deptSettings as $deptSetting) {
+            $this->assertTrue($deptSetting->isDepartmental());
+            $this->assertEquals($departmentId, $deptSetting->getB24DepartmentId());
         }
     }
 
     public function testSoftDeletedSettingsAreNotReturnedByFindMethods(): void
     {
-        $applicationInstallationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
 
         $activeSetting = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'active.key',
             'active_value',
             false
@@ -424,7 +425,7 @@ class ApplicationSettingRepositoryTest extends TestCase
 
         $deletedSetting = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'deleted.key',
             'deleted_value',
             false
@@ -440,12 +441,12 @@ class ApplicationSettingRepositoryTest extends TestCase
         EntityManagerFactory::get()->clear();
 
         // Find all should only return active
-        $allSettings = $this->repository->findAllForInstallation($applicationInstallationId);
+        $allSettings = $this->repository->findAllForInstallation($uuidV7);
         $this->assertCount(1, $allSettings);
         $this->assertEquals('active.key', $allSettings[0]->getKey());
 
         // Find by key should not return deleted
-        $foundDeleted = $this->repository->findGlobalByKey($applicationInstallationId, 'deleted.key');
+        $foundDeleted = $this->repository->findGlobalByKey($uuidV7, 'deleted.key');
         $this->assertNull($foundDeleted);
 
         // Find by ID should not return deleted
@@ -455,14 +456,14 @@ class ApplicationSettingRepositoryTest extends TestCase
 
     public function testFindByKeySeparatesScopes(): void
     {
-        $applicationInstallationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
         $userId = 123;
         $departmentId = 456;
 
         // Same key, different scopes
         $globalSetting = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'same.key',
             'global_value',
             false
@@ -470,7 +471,7 @@ class ApplicationSettingRepositoryTest extends TestCase
 
         $personalSetting = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'same.key',
             'personal_value',
             false,
@@ -479,7 +480,7 @@ class ApplicationSettingRepositoryTest extends TestCase
 
         $deptSetting = new ApplicationSetting(
             Uuid::v7(),
-            $applicationInstallationId,
+            $uuidV7,
             'same.key',
             'dept_value',
             false,
@@ -494,9 +495,9 @@ class ApplicationSettingRepositoryTest extends TestCase
         EntityManagerFactory::get()->clear();
 
         // Each scope should return its own setting
-        $foundGlobal = $this->repository->findGlobalByKey($applicationInstallationId, 'same.key');
-        $foundPersonal = $this->repository->findPersonalByKey($applicationInstallationId, 'same.key', $userId);
-        $foundDept = $this->repository->findDepartmentalByKey($applicationInstallationId, 'same.key', $departmentId);
+        $foundGlobal = $this->repository->findGlobalByKey($uuidV7, 'same.key');
+        $foundPersonal = $this->repository->findPersonalByKey($uuidV7, 'same.key', $userId);
+        $foundDept = $this->repository->findDepartmentalByKey($uuidV7, 'same.key', $departmentId);
 
         $this->assertNotNull($foundGlobal);
         $this->assertEquals('global_value', $foundGlobal->getValue());

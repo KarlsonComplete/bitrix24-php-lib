@@ -90,15 +90,15 @@ HELP
     #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
+        $symfonyStyle = new SymfonyStyle($input, $output);
 
         /** @var string $installationIdString */
         $installationIdString = $input->getArgument('installation-id');
 
         try {
             $installationId = Uuid::fromString($installationIdString);
-        } catch (\InvalidArgumentException $e) {
-            $io->error('Invalid Installation ID format. Expected UUID.');
+        } catch (\InvalidArgumentException) {
+            $symfonyStyle->error('Invalid Installation ID format. Expected UUID.');
 
             return Command::FAILURE;
         }
@@ -115,13 +115,13 @@ HELP
 
         // Validate options
         if ($userId && $departmentId) {
-            $io->error('Cannot specify both --user-id and --department-id');
+            $symfonyStyle->error('Cannot specify both --user-id and --department-id');
 
             return Command::FAILURE;
         }
 
         if ($globalOnly && ($userId || $departmentId)) {
-            $io->error('Cannot use --global-only with --user-id or --department-id');
+            $symfonyStyle->error('Cannot use --global-only with --user-id or --department-id');
 
             return Command::FAILURE;
         }
@@ -139,11 +139,11 @@ HELP
         }
 
         // Display results
-        $io->title(sprintf('Application Settings - %s', $scope));
-        $io->text(sprintf('Installation ID: %s', $installationId->toRfc4122()));
+        $symfonyStyle->title(sprintf('Application Settings - %s', $scope));
+        $symfonyStyle->text(sprintf('Installation ID: %s', $installationId->toRfc4122()));
 
-        if (empty($settings)) {
-            $io->warning('No settings found.');
+        if ([] === $settings) {
+            $symfonyStyle->warning('No settings found.');
 
             return Command::SUCCESS;
         }
@@ -171,7 +171,7 @@ HELP
 
         $table->render();
 
-        $io->success(sprintf('Found %d setting(s)', count($settings)));
+        $symfonyStyle->success(sprintf('Found %d setting(s)', count($settings)));
 
         return Command::SUCCESS;
     }

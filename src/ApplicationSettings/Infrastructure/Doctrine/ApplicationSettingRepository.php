@@ -36,14 +36,14 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
     }
 
     #[\Override]
-    public function findById(Uuid $id): ?ApplicationSettingInterface
+    public function findById(Uuid $uuid): ?ApplicationSettingInterface
     {
         return $this->getEntityManager()
             ->getRepository(ApplicationSetting::class)
             ->createQueryBuilder('s')
             ->where('s.id = :id')
             ->andWhere('s.status = :status')
-            ->setParameter('id', $id)
+            ->setParameter('id', $uuid)
             ->setParameter('status', ApplicationSettingStatus::Active)
             ->getQuery()
             ->getOneOrNullResult()
@@ -51,7 +51,7 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
     }
 
     #[\Override]
-    public function findGlobalByKey(Uuid $applicationInstallationId, string $key): ?ApplicationSettingInterface
+    public function findGlobalByKey(Uuid $uuid, string $key): ?ApplicationSettingInterface
     {
         return $this->getEntityManager()
             ->getRepository(ApplicationSetting::class)
@@ -61,7 +61,7 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->andWhere('s.b24UserId IS NULL')
             ->andWhere('s.b24DepartmentId IS NULL')
             ->andWhere('s.status = :status')
-            ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->setParameter('applicationInstallationId', $uuid)
             ->setParameter('key', $key)
             ->setParameter('status', ApplicationSettingStatus::Active)
             ->getQuery()
@@ -71,7 +71,7 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
 
     #[\Override]
     public function findPersonalByKey(
-        Uuid $applicationInstallationId,
+        Uuid $uuid,
         string $key,
         int $b24UserId
     ): ?ApplicationSettingInterface {
@@ -82,7 +82,7 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->andWhere('s.key = :key')
             ->andWhere('s.b24UserId = :b24UserId')
             ->andWhere('s.status = :status')
-            ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->setParameter('applicationInstallationId', $uuid)
             ->setParameter('key', $key)
             ->setParameter('b24UserId', $b24UserId)
             ->setParameter('status', ApplicationSettingStatus::Active)
@@ -93,7 +93,7 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
 
     #[\Override]
     public function findDepartmentalByKey(
-        Uuid $applicationInstallationId,
+        Uuid $uuid,
         string $key,
         int $b24DepartmentId
     ): ?ApplicationSettingInterface {
@@ -105,7 +105,7 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->andWhere('s.b24DepartmentId = :b24DepartmentId')
             ->andWhere('s.b24UserId IS NULL')
             ->andWhere('s.status = :status')
-            ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->setParameter('applicationInstallationId', $uuid)
             ->setParameter('key', $key)
             ->setParameter('b24DepartmentId', $b24DepartmentId)
             ->setParameter('status', ApplicationSettingStatus::Active)
@@ -116,43 +116,43 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
 
     #[\Override]
     public function findByKey(
-        Uuid $applicationInstallationId,
+        Uuid $uuid,
         string $key,
         ?int $b24UserId = null,
         ?int $b24DepartmentId = null
     ): ?ApplicationSettingInterface {
-        $qb = $this->getEntityManager()
+        $queryBuilder = $this->getEntityManager()
             ->getRepository(ApplicationSetting::class)
             ->createQueryBuilder('s')
             ->where('s.applicationInstallationId = :applicationInstallationId')
             ->andWhere('s.key = :key')
             ->andWhere('s.status = :status')
-            ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->setParameter('applicationInstallationId', $uuid)
             ->setParameter('key', $key)
             ->setParameter('status', ApplicationSettingStatus::Active)
         ;
 
         if (null !== $b24UserId) {
-            $qb->andWhere('s.b24UserId = :b24UserId')
+            $queryBuilder->andWhere('s.b24UserId = :b24UserId')
                 ->setParameter('b24UserId', $b24UserId)
             ;
         } else {
-            $qb->andWhere('s.b24UserId IS NULL');
+            $queryBuilder->andWhere('s.b24UserId IS NULL');
         }
 
         if (null !== $b24DepartmentId) {
-            $qb->andWhere('s.b24DepartmentId = :b24DepartmentId')
+            $queryBuilder->andWhere('s.b24DepartmentId = :b24DepartmentId')
                 ->setParameter('b24DepartmentId', $b24DepartmentId)
             ;
         } else {
-            $qb->andWhere('s.b24DepartmentId IS NULL');
+            $queryBuilder->andWhere('s.b24DepartmentId IS NULL');
         }
 
-        return $qb->getQuery()->getOneOrNullResult();
+        return $queryBuilder->getQuery()->getOneOrNullResult();
     }
 
     #[\Override]
-    public function findAllGlobal(Uuid $applicationInstallationId): array
+    public function findAllGlobal(Uuid $uuid): array
     {
         return $this->getEntityManager()
             ->getRepository(ApplicationSetting::class)
@@ -161,7 +161,7 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->andWhere('s.b24UserId IS NULL')
             ->andWhere('s.b24DepartmentId IS NULL')
             ->andWhere('s.status = :status')
-            ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->setParameter('applicationInstallationId', $uuid)
             ->setParameter('status', ApplicationSettingStatus::Active)
             ->orderBy('s.key', 'ASC')
             ->getQuery()
@@ -170,7 +170,7 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
     }
 
     #[\Override]
-    public function findAllPersonal(Uuid $applicationInstallationId, int $b24UserId): array
+    public function findAllPersonal(Uuid $uuid, int $b24UserId): array
     {
         return $this->getEntityManager()
             ->getRepository(ApplicationSetting::class)
@@ -178,7 +178,7 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->where('s.applicationInstallationId = :applicationInstallationId')
             ->andWhere('s.b24UserId = :b24UserId')
             ->andWhere('s.status = :status')
-            ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->setParameter('applicationInstallationId', $uuid)
             ->setParameter('b24UserId', $b24UserId)
             ->setParameter('status', ApplicationSettingStatus::Active)
             ->orderBy('s.key', 'ASC')
@@ -188,7 +188,7 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
     }
 
     #[\Override]
-    public function findAllDepartmental(Uuid $applicationInstallationId, int $b24DepartmentId): array
+    public function findAllDepartmental(Uuid $uuid, int $b24DepartmentId): array
     {
         return $this->getEntityManager()
             ->getRepository(ApplicationSetting::class)
@@ -197,7 +197,7 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->andWhere('s.b24DepartmentId = :b24DepartmentId')
             ->andWhere('s.b24UserId IS NULL')
             ->andWhere('s.status = :status')
-            ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->setParameter('applicationInstallationId', $uuid)
             ->setParameter('b24DepartmentId', $b24DepartmentId)
             ->setParameter('status', ApplicationSettingStatus::Active)
             ->orderBy('s.key', 'ASC')
@@ -207,14 +207,14 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
     }
 
     #[\Override]
-    public function findAllForInstallation(Uuid $applicationInstallationId): array
+    public function findAllForInstallation(Uuid $uuid): array
     {
         return $this->getEntityManager()
             ->getRepository(ApplicationSetting::class)
             ->createQueryBuilder('s')
             ->where('s.applicationInstallationId = :applicationInstallationId')
             ->andWhere('s.status = :status')
-            ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->setParameter('applicationInstallationId', $uuid)
             ->setParameter('status', ApplicationSettingStatus::Active)
             ->orderBy('s.key', 'ASC')
             ->getQuery()
@@ -223,13 +223,13 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
     }
 
     #[\Override]
-    public function deleteByApplicationInstallationId(Uuid $applicationInstallationId): void
+    public function deleteByApplicationInstallationId(Uuid $uuid): void
     {
         $this->getEntityManager()
             ->createQueryBuilder()
             ->delete(ApplicationSetting::class, 's')
             ->where('s.applicationInstallationId = :applicationInstallationId')
-            ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->setParameter('applicationInstallationId', $uuid)
             ->getQuery()
             ->execute()
         ;
@@ -243,8 +243,8 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
      * @return ApplicationSettingInterface[]
      */
     #[\Override]
-    public function findByApplicationInstallationId(Uuid $applicationInstallationId): array
+    public function findByApplicationInstallationId(Uuid $uuid): array
     {
-        return $this->findAllForInstallation($applicationInstallationId);
+        return $this->findAllForInstallation($uuid);
     }
 }

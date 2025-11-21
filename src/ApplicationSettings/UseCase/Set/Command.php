@@ -40,7 +40,7 @@ readonly class Command
         }
 
         // Key should contain only lowercase latin letters and dots
-        if (!preg_match('/^[a-z.]+$/', $this->key)) {
+        if (in_array(preg_match('/^[a-z.]+$/', $this->key), [0, false], true)) {
             throw new InvalidArgumentException(
                 'Setting key can only contain lowercase latin letters and dots'
             );
