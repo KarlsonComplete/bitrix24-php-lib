@@ -8,7 +8,7 @@ use Carbon\CarbonImmutable;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * Interface for ApplicationSetting entity
+ * Interface for ApplicationSetting entity.
  *
  * @todo Move this interface to b24-php-sdk contracts after stabilization
  */
@@ -39,27 +39,27 @@ interface ApplicationSettingInterface
     public function getUpdatedAt(): CarbonImmutable;
 
     /**
-     * Update setting value
+     * Update setting value.
      */
     public function updateValue(string $value, ?int $changedByBitrix24UserId = null): void;
 
     /**
-     * Mark setting as deleted (soft delete)
+     * Mark setting as deleted (soft delete).
      */
     public function markAsDeleted(): void;
 
     /**
-     * Check if setting is global (not tied to user or department)
+     * Check if setting is global (not tied to user or department).
      */
     public function isGlobal(): bool;
 
     /**
-     * Check if setting is personal (tied to specific user)
+     * Check if setting is personal (tied to specific user).
      */
     public function isPersonal(): bool;
 
     /**
-     * Check if setting is departmental (tied to specific department)
+     * Check if setting is departmental (tied to specific department).
      */
     public function isDepartmental(): bool;
 }

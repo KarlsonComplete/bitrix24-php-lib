@@ -9,7 +9,7 @@ use Bitrix24\Lib\Services\Flusher;
 use Psr\Log\LoggerInterface;
 
 /**
- * Handler for OnApplicationDelete command
+ * Handler for OnApplicationDelete command.
  *
  * Soft-deletes all settings when application is uninstalled.
  * Settings are marked as deleted rather than removed from database
@@ -21,8 +21,7 @@ readonly class Handler
         private ApplicationSettingRepository $applicationSettingRepository,
         private Flusher $flusher,
         private LoggerInterface $logger
-    ) {
-    }
+    ) {}
 
     public function handle(Command $command): void
     {

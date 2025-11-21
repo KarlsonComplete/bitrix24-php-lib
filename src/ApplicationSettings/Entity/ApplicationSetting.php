@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Bitrix24\Lib\ApplicationSettings\Entity;
 
 use Bitrix24\Lib\AggregateRoot;
+use Bitrix24\Lib\ApplicationSettings\Events\ApplicationSettingChangedEvent;
 use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Carbon\CarbonImmutable;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * Application setting entity
+ * Application setting entity.
  *
  * Stores key-value settings for application installations.
  * Settings can be:
@@ -115,12 +116,12 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
     }
 
     /**
-     * Mark setting as deleted (soft delete)
+     * Mark setting as deleted (soft delete).
      */
     #[\Override]
     public function markAsDeleted(): void
     {
-        if ($this->status === ApplicationSettingStatus::Deleted) {
+        if (ApplicationSettingStatus::Deleted === $this->status) {
             return; // Already deleted
         }
 
@@ -129,7 +130,7 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
     }
 
     /**
-     * Update setting value
+     * Update setting value.
      */
     #[\Override]
     public function updateValue(string $value, ?int $changedByBitrix24UserId = null): void
@@ -143,7 +144,7 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
             $this->updatedAt = new CarbonImmutable();
 
             // Emit event about setting change
-            $this->events[] = new \Bitrix24\Lib\ApplicationSettings\Events\ApplicationSettingChangedEvent(
+            $this->events[] = new ApplicationSettingChangedEvent(
                 $this->id,
                 $this->key,
                 $oldValue,
@@ -155,7 +156,7 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
     }
 
     /**
-     * Check if setting is global (not tied to user or department)
+     * Check if setting is global (not tied to user or department).
      */
     #[\Override]
     public function isGlobal(): bool
@@ -164,7 +165,7 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
     }
 
     /**
-     * Check if setting is personal (tied to specific user)
+     * Check if setting is personal (tied to specific user).
      */
     #[\Override]
     public function isPersonal(): bool
@@ -173,7 +174,7 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
     }
 
     /**
-     * Check if setting is departmental (tied to specific department)
+     * Check if setting is departmental (tied to specific department).
      */
     #[\Override]
     public function isDepartmental(): bool
@@ -183,7 +184,7 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
 
     /**
      * Validate setting key
-     * Only lowercase latin letters and dots are allowed, max 255 characters
+     * Only lowercase latin letters and dots are allowed, max 255 characters.
      */
     private function validateKey(string $key): void
     {
@@ -204,7 +205,7 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
     }
 
     /**
-     * Validate scope parameters
+     * Validate scope parameters.
      */
     private function validateScope(?int $b24UserId, ?int $b24DepartmentId): void
     {
@@ -225,7 +226,7 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
     }
 
     /**
-     * Validate setting value
+     * Validate setting value.
      */
     private function validateValue(string $value): void
     {

@@ -7,12 +7,13 @@ namespace Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine;
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSetting;
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingInterface;
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingStatus;
+use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * Repository for ApplicationSetting entity
+ * Repository for ApplicationSetting entity.
  *
  * @extends EntityRepository<ApplicationSetting>
  */
@@ -46,7 +47,8 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->setParameter('id', $id)
             ->setParameter('status', ApplicationSettingStatus::Active)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
     }
 
     #[\Override]
@@ -64,7 +66,8 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->setParameter('key', $key)
             ->setParameter('status', ApplicationSettingStatus::Active)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
     }
 
     #[\Override]
@@ -85,7 +88,8 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->setParameter('b24UserId', $b24UserId)
             ->setParameter('status', ApplicationSettingStatus::Active)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
     }
 
     #[\Override]
@@ -107,7 +111,8 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->setParameter('b24DepartmentId', $b24DepartmentId)
             ->setParameter('status', ApplicationSettingStatus::Active)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
     }
 
     #[\Override]
@@ -125,18 +130,21 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->andWhere('s.status = :status')
             ->setParameter('applicationInstallationId', $applicationInstallationId)
             ->setParameter('key', $key)
-            ->setParameter('status', ApplicationSettingStatus::Active);
+            ->setParameter('status', ApplicationSettingStatus::Active)
+        ;
 
         if (null !== $b24UserId) {
             $qb->andWhere('s.b24UserId = :b24UserId')
-                ->setParameter('b24UserId', $b24UserId);
+                ->setParameter('b24UserId', $b24UserId)
+            ;
         } else {
             $qb->andWhere('s.b24UserId IS NULL');
         }
 
         if (null !== $b24DepartmentId) {
             $qb->andWhere('s.b24DepartmentId = :b24DepartmentId')
-                ->setParameter('b24DepartmentId', $b24DepartmentId);
+                ->setParameter('b24DepartmentId', $b24DepartmentId)
+            ;
         } else {
             $qb->andWhere('s.b24DepartmentId IS NULL');
         }
@@ -158,7 +166,8 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->setParameter('status', ApplicationSettingStatus::Active)
             ->orderBy('s.key', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     #[\Override]
@@ -175,7 +184,8 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->setParameter('status', ApplicationSettingStatus::Active)
             ->orderBy('s.key', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     #[\Override]
@@ -193,7 +203,8 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->setParameter('status', ApplicationSettingStatus::Active)
             ->orderBy('s.key', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     #[\Override]
@@ -208,7 +219,8 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->setParameter('status', ApplicationSettingStatus::Active)
             ->orderBy('s.key', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     #[\Override]
@@ -220,11 +232,12 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->where('s.applicationInstallationId = :applicationInstallationId')
             ->setParameter('applicationInstallationId', $applicationInstallationId)
             ->getQuery()
-            ->execute();
+            ->execute()
+        ;
     }
 
     /**
-     * Soft-delete all settings for application installation
+     * Soft-delete all settings for application installation.
      */
     public function softDeleteByApplicationInstallationId(Uuid $applicationInstallationId): void
     {
@@ -236,16 +249,17 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->where('s.applicationInstallationId = :applicationInstallationId')
             ->andWhere('s.status = :activeStatus')
             ->setParameter('status', ApplicationSettingStatus::Deleted)
-            ->setParameter('updatedAt', new \Carbon\CarbonImmutable())
+            ->setParameter('updatedAt', new CarbonImmutable())
             ->setParameter('applicationInstallationId', $applicationInstallationId)
             ->setParameter('activeStatus', ApplicationSettingStatus::Active)
             ->getQuery()
-            ->execute();
+            ->execute()
+        ;
     }
 
     /**
      * Find setting by application installation ID and key
-     * Alias for findGlobalByKey for backward compatibility
+     * Alias for findGlobalByKey for backward compatibility.
      */
     #[\Override]
     public function findByApplicationInstallationIdAndKey(
@@ -257,7 +271,7 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
 
     /**
      * Find all settings for application installation ID
-     * Alias for findAll for backward compatibility
+     * Alias for findAll for backward compatibility.
      */
     #[\Override]
     public function findByApplicationInstallationId(Uuid $applicationInstallationId): array

@@ -10,7 +10,7 @@ use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 
 /**
- * Handler for Delete command
+ * Handler for Delete command.
  */
 readonly class Handler
 {
@@ -18,8 +18,7 @@ readonly class Handler
         private ApplicationSettingRepositoryInterface $applicationSettingRepository,
         private Flusher $flusher,
         private LoggerInterface $logger
-    ) {
-    }
+    ) {}
 
     public function handle(Command $command): void
     {

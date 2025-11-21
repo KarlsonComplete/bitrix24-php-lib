@@ -8,7 +8,7 @@ use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * Command to delete application setting
+ * Command to delete application setting.
  */
 readonly class Command
 {

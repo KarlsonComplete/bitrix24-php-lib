@@ -16,7 +16,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * CLI command to list application settings
+ * CLI command to list application settings.
  *
  * Usage examples:
  * - List all settings for portal:
@@ -83,7 +83,8 @@ The <info>app:settings:list</info> command displays application settings.
 <comment>List departmental settings:</comment>
   <info>php bin/console app:settings:list 018c1234-5678-7abc-9def-123456789abc --department-id=456</info>
 HELP
-            );
+            )
+        ;
     }
 
     #[\Override]
@@ -98,27 +99,30 @@ HELP
             $installationId = Uuid::fromString($installationIdString);
         } catch (\InvalidArgumentException $e) {
             $io->error('Invalid Installation ID format. Expected UUID.');
+
             return Command::FAILURE;
         }
 
-        /** @var string|null $userIdInput */
+        /** @var null|string $userIdInput */
         $userIdInput = $input->getOption('user-id');
-        $userId = null !== $userIdInput ? (int)$userIdInput : null;
+        $userId = null !== $userIdInput ? (int) $userIdInput : null;
 
-        /** @var string|null $departmentIdInput */
+        /** @var null|string $departmentIdInput */
         $departmentIdInput = $input->getOption('department-id');
-        $departmentId = null !== $departmentIdInput ? (int)$departmentIdInput : null;
+        $departmentId = null !== $departmentIdInput ? (int) $departmentIdInput : null;
 
         $globalOnly = $input->getOption('global-only');
 
         // Validate options
         if ($userId && $departmentId) {
             $io->error('Cannot specify both --user-id and --department-id');
+
             return Command::FAILURE;
         }
 
         if ($globalOnly && ($userId || $departmentId)) {
             $io->error('Cannot use --global-only with --user-id or --department-id');
+
             return Command::FAILURE;
         }
 
@@ -140,6 +144,7 @@ HELP
 
         if (empty($settings)) {
             $io->warning('No settings found.');
+
             return Command::SUCCESS;
         }
 
@@ -172,7 +177,7 @@ HELP
     }
 
     /**
-     * Truncate long values for table display
+     * Truncate long values for table display.
      */
     private function truncateValue(string $value, int $maxLength): string
     {
@@ -180,6 +185,6 @@ HELP
             return $value;
         }
 
-        return substr($value, 0, $maxLength - 3) . '...';
+        return substr($value, 0, $maxLength - 3).'...';
     }
 }

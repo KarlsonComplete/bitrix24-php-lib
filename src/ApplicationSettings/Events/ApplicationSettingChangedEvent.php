@@ -8,7 +8,7 @@ use Carbon\CarbonImmutable;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * Event emitted when application setting value is changed
+ * Event emitted when application setting value is changed.
  *
  * Contains information about:
  * - Which setting was changed
@@ -24,6 +24,5 @@ readonly class ApplicationSettingChangedEvent
         public string $newValue,
         public ?int $changedByBitrix24UserId,
         public CarbonImmutable $changedAt
-    ) {
-    }
+    ) {}
 }

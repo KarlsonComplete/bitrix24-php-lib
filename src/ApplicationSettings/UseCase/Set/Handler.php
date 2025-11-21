@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace Bitrix24\Lib\ApplicationSettings\UseCase\Set;
 
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSetting;
+use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingInterface;
 use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingRepositoryInterface;
 use Bitrix24\Lib\Services\Flusher;
+use Bitrix24\SDK\Application\Contracts\Events\AggregateRootEventsEmitterInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * Handler for Set command
+ * Handler for Set command.
  *
  * Creates new setting or updates existing one
  */
@@ -21,8 +23,7 @@ readonly class Handler
         private ApplicationSettingRepositoryInterface $applicationSettingRepository,
         private Flusher $flusher,
         private LoggerInterface $logger
-    ) {
-    }
+    ) {}
 
     public function handle(Command $command): void
     {
@@ -68,6 +69,7 @@ readonly class Handler
             ]);
         }
 
+        /** @var AggregateRootEventsEmitterInterface&ApplicationSettingInterface $setting */
         $this->flusher->flush($setting);
 
         $this->logger->info('ApplicationSettings.Set.finish', [

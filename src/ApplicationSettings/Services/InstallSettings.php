@@ -11,7 +11,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * Service for creating default application settings during installation
+ * Service for creating default application settings during installation.
  *
  * This service is responsible for initializing default global settings
  * when an application is installed on a Bitrix24 portal
@@ -22,14 +22,13 @@ readonly class InstallSettings
         private ApplicationSettingRepositoryInterface $applicationSettingRepository,
         private Flusher $flusher,
         private LoggerInterface $logger
-    ) {
-    }
+    ) {}
 
     /**
-     * Create default settings for application installation
+     * Create default settings for application installation.
      *
-     * @param Uuid $applicationInstallationId Application installation UUID
-     * @param array<string, array{value: string, required: bool}> $defaultSettings Settings with value and required flag
+     * @param Uuid                                                $applicationInstallationId Application installation UUID
+     * @param array<string, array{value: string, required: bool}> $defaultSettings           Settings with value and required flag
      */
     public function createDefaultSettings(
         Uuid $applicationInstallationId,
@@ -82,7 +81,7 @@ readonly class InstallSettings
     }
 
     /**
-     * Get recommended default settings structure
+     * Get recommended default settings structure.
      *
      * @return array<string, array{value: string, required: bool}> Recommended default settings
      */

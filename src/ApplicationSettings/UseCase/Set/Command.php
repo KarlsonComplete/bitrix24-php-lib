@@ -8,7 +8,7 @@ use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * Command to set (create or update) application setting
+ * Command to set (create or update) application setting.
  *
  * Settings can be:
  * - Global (both b24UserId and b24DepartmentId are null)
