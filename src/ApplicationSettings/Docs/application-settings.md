@@ -255,7 +255,15 @@ $deptSettings = array_filter($allSettings, fn ($s): bool => $s->isDepartmental()
 
 ## Сервис SettingsFetcher
 
-Утилита для получения настроек с каскадным разрешением (Personal → Departmental → Global):
+Утилита для получения настроек с каскадным разрешением (Personal → Departmental → Global) и автоматической десериализацией в объекты.
+
+### Основные возможности
+
+1. **Каскадное разрешение**: Personal → Departmental → Global
+2. **Автоматическая десериализация** JSON в объекты через Symfony Serializer
+3. **Логирование** всех операций для отладки
+
+### Получение строкового значения
 
 ```php
 use Bitrix24\Lib\ApplicationSettings\Services\SettingsFetcher;
@@ -264,7 +272,7 @@ use Bitrix24\Lib\ApplicationSettings\Services\SettingsFetcher;
 
 // Получить значение с учетом приоритетов
 try {
-    $value = $fetcher->getSettingValue(
+    $value = $fetcher->getValue(
         uuid: $installationId,
         key: 'app.theme',
         userId: 123,           // Опционально
@@ -276,14 +284,56 @@ try {
 } catch (SettingsItemNotFoundException $e) {
     // Настройка не найдена ни на одном уровне
 }
+```
 
-// Или получить полный объект настройки
+### Десериализация в объект
+
+Метод `getValue` поддерживает автоматическую десериализацию JSON в объекты:
+
+```php
+// Определяем DTO класс
+class ApiConfig
+{
+    public function __construct(
+        public string $endpoint,
+        public int $timeout,
+        public int $maxRetries
+    ) {}
+}
+
+// Десериализуем настройку в объект
+try {
+    $config = $fetcher->getValue(
+        uuid: $installationId,
+        key: 'api.config',
+        class: ApiConfig::class  // Указываем класс для десериализации
+    );
+
+    // $config теперь экземпляр ApiConfig
+    echo $config->endpoint;  // https://api.example.com
+    echo $config->timeout;   // 30
+} catch (SettingsItemNotFoundException $e) {
+    // Настройка не найдена
+}
+```
+
+### Получение полного объекта настройки
+
+Если нужен доступ к метаданным (id, createdAt, updatedAt, scope и т.д.):
+
+```php
 $item = $fetcher->getItem(
     uuid: $installationId,
     key: 'app.theme',
     userId: 123,
     departmentId: 456
 );
+
+// Доступ к метаданным
+$settingId = $item->getId();
+$createdAt = $item->getCreatedAt();
+$isPersonal = $item->isPersonal();
+$value = $item->getValue();
 ```
 
 ## Events (События)
@@ -400,9 +450,10 @@ $updateCmd = new UpdateCommand(
 $updateHandler->handle($updateCmd);
 ```
 
-### Пример 2: Хранение JSON-конфигурации
+### Пример 2: Хранение и десериализация JSON-конфигурации
 
 ```php
+// Создание настройки с JSON значением
 $command = new CreateCommand(
     applicationInstallationId: $installationId,
     key: 'integration.api.config',
@@ -415,9 +466,29 @@ $command = new CreateCommand(
 );
 $handler->handle($command);
 
-// Чтение с помощью SettingsFetcher
-$value = $fetcher->getSettingValue($installationId, 'integration.api.config');
+// Чтение как строки
+$value = $fetcher->getValue($installationId, 'integration.api.config');
 $config = json_decode($value, true);
+
+// ИЛИ автоматическая десериализация в объект
+class ApiConfig
+{
+    public function __construct(
+        public string $endpoint,
+        public int $timeout,
+        public int $retries
+    ) {}
+}
+
+$config = $fetcher->getValue(
+    uuid: $installationId,
+    key: 'integration.api.config',
+    class: ApiConfig::class
+);
+
+// Использование типизированного объекта
+echo $config->endpoint;  // https://api.example.com
+echo $config->timeout;   // 30
 ```
 
 ### Пример 3: Персонализация интерфейса
@@ -440,7 +511,7 @@ $handler->handle($command);
 
 // Получить предпочтения с приоритетом личных настроек
 try {
-    $value = $fetcher->getSettingValue(
+    $value = $fetcher->getValue(
         uuid: $installationId,
         key: 'ui.preferences',
         userId: $currentUserId
@@ -463,7 +534,7 @@ use Bitrix24\Lib\ApplicationSettings\Services\SettingsFetcher;
  * 3. Глобальная (fallback)
  */
 
-$value = $fetcher->getSettingValue(
+$value = $fetcher->getValue(
     uuid: $installationId,
     key: 'notification.email.enabled',
     userId: 123,
@@ -596,7 +667,7 @@ try {
 
 // SettingsFetcher может выбросить SettingsItemNotFoundException
 try {
-    $value = $fetcher->getSettingValue($uuid, $key);
+    $value = $fetcher->getValue($uuid, $key);
 } catch (SettingsItemNotFoundException $e) {
     // Используйте значение по умолчанию
 }

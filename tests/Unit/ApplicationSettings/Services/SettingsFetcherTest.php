@@ -10,7 +10,21 @@ use Bitrix24\Lib\ApplicationSettings\Services\Exception\SettingsItemNotFoundExce
 use Bitrix24\Lib\ApplicationSettings\Services\SettingsFetcher;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Uid\Uuid;
+
+/**
+ * Test DTO class for deserialization tests.
+ */
+class TestConfigDto
+{
+    public function __construct(
+        public string $endpoint = '',
+        public int $timeout = 30,
+        public bool $enabled = true
+    ) {}
+}
 
 /**
  * @internal
@@ -24,11 +38,19 @@ class SettingsFetcherTest extends TestCase
 
     private Uuid $installationId;
 
+    /** @var SerializerInterface&\PHPUnit\Framework\MockObject\MockObject */
+    private SerializerInterface $serializer;
+
+    /** @var LoggerInterface&\PHPUnit\Framework\MockObject\MockObject */
+    private LoggerInterface $logger;
+
     #[\Override]
     protected function setUp(): void
     {
         $this->repository = new ApplicationSettingsItemInMemoryRepository();
-        $this->fetcher = new SettingsFetcher($this->repository);
+        $this->serializer = $this->createMock(SerializerInterface::class);
+        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->fetcher = new SettingsFetcher($this->repository, $this->serializer, $this->logger);
         $this->installationId = Uuid::v7();
     }
 
@@ -188,7 +210,7 @@ class SettingsFetcherTest extends TestCase
         $this->fetcher->getItem($this->installationId, 'non.existent.key');
     }
 
-    public function testGetSettingValueReturnsStringValue(): void
+    public function testGetValueReturnsStringValue(): void
     {
         $applicationSetting = new ApplicationSettingsItem(
             Uuid::v7(),
@@ -200,17 +222,121 @@ class SettingsFetcherTest extends TestCase
 
         $this->repository->save($applicationSetting);
 
-        $result = $this->fetcher->getSettingValue($this->installationId, 'app.version');
+        $result = $this->fetcher->getValue($this->installationId, 'app.version');
 
         $this->assertEquals('1.2.3', $result);
     }
 
-    public function testGetSettingValueThrowsExceptionWhenNotFound(): void
+    public function testGetValueThrowsExceptionWhenNotFound(): void
     {
         $this->expectException(SettingsItemNotFoundException::class);
         $this->expectExceptionMessage('Setting with key "non.existent" not found');
 
-        $this->fetcher->getSettingValue($this->installationId, 'non.existent');
+        $this->fetcher->getValue($this->installationId, 'non.existent');
+    }
+
+    public function testGetValueDeserializesToObject(): void
+    {
+        $jsonValue = json_encode([
+            'endpoint' => 'https://api.example.com',
+            'timeout' => 60,
+            'enabled' => true,
+        ]);
+
+        $applicationSetting = new ApplicationSettingsItem(
+            Uuid::v7(),
+            $this->installationId,
+            'api.config',
+            $jsonValue,
+            false
+        );
+
+        $this->repository->save($applicationSetting);
+
+        $expectedObject = new TestConfigDto(
+            endpoint: 'https://api.example.com',
+            timeout: 60,
+            enabled: true
+        );
+
+        $this->serializer->expects($this->once())
+            ->method('deserialize')
+            ->with($jsonValue, TestConfigDto::class, 'json')
+            ->willReturn($expectedObject);
+
+        $result = $this->fetcher->getValue(
+            $this->installationId,
+            'api.config',
+            class: TestConfigDto::class
+        );
+
+        $this->assertInstanceOf(TestConfigDto::class, $result);
+        $this->assertEquals('https://api.example.com', $result->endpoint);
+        $this->assertEquals(60, $result->timeout);
+        $this->assertTrue($result->enabled);
+    }
+
+    public function testGetValueWithoutClassReturnsRawString(): void
+    {
+        $jsonValue = '{"foo":"bar","baz":123}';
+
+        $applicationSetting = new ApplicationSettingsItem(
+            Uuid::v7(),
+            $this->installationId,
+            'raw.setting',
+            $jsonValue,
+            false
+        );
+
+        $this->repository->save($applicationSetting);
+
+        // Serializer should NOT be called when class is not specified
+        $this->serializer->expects($this->never())
+            ->method('deserialize');
+
+        $result = $this->fetcher->getValue($this->installationId, 'raw.setting');
+
+        $this->assertIsString($result);
+        $this->assertEquals($jsonValue, $result);
+    }
+
+    public function testGetValueLogsDeserializationFailure(): void
+    {
+        $jsonValue = 'invalid json{';
+
+        $applicationSetting = new ApplicationSettingsItem(
+            Uuid::v7(),
+            $this->installationId,
+            'broken.setting',
+            $jsonValue,
+            false
+        );
+
+        $this->repository->save($applicationSetting);
+
+        $exception = new \Exception('Deserialization failed');
+
+        $this->serializer->expects($this->once())
+            ->method('deserialize')
+            ->with($jsonValue, TestConfigDto::class, 'json')
+            ->willThrowException($exception);
+
+        $this->logger->expects($this->once())
+            ->method('error')
+            ->with('SettingsFetcher.getValue.deserializationFailed', $this->callback(function ($context) {
+                return isset($context['key'], $context['class'], $context['error'])
+                    && 'broken.setting' === $context['key']
+                    && TestConfigDto::class === $context['class'];
+            }));
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Deserialization failed');
+
+        $this->fetcher->getValue(
+            $this->installationId,
+            'broken.setting',
+            class: TestConfigDto::class
+        );
     }
 
     public function testPersonalSettingForDifferentUserNotUsed(): void
