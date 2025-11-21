@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Bitrix24\Lib\ApplicationSettings\Services;
 
-use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingInterface;
-use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingRepositoryInterface;
+use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItemInterface;
+use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingsItemRepositoryInterface;
 use Bitrix24\Lib\ApplicationSettings\Services\Exception\SettingsItemNotFoundException;
 use Symfony\Component\Uid\Uuid;
 
@@ -20,7 +20,7 @@ use Symfony\Component\Uid\Uuid;
 readonly class SettingsFetcher
 {
     public function __construct(
-        private ApplicationSettingRepositoryInterface $repository
+        private ApplicationSettingsItemRepositoryInterface $repository
     ) {}
 
     /**
@@ -38,7 +38,7 @@ readonly class SettingsFetcher
         string $key,
         ?int $userId = null,
         ?int $departmentId = null
-    ): ApplicationSettingInterface {
+    ): ApplicationSettingsItemInterface {
         $allSettings = $this->repository->findAllForInstallationByKey($uuid, $key);
 
         // Try to find personal setting (highest priority)

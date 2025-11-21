@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Bitrix24\Lib\Tests\Functional\ApplicationSettings\UseCase\Delete;
 
-use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSetting;
-use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingRepository;
+use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItem;
+use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingsItemRepository;
 use Bitrix24\Lib\ApplicationSettings\UseCase\Delete\Command;
 use Bitrix24\Lib\ApplicationSettings\UseCase\Delete\Handler;
 use Bitrix24\Lib\Services\Flusher;
@@ -25,14 +25,14 @@ class HandlerTest extends TestCase
 {
     private Handler $handler;
 
-    private ApplicationSettingRepository $repository;
+    private ApplicationSettingsItemRepository $repository;
 
     #[\Override]
     protected function setUp(): void
     {
         $entityManager = EntityManagerFactory::get();
         $eventDispatcher = new EventDispatcher();
-        $this->repository = new ApplicationSettingRepository($entityManager);
+        $this->repository = new ApplicationSettingsItemRepository($entityManager);
         $flusher = new Flusher($entityManager, $eventDispatcher);
 
         $this->handler = new Handler(
@@ -45,7 +45,7 @@ class HandlerTest extends TestCase
     public function testCanDeleteExistingSetting(): void
     {
         $uuidV7 = Uuid::v7();
-        $applicationSetting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             $uuidV7,
             'delete.test',
@@ -78,7 +78,7 @@ class HandlerTest extends TestCase
         $settingById = EntityManagerFactory::get()
             ->createQueryBuilder()
             ->select('s')
-            ->from(\Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSetting::class, 's')
+            ->from(\Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItem::class, 's')
             ->where('s.applicationInstallationId = :appId')
             ->andWhere('s.key = :key')
             ->setParameter('appId', $uuidV7)

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Bitrix24\Lib\ApplicationSettings\UseCase\Set;
+namespace Bitrix24\Lib\ApplicationSettings\UseCase\Update;
 
 use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * Command to set (create or update) application setting.
+ * Command to update existing application setting.
  *
  * Settings can be:
  * - Global (both b24UserId and b24DepartmentId are null)
@@ -21,7 +21,6 @@ readonly class Command
         public Uuid $applicationInstallationId,
         public string $key,
         public string $value,
-        public bool $isRequired = false,
         public ?int $b24UserId = null,
         public ?int $b24DepartmentId = null,
         public ?int $changedByBitrix24UserId = null

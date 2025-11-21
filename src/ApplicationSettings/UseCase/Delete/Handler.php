@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Bitrix24\Lib\ApplicationSettings\UseCase\Delete;
 
-use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingInterface;
-use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingRepositoryInterface;
+use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItemInterface;
+use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingsItemRepositoryInterface;
 use Bitrix24\Lib\Services\Flusher;
 use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
@@ -18,7 +18,7 @@ use Psr\Log\LoggerInterface;
 readonly class Handler
 {
     public function __construct(
-        private ApplicationSettingRepositoryInterface $applicationSettingRepository,
+        private ApplicationSettingsItemRepositoryInterface $applicationSettingRepository,
         private Flusher $flusher,
         private LoggerInterface $logger
     ) {}
@@ -44,7 +44,7 @@ readonly class Handler
             }
         }
 
-        if (!$setting instanceof ApplicationSettingInterface) {
+        if (!$setting instanceof ApplicationSettingsItemInterface) {
             throw new InvalidArgumentException(
                 sprintf(
                     'Global setting with key "%s" not found for application installation "%s"',

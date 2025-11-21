@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Bitrix24\Lib\Console;
 
-use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingRepositoryInterface;
+use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingsItemRepositoryInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
@@ -35,7 +35,7 @@ use Symfony\Component\Uid\Uuid;
 class ApplicationSettingsListCommand extends Command
 {
     public function __construct(
-        private readonly ApplicationSettingRepositoryInterface $applicationSettingRepository
+        private readonly ApplicationSettingsItemRepositoryInterface $applicationSettingRepository
     ) {
         parent::__construct();
     }

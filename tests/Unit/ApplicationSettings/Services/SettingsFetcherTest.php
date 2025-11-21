@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Bitrix24\Lib\Tests\Unit\ApplicationSettings\Services;
 
-use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSetting;
-use Bitrix24\Lib\ApplicationSettings\Infrastructure\InMemory\ApplicationSettingInMemoryRepository;
+use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItem;
+use Bitrix24\Lib\ApplicationSettings\Infrastructure\InMemory\ApplicationSettingsItemInMemoryRepository;
 use Bitrix24\Lib\ApplicationSettings\Services\Exception\SettingsItemNotFoundException;
 use Bitrix24\Lib\ApplicationSettings\Services\SettingsFetcher;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -18,7 +18,7 @@ use Symfony\Component\Uid\Uuid;
 #[CoversClass(SettingsFetcher::class)]
 class SettingsFetcherTest extends TestCase
 {
-    private ApplicationSettingInMemoryRepository $repository;
+    private ApplicationSettingsItemInMemoryRepository $repository;
 
     private SettingsFetcher $fetcher;
 
@@ -27,7 +27,7 @@ class SettingsFetcherTest extends TestCase
     #[\Override]
     protected function setUp(): void
     {
-        $this->repository = new ApplicationSettingInMemoryRepository();
+        $this->repository = new ApplicationSettingsItemInMemoryRepository();
         $this->fetcher = new SettingsFetcher($this->repository);
         $this->installationId = Uuid::v7();
     }
@@ -41,7 +41,7 @@ class SettingsFetcherTest extends TestCase
     public function testReturnsGlobalSettingWhenNoOverrides(): void
     {
         // Create only global setting
-        $applicationSetting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'app.theme',
@@ -60,7 +60,7 @@ class SettingsFetcherTest extends TestCase
     public function testDepartmentalOverridesGlobal(): void
     {
         // Create global and departmental settings
-        $globalSetting = new ApplicationSetting(
+        $globalSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'app.theme',
@@ -68,7 +68,7 @@ class SettingsFetcherTest extends TestCase
             false
         );
 
-        $deptSetting = new ApplicationSetting(
+        $deptSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'app.theme',
@@ -91,7 +91,7 @@ class SettingsFetcherTest extends TestCase
     public function testPersonalOverridesGlobalAndDepartmental(): void
     {
         // Create all three levels
-        $globalSetting = new ApplicationSetting(
+        $globalSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'app.theme',
@@ -99,7 +99,7 @@ class SettingsFetcherTest extends TestCase
             false
         );
 
-        $deptSetting = new ApplicationSetting(
+        $deptSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'app.theme',
@@ -109,7 +109,7 @@ class SettingsFetcherTest extends TestCase
             456 // department ID
         );
 
-        $personalSetting = new ApplicationSetting(
+        $personalSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'app.theme',
@@ -132,7 +132,7 @@ class SettingsFetcherTest extends TestCase
     public function testFallsBackToGlobalWhenPersonalNotFound(): void
     {
         // Only global setting exists
-        $applicationSetting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'app.theme',
@@ -152,7 +152,7 @@ class SettingsFetcherTest extends TestCase
     public function testFallsBackToDepartmentalWhenPersonalNotFound(): void
     {
         // Global and departmental settings exist
-        $globalSetting = new ApplicationSetting(
+        $globalSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'app.theme',
@@ -160,7 +160,7 @@ class SettingsFetcherTest extends TestCase
             false
         );
 
-        $deptSetting = new ApplicationSetting(
+        $deptSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'app.theme',
@@ -190,7 +190,7 @@ class SettingsFetcherTest extends TestCase
 
     public function testGetSettingValueReturnsStringValue(): void
     {
-        $applicationSetting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'app.version',
@@ -216,7 +216,7 @@ class SettingsFetcherTest extends TestCase
     public function testPersonalSettingForDifferentUserNotUsed(): void
     {
         // Create global and personal for user 123
-        $globalSetting = new ApplicationSetting(
+        $globalSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'app.theme',
@@ -224,7 +224,7 @@ class SettingsFetcherTest extends TestCase
             false
         );
 
-        $personalSetting = new ApplicationSetting(
+        $personalSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'app.theme',
@@ -246,7 +246,7 @@ class SettingsFetcherTest extends TestCase
     public function testDepartmentalSettingForDifferentDepartmentNotUsed(): void
     {
         // Create global and departmental for dept 456
-        $globalSetting = new ApplicationSetting(
+        $globalSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'app.theme',
@@ -254,7 +254,7 @@ class SettingsFetcherTest extends TestCase
             false
         );
 
-        $deptSetting = new ApplicationSetting(
+        $deptSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'app.theme',

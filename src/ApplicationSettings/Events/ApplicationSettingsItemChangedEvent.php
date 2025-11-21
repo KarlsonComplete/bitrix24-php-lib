@@ -15,7 +15,7 @@ use Symfony\Component\Uid\Uuid;
  * - Old and new values
  * - Who changed it (optional)
  */
-readonly class ApplicationSettingChangedEvent
+readonly class ApplicationSettingsItemChangedEvent
 {
     public function __construct(
         public Uuid $settingId,

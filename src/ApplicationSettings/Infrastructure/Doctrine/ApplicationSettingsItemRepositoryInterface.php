@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine;
 
-use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingInterface;
+use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItemInterface;
 use Symfony\Component\Uid\Uuid;
 
 /**
@@ -12,34 +12,34 @@ use Symfony\Component\Uid\Uuid;
  *
  * @todo Move this interface to b24-php-sdk contracts after stabilization
  */
-interface ApplicationSettingRepositoryInterface
+interface ApplicationSettingsItemRepositoryInterface
 {
     /**
      * Save application setting.
      */
-    public function save(ApplicationSettingInterface $applicationSetting): void;
+    public function save(ApplicationSettingsItemInterface $applicationSetting): void;
 
     /**
      * Delete application setting.
      */
-    public function delete(ApplicationSettingInterface $applicationSetting): void;
+    public function delete(ApplicationSettingsItemInterface $applicationSetting): void;
 
     /**
      * Find setting by ID.
      */
-    public function findById(Uuid $uuid): ?ApplicationSettingInterface;
+    public function findById(Uuid $uuid): ?ApplicationSettingsItemInterface;
 
     /**
      * Find all settings for application installation (all scopes).
      *
-     * @return ApplicationSettingInterface[]
+     * @return ApplicationSettingsItemInterface[]
      */
     public function findAllForInstallation(Uuid $uuid): array;
 
     /**
      * Find all settings for application installation by key (all scopes with same key).
      *
-     * @return ApplicationSettingInterface[]
+     * @return ApplicationSettingsItemInterface[]
      */
     public function findAllForInstallationByKey(Uuid $uuid, string $key): array;
 }

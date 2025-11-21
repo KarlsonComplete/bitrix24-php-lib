@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Bitrix24\Lib\Tests\Unit\ApplicationSettings\Entity;
 
-use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSetting;
+use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItem;
 use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -14,8 +14,8 @@ use Symfony\Component\Uid\Uuid;
 /**
  * @internal
  */
-#[CoversClass(ApplicationSetting::class)]
-class ApplicationSettingTest extends TestCase
+#[CoversClass(ApplicationSettingsItem::class)]
+class ApplicationSettingsItemTest extends TestCase
 {
     public function testCanCreateGlobalSetting(): void
     {
@@ -24,7 +24,7 @@ class ApplicationSettingTest extends TestCase
         $key = 'test.setting.key';
         $value = '{"foo":"bar"}';
 
-        $applicationSetting = new ApplicationSetting($uuidV7, $applicationInstallationId, $key, $value, false);
+        $applicationSetting = new ApplicationSettingsItem($uuidV7, $applicationInstallationId, $key, $value, false);
 
         $this->assertEquals($uuidV7, $applicationSetting->getId());
         $this->assertEquals($applicationInstallationId, $applicationSetting->getApplicationInstallationId());
@@ -40,7 +40,7 @@ class ApplicationSettingTest extends TestCase
 
     public function testCanCreatePersonalSetting(): void
     {
-        $applicationSetting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             Uuid::v7(),
             'user.preference',
@@ -58,7 +58,7 @@ class ApplicationSettingTest extends TestCase
 
     public function testCanCreateDepartmentalSetting(): void
     {
-        $applicationSetting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             Uuid::v7(),
             'dept.config',
@@ -80,7 +80,7 @@ class ApplicationSettingTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Setting cannot be both personal and departmental');
 
-        new ApplicationSetting(
+        new ApplicationSettingsItem(
             Uuid::v7(),
             Uuid::v7(),
             'invalid.setting',
@@ -93,7 +93,7 @@ class ApplicationSettingTest extends TestCase
 
     public function testCanUpdateValue(): void
     {
-        $applicationSetting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             Uuid::v7(),
             'test.key',
@@ -115,7 +115,7 @@ class ApplicationSettingTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new ApplicationSetting(
+        new ApplicationSettingsItem(
             Uuid::v7(),
             Uuid::v7(),
             $invalidKey,
@@ -145,7 +145,7 @@ class ApplicationSettingTest extends TestCase
     #[DataProvider('validKeyProvider')]
     public function testAcceptsValidKeys(string $validKey): void
     {
-        $applicationSetting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             Uuid::v7(),
             $validKey,
@@ -175,7 +175,7 @@ class ApplicationSettingTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Bitrix24 user ID must be positive integer');
 
-        new ApplicationSetting(
+        new ApplicationSettingsItem(
             Uuid::v7(),
             Uuid::v7(),
             'test.key',
@@ -190,7 +190,7 @@ class ApplicationSettingTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Bitrix24 user ID must be positive integer');
 
-        new ApplicationSetting(
+        new ApplicationSettingsItem(
             Uuid::v7(),
             Uuid::v7(),
             'test.key',
@@ -205,7 +205,7 @@ class ApplicationSettingTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Bitrix24 department ID must be positive integer');
 
-        new ApplicationSetting(
+        new ApplicationSettingsItem(
             Uuid::v7(),
             Uuid::v7(),
             'test.key',
@@ -218,7 +218,7 @@ class ApplicationSettingTest extends TestCase
 
     public function testCanCreateRequiredSetting(): void
     {
-        $applicationSetting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             Uuid::v7(),
             'required.setting',
@@ -231,7 +231,7 @@ class ApplicationSettingTest extends TestCase
 
     public function testCanTrackWhoChangedSetting(): void
     {
-        $applicationSetting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             Uuid::v7(),
             'tracking.test',
@@ -253,7 +253,7 @@ class ApplicationSettingTest extends TestCase
 
     public function testDefaultStatusIsActive(): void
     {
-        $applicationSetting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             Uuid::v7(),
             'status.test',
@@ -266,7 +266,7 @@ class ApplicationSettingTest extends TestCase
 
     public function testCanMarkAsDeleted(): void
     {
-        $applicationSetting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             Uuid::v7(),
             'delete.test',
@@ -286,7 +286,7 @@ class ApplicationSettingTest extends TestCase
 
     public function testMarkAsDeletedIsIdempotent(): void
     {
-        $applicationSetting = new ApplicationSetting(
+        $applicationSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             Uuid::v7(),
             'idempotent.test',

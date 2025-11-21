@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Bitrix24\Lib\Tests\Unit\ApplicationSettings\Services;
 
 use Bitrix24\Lib\ApplicationSettings\Services\InstallSettings;
-use Bitrix24\Lib\ApplicationSettings\UseCase\Set\Command;
-use Bitrix24\Lib\ApplicationSettings\UseCase\Set\Handler;
+use Bitrix24\Lib\ApplicationSettings\UseCase\Create\Command;
+use Bitrix24\Lib\ApplicationSettings\UseCase\Create\Handler;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -19,7 +19,7 @@ use Symfony\Component\Uid\Uuid;
 class InstallSettingsTest extends TestCase
 {
     /** @var Handler&\PHPUnit\Framework\MockObject\MockObject */
-    private Handler $setHandler;
+    private Handler $createHandler;
 
     /** @var LoggerInterface&\PHPUnit\Framework\MockObject\MockObject */
     private LoggerInterface $logger;
@@ -29,9 +29,9 @@ class InstallSettingsTest extends TestCase
     #[\Override]
     protected function setUp(): void
     {
-        $this->setHandler = $this->createMock(Handler::class);
+        $this->createHandler = $this->createMock(Handler::class);
         $this->logger = $this->createMock(LoggerInterface::class);
-        $this->service = new InstallSettings($this->setHandler, $this->logger);
+        $this->service = new InstallSettings($this->createHandler, $this->logger);
     }
 
     public function testCanCreateDefaultSettings(): void
@@ -42,8 +42,8 @@ class InstallSettingsTest extends TestCase
             'app.language' => ['value' => 'ru', 'required' => false],
         ];
 
-        // Expect Set Handler to be called twice (once for each setting)
-        $this->setHandler->expects($this->exactly(2))
+        // Expect Create Handler to be called twice (once for each setting)
+        $this->createHandler->expects($this->exactly(2))
             ->method('handle')
             ->with($this->callback(function (Command $command) use ($uuidV7): bool {
                 // Verify command has correct application installation ID
@@ -107,7 +107,7 @@ class InstallSettingsTest extends TestCase
         ];
 
         // Verify that created commands are for global settings (no user/department ID)
-        $this->setHandler->expects($this->once())
+        $this->createHandler->expects($this->once())
             ->method('handle')
             ->with($this->callback(fn(Command $command): bool => null === $command->b24UserId && null === $command->b24DepartmentId));
 
@@ -119,8 +119,8 @@ class InstallSettingsTest extends TestCase
         $uuidV7 = Uuid::v7();
         $defaultSettings = [];
 
-        // Set Handler should not be called
-        $this->setHandler->expects($this->never())
+        // Create Handler should not be called
+        $this->createHandler->expects($this->never())
             ->method('handle');
 
         // But logging should still happen

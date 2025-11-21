@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Bitrix24\Lib\ApplicationSettings\Services;
 
-use Bitrix24\Lib\ApplicationSettings\UseCase\Set\Command;
-use Bitrix24\Lib\ApplicationSettings\UseCase\Set\Handler;
+use Bitrix24\Lib\ApplicationSettings\UseCase\Create\Command;
+use Bitrix24\Lib\ApplicationSettings\UseCase\Create\Handler;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Uid\Uuid;
 
@@ -18,7 +18,7 @@ use Symfony\Component\Uid\Uuid;
 readonly class InstallSettings
 {
     public function __construct(
-        private Handler $setHandler,
+        private Handler $createHandler,
         private LoggerInterface $logger
     ) {}
 
@@ -38,7 +38,7 @@ readonly class InstallSettings
         ]);
 
         foreach ($defaultSettings as $key => $config) {
-            // Use Set UseCase to create or update setting
+            // Use Create UseCase to create new setting
             $command = new Command(
                 applicationInstallationId: $uuid,
                 key: $key,
@@ -46,7 +46,7 @@ readonly class InstallSettings
                 isRequired: $config['required']
             );
 
-            $this->setHandler->handle($command);
+            $this->createHandler->handle($command);
 
             $this->logger->debug('InstallSettings.settingProcessed', [
                 'key' => $key,

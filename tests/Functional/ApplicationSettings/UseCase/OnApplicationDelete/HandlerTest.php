@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Bitrix24\Lib\Tests\Functional\ApplicationSettings\UseCase\OnApplicationDelete;
 
-use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSetting;
+use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItem;
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingStatus;
-use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingRepository;
+use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingsItemRepository;
 use Bitrix24\Lib\ApplicationSettings\UseCase\OnApplicationDelete\Command;
 use Bitrix24\Lib\ApplicationSettings\UseCase\OnApplicationDelete\Handler;
 use Bitrix24\Lib\Services\Flusher;
@@ -25,14 +25,14 @@ class HandlerTest extends TestCase
 {
     private Handler $handler;
 
-    private ApplicationSettingRepository $repository;
+    private ApplicationSettingsItemRepository $repository;
 
     #[\Override]
     protected function setUp(): void
     {
         $entityManager = EntityManagerFactory::get();
         $eventDispatcher = new EventDispatcher();
-        $this->repository = new ApplicationSettingRepository($entityManager);
+        $this->repository = new ApplicationSettingsItemRepository($entityManager);
         $flusher = new Flusher($entityManager, $eventDispatcher);
 
         $this->handler = new Handler(
@@ -47,7 +47,7 @@ class HandlerTest extends TestCase
         $uuidV7 = Uuid::v7();
 
         // Create multiple settings
-        $setting1 = new ApplicationSetting(
+        $setting1 = new ApplicationSettingsItem(
             Uuid::v7(),
             $uuidV7,
             'setting1',
@@ -55,7 +55,7 @@ class HandlerTest extends TestCase
             false
         );
 
-        $setting2 = new ApplicationSetting(
+        $setting2 = new ApplicationSettingsItem(
             Uuid::v7(),
             $uuidV7,
             'setting2',
@@ -63,7 +63,7 @@ class HandlerTest extends TestCase
             false
         );
 
-        $setting3 = new ApplicationSetting(
+        $setting3 = new ApplicationSettingsItem(
             Uuid::v7(),
             $uuidV7,
             'setting3',
@@ -91,7 +91,7 @@ class HandlerTest extends TestCase
         $allSettings = EntityManagerFactory::get()
             ->createQueryBuilder()
             ->select('s')
-            ->from(ApplicationSetting::class, 's')
+            ->from(ApplicationSettingsItem::class, 's')
             ->where('s.applicationInstallationId = :appId')
             ->setParameter('appId', $uuidV7)
             ->getQuery()
@@ -110,7 +110,7 @@ class HandlerTest extends TestCase
         $installation2 = Uuid::v7();
 
         // Create settings for two installations
-        $setting1 = new ApplicationSetting(
+        $setting1 = new ApplicationSettingsItem(
             Uuid::v7(),
             $uuidV7,
             'setting',
@@ -118,7 +118,7 @@ class HandlerTest extends TestCase
             false
         );
 
-        $setting2 = new ApplicationSetting(
+        $setting2 = new ApplicationSettingsItem(
             Uuid::v7(),
             $installation2,
             'setting',
@@ -152,7 +152,7 @@ class HandlerTest extends TestCase
         $uuidV7 = Uuid::v7();
 
         // Create active and already deleted settings
-        $activeSetting = new ApplicationSetting(
+        $activeSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             $uuidV7,
             'active',
@@ -160,7 +160,7 @@ class HandlerTest extends TestCase
             false
         );
 
-        $deletedSetting = new ApplicationSetting(
+        $deletedSetting = new ApplicationSettingsItem(
             Uuid::v7(),
             $uuidV7,
             'deleted',
@@ -187,7 +187,7 @@ class HandlerTest extends TestCase
 
         // Load the already deleted setting
         $reloadedDeleted = EntityManagerFactory::get()
-            ->find(ApplicationSetting::class, $deletedSetting->getId());
+            ->find(ApplicationSettingsItem::class, $deletedSetting->getId());
 
         // updatedAt should not have changed for already deleted setting
         $this->assertEquals($initialUpdatedAt->format('Y-m-d H:i:s'), $reloadedDeleted->getUpdatedAt()->format('Y-m-d H:i:s'));

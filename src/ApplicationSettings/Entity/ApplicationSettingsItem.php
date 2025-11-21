@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Bitrix24\Lib\ApplicationSettings\Entity;
 
 use Bitrix24\Lib\AggregateRoot;
-use Bitrix24\Lib\ApplicationSettings\Events\ApplicationSettingChangedEvent;
+use Bitrix24\Lib\ApplicationSettings\Events\ApplicationSettingsItemChangedEvent;
 use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Carbon\CarbonImmutable;
 use Symfony\Component\Uid\Uuid;
@@ -19,7 +19,7 @@ use Symfony\Component\Uid\Uuid;
  * - Personal (tied to specific Bitrix24 user)
  * - Departmental (tied to specific department)
  */
-class ApplicationSetting extends AggregateRoot implements ApplicationSettingInterface
+class ApplicationSettingsItem extends AggregateRoot implements ApplicationSettingsItemInterface
 {
     private readonly CarbonImmutable $createdAt;
 
@@ -138,7 +138,7 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
             $this->updatedAt = new CarbonImmutable();
 
             // Emit event about setting change
-            $this->events[] = new ApplicationSettingChangedEvent(
+            $this->events[] = new ApplicationSettingsItemChangedEvent(
                 $this->id,
                 $this->key,
                 $oldValue,

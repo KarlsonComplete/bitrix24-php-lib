@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Bitrix24\Lib\ApplicationSettings\UseCase\OnApplicationDelete;
 
-use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingRepository;
+use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingsItemRepository;
 use Bitrix24\Lib\Services\Flusher;
 use Psr\Log\LoggerInterface;
 
@@ -18,7 +18,7 @@ use Psr\Log\LoggerInterface;
 readonly class Handler
 {
     public function __construct(
-        private ApplicationSettingRepository $applicationSettingRepository,
+        private ApplicationSettingsItemRepository $applicationSettingRepository,
         private Flusher $flusher,
         private LoggerInterface $logger
     ) {}

@@ -12,7 +12,7 @@ use Symfony\Component\Uid\Uuid;
  *
  * @todo Move this interface to b24-php-sdk contracts after stabilization
  */
-interface ApplicationSettingInterface
+interface ApplicationSettingsItemInterface
 {
     public function getId(): Uuid;
 
