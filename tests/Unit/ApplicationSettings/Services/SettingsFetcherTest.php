@@ -11,6 +11,11 @@ use Bitrix24\Lib\ApplicationSettings\Services\SettingsFetcher;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Uid\Uuid;
 
@@ -27,6 +32,56 @@ class TestConfigDto
 }
 
 /**
+ * Test DTO for string type.
+ */
+class StringTypeDto
+{
+    public function __construct(
+        public string $value = ''
+    ) {}
+}
+
+/**
+ * Test DTO for boolean type.
+ */
+class BoolTypeDto
+{
+    public function __construct(
+        public bool $active = false
+    ) {}
+}
+
+/**
+ * Test DTO for int type.
+ */
+class IntTypeDto
+{
+    public function __construct(
+        public int $count = 0
+    ) {}
+}
+
+/**
+ * Test DTO for float type.
+ */
+class FloatTypeDto
+{
+    public function __construct(
+        public float $price = 0.0
+    ) {}
+}
+
+/**
+ * Test DTO for DateTimeInterface type.
+ */
+class DateTimeTypeDto
+{
+    public function __construct(
+        public ?\DateTimeInterface $createdAt = null
+    ) {}
+}
+
+/**
  * @internal
  */
 #[CoversClass(SettingsFetcher::class)]
@@ -38,7 +93,6 @@ class SettingsFetcherTest extends TestCase
 
     private Uuid $installationId;
 
-    /** @var SerializerInterface&\PHPUnit\Framework\MockObject\MockObject */
     private SerializerInterface $serializer;
 
     /** @var LoggerInterface&\PHPUnit\Framework\MockObject\MockObject */
@@ -48,7 +102,16 @@ class SettingsFetcherTest extends TestCase
     protected function setUp(): void
     {
         $this->repository = new ApplicationSettingsItemInMemoryRepository();
-        $this->serializer = $this->createMock(SerializerInterface::class);
+
+        // Create real Symfony Serializer
+        $normalizers = [
+            new DateTimeNormalizer(),
+            new ArrayDenormalizer(),
+            new ObjectNormalizer(),
+        ];
+        $encoders = [new JsonEncoder()];
+
+        $this->serializer = new Serializer($normalizers, $encoders);
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->fetcher = new SettingsFetcher($this->repository, $this->serializer, $this->logger);
         $this->installationId = Uuid::v7();
@@ -253,17 +316,6 @@ class SettingsFetcherTest extends TestCase
 
         $this->repository->save($applicationSettingsItem);
 
-        $testConfigDto = new TestConfigDto(
-            endpoint: 'https://api.example.com',
-            timeout: 60,
-            enabled: true
-        );
-
-        $this->serializer->expects($this->once())
-            ->method('deserialize')
-            ->with($jsonValue, TestConfigDto::class, 'json')
-            ->willReturn($testConfigDto);
-
         $result = $this->fetcher->getValue(
             $this->installationId,
             'api.config',
@@ -290,10 +342,6 @@ class SettingsFetcherTest extends TestCase
 
         $this->repository->save($applicationSettingsItem);
 
-        // Serializer should NOT be called when class is not specified
-        $this->serializer->expects($this->never())
-            ->method('deserialize');
-
         $result = $this->fetcher->getValue($this->installationId, 'raw.setting');
 
         $this->assertIsString($result);
@@ -314,21 +362,13 @@ class SettingsFetcherTest extends TestCase
 
         $this->repository->save($applicationSettingsItem);
 
-        $exception = new \Exception('Deserialization failed');
-
-        $this->serializer->expects($this->once())
-            ->method('deserialize')
-            ->with($jsonValue, TestConfigDto::class, 'json')
-            ->willThrowException($exception);
-
         $this->logger->expects($this->once())
             ->method('error')
             ->with('SettingsFetcher.getValue.deserializationFailed', $this->callback(fn($context): bool => isset($context['key'], $context['class'], $context['error'])
                 && 'broken.setting' === $context['key']
                 && TestConfigDto::class === $context['class']));
 
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Deserialization failed');
+        $this->expectException(\Throwable::class);
 
         $this->fetcher->getValue(
             $this->installationId,
@@ -396,5 +436,150 @@ class SettingsFetcherTest extends TestCase
 
         $this->assertEquals('light', $result->getValue());
         $this->assertTrue($result->isGlobal());
+    }
+
+    public function testGetValueDeserializesStringType(): void
+    {
+        $jsonValue = json_encode(['value' => 'test string']);
+
+        $applicationSettingsItem = new ApplicationSettingsItem(
+            Uuid::v7(),
+            $this->installationId,
+            'string.setting',
+            $jsonValue,
+            false
+        );
+
+        $this->repository->save($applicationSettingsItem);
+
+        $result = $this->fetcher->getValue(
+            $this->installationId,
+            'string.setting',
+            class: StringTypeDto::class
+        );
+
+        $this->assertInstanceOf(StringTypeDto::class, $result);
+        $this->assertEquals('test string', $result->value);
+    }
+
+    public function testGetValueDeserializesBoolType(): void
+    {
+        $jsonValue = json_encode(['active' => true]);
+
+        $applicationSettingsItem = new ApplicationSettingsItem(
+            Uuid::v7(),
+            $this->installationId,
+            'bool.setting',
+            $jsonValue,
+            false
+        );
+
+        $this->repository->save($applicationSettingsItem);
+
+        $result = $this->fetcher->getValue(
+            $this->installationId,
+            'bool.setting',
+            class: BoolTypeDto::class
+        );
+
+        $this->assertInstanceOf(BoolTypeDto::class, $result);
+        $this->assertTrue($result->active);
+
+        // Test with false
+        $jsonValueFalse = json_encode(['active' => false]);
+        $applicationSettingsItemFalse = new ApplicationSettingsItem(
+            Uuid::v7(),
+            $this->installationId,
+            'bool.setting.false',
+            $jsonValueFalse,
+            false
+        );
+        $this->repository->save($applicationSettingsItemFalse);
+
+        $resultFalse = $this->fetcher->getValue(
+            $this->installationId,
+            'bool.setting.false',
+            class: BoolTypeDto::class
+        );
+
+        $this->assertInstanceOf(BoolTypeDto::class, $resultFalse);
+        $this->assertFalse($resultFalse->active);
+    }
+
+    public function testGetValueDeserializesIntType(): void
+    {
+        $jsonValue = json_encode(['count' => 42]);
+
+        $applicationSettingsItem = new ApplicationSettingsItem(
+            Uuid::v7(),
+            $this->installationId,
+            'int.setting',
+            $jsonValue,
+            false
+        );
+
+        $this->repository->save($applicationSettingsItem);
+
+        $result = $this->fetcher->getValue(
+            $this->installationId,
+            'int.setting',
+            class: IntTypeDto::class
+        );
+
+        $this->assertInstanceOf(IntTypeDto::class, $result);
+        $this->assertIsInt($result->count);
+        $this->assertEquals(42, $result->count);
+    }
+
+    public function testGetValueDeserializesFloatType(): void
+    {
+        $jsonValue = json_encode(['price' => 99.99]);
+
+        $applicationSettingsItem = new ApplicationSettingsItem(
+            Uuid::v7(),
+            $this->installationId,
+            'float.setting',
+            $jsonValue,
+            false
+        );
+
+        $this->repository->save($applicationSettingsItem);
+
+        $result = $this->fetcher->getValue(
+            $this->installationId,
+            'float.setting',
+            class: FloatTypeDto::class
+        );
+
+        $this->assertInstanceOf(FloatTypeDto::class, $result);
+        $this->assertIsFloat($result->price);
+        $this->assertEquals(99.99, $result->price);
+    }
+
+    public function testGetValueDeserializesDateTimeType(): void
+    {
+        $dateTime = new \DateTimeImmutable('2025-01-15 10:30:00');
+        $jsonValue = json_encode(['createdAt' => $dateTime->format(\DateTimeInterface::RFC3339)]);
+
+        $applicationSettingsItem = new ApplicationSettingsItem(
+            Uuid::v7(),
+            $this->installationId,
+            'datetime.setting',
+            $jsonValue,
+            false
+        );
+
+        $this->repository->save($applicationSettingsItem);
+
+        $result = $this->fetcher->getValue(
+            $this->installationId,
+            'datetime.setting',
+            class: DateTimeTypeDto::class
+        );
+
+        $this->assertInstanceOf(DateTimeTypeDto::class, $result);
+        $this->assertInstanceOf(\DateTimeInterface::class, $result->createdAt);
+        $this->assertEquals('2025-01-15', $result->createdAt->format('Y-m-d'));
+        $this->assertEquals('10:30:00', $result->createdAt->format('H:i:s'));
     }
 }

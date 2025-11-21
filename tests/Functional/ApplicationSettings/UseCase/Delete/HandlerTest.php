@@ -6,11 +6,11 @@ namespace Bitrix24\Lib\Tests\Functional\ApplicationSettings\UseCase\Delete;
 
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItem;
 use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingsItemRepository;
+use Bitrix24\Lib\ApplicationSettings\Services\Exception\SettingsItemNotFoundException;
 use Bitrix24\Lib\ApplicationSettings\UseCase\Delete\Command;
 use Bitrix24\Lib\ApplicationSettings\UseCase\Delete\Handler;
 use Bitrix24\Lib\Services\Flusher;
 use Bitrix24\Lib\Tests\EntityManagerFactory;
-use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -94,7 +94,7 @@ class HandlerTest extends TestCase
     {
         $command = new Command(Uuid::v7(), 'non.existent');
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(SettingsItemNotFoundException::class);
         $this->expectExceptionMessage('Setting with key "non.existent" not found');
 
         $this->handler->handle($command);

@@ -7,9 +7,9 @@ namespace Bitrix24\Lib\ApplicationSettings\UseCase\Create;
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItem;
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItemInterface;
 use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingsItemRepositoryInterface;
+use Bitrix24\Lib\ApplicationSettings\UseCase\Create\Exception\SettingsItemAlreadyExistsException;
 use Bitrix24\Lib\Services\Flusher;
 use Bitrix24\SDK\Application\Contracts\Events\AggregateRootEventsEmitterInterface;
-use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Uid\Uuid;
 
@@ -48,12 +48,7 @@ readonly class Handler
         );
 
         if ($existingSetting instanceof ApplicationSettingsItemInterface) {
-            throw new InvalidArgumentException(
-                sprintf(
-                    'Setting with key "%s" already exists for this scope. Use Update command to modify it.',
-                    $command->key
-                )
-            );
+            throw SettingsItemAlreadyExistsException::byKey($command->key);
         }
 
         // Create new setting

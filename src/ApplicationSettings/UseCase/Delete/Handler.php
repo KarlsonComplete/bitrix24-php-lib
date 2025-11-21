@@ -6,8 +6,8 @@ namespace Bitrix24\Lib\ApplicationSettings\UseCase\Delete;
 
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItemInterface;
 use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingsItemRepositoryInterface;
+use Bitrix24\Lib\ApplicationSettings\Services\Exception\SettingsItemNotFoundException;
 use Bitrix24\Lib\Services\Flusher;
-use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -45,13 +45,7 @@ readonly class Handler
         }
 
         if (!$setting instanceof ApplicationSettingsItemInterface) {
-            throw new InvalidArgumentException(
-                sprintf(
-                    'Global setting with key "%s" not found for application installation "%s"',
-                    $command->key,
-                    $command->applicationInstallationId->toRfc4122()
-                )
-            );
+            throw SettingsItemNotFoundException::byKey($command->key);
         }
 
         $settingId = $setting->getId()->toRfc4122();
