@@ -24,6 +24,7 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
     private CarbonImmutable $updatedAt;
     private string $value;
     private ?int $changedByBitrix24UserId = null;
+    private ApplicationSettingStatus $status;
 
     public function __construct(
         private readonly Uuid $id,
@@ -33,7 +34,8 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
         private readonly bool $isRequired = false,
         private readonly ?int $b24UserId = null,
         private readonly ?int $b24DepartmentId = null,
-        ?int $changedByBitrix24UserId = null
+        ?int $changedByBitrix24UserId = null,
+        ApplicationSettingStatus $status = ApplicationSettingStatus::Active
     ) {
         $this->validateKey($key);
         $this->validateValue($value);
@@ -41,6 +43,7 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
 
         $this->value = $value;
         $this->changedByBitrix24UserId = $changedByBitrix24UserId;
+        $this->status = $status;
         $this->createdAt = new CarbonImmutable();
         $this->updatedAt = new CarbonImmutable();
     }
@@ -97,6 +100,32 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
     public function isRequired(): bool
     {
         return $this->isRequired;
+    }
+
+    #[\Override]
+    public function getStatus(): ApplicationSettingStatus
+    {
+        return $this->status;
+    }
+
+    #[\Override]
+    public function isActive(): bool
+    {
+        return $this->status->isActive();
+    }
+
+    /**
+     * Mark setting as deleted (soft delete)
+     */
+    #[\Override]
+    public function markAsDeleted(): void
+    {
+        if ($this->status === ApplicationSettingStatus::Deleted) {
+            return; // Already deleted
+        }
+
+        $this->status = ApplicationSettingStatus::Deleted;
+        $this->updatedAt = new CarbonImmutable();
     }
 
     /**

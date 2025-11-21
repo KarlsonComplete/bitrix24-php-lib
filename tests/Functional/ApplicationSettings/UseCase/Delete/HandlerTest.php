@@ -60,12 +60,28 @@ class HandlerTest extends TestCase
 
         EntityManagerFactory::get()->clear();
 
+        // Setting should not be found by regular find methods (soft-deleted)
         $deletedSetting = $this->repository->findByApplicationInstallationIdAndKey(
             $applicationInstallationId,
             'delete.test'
         );
 
         $this->assertNull($deletedSetting);
+
+        // But should still exist in database with deleted status
+        $settingById = EntityManagerFactory::get()
+            ->createQueryBuilder()
+            ->select('s')
+            ->from(\Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSetting::class, 's')
+            ->where('s.applicationInstallationId = :appId')
+            ->andWhere('s.key = :key')
+            ->setParameter('appId', $applicationInstallationId)
+            ->setParameter('key', 'delete.test')
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        $this->assertNotNull($settingById);
+        $this->assertEquals(\Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingStatus::Deleted, $settingById->getStatus());
     }
 
     public function testThrowsExceptionForNonExistentSetting(): void

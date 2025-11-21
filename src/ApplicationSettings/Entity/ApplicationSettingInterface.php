@@ -30,6 +30,10 @@ interface ApplicationSettingInterface
 
     public function isRequired(): bool;
 
+    public function getStatus(): ApplicationSettingStatus;
+
+    public function isActive(): bool;
+
     public function getCreatedAt(): CarbonImmutable;
 
     public function getUpdatedAt(): CarbonImmutable;
@@ -38,6 +42,11 @@ interface ApplicationSettingInterface
      * Update setting value
      */
     public function updateValue(string $value, ?int $changedByBitrix24UserId = null): void;
+
+    /**
+     * Mark setting as deleted (soft delete)
+     */
+    public function markAsDeleted(): void;
 
     /**
      * Check if setting is global (not tied to user or department)

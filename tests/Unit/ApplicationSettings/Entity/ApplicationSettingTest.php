@@ -296,4 +296,58 @@ class ApplicationSettingTest extends TestCase
 
         $this->assertCount(0, $setting->getEvents());
     }
+
+    public function testDefaultStatusIsActive(): void
+    {
+        $setting = new ApplicationSetting(
+            Uuid::v7(),
+            Uuid::v7(),
+            'status.test',
+            'value',
+            false
+        );
+
+        $this->assertEquals(\Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingStatus::Active, $setting->getStatus());
+        $this->assertTrue($setting->isActive());
+    }
+
+    public function testCanMarkAsDeleted(): void
+    {
+        $setting = new ApplicationSetting(
+            Uuid::v7(),
+            Uuid::v7(),
+            'delete.test',
+            'value',
+            false
+        );
+
+        $this->assertTrue($setting->isActive());
+
+        $initialUpdatedAt = $setting->getUpdatedAt();
+        usleep(1000);
+        $setting->markAsDeleted();
+
+        $this->assertEquals(\Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingStatus::Deleted, $setting->getStatus());
+        $this->assertFalse($setting->isActive());
+        $this->assertGreaterThan($initialUpdatedAt, $setting->getUpdatedAt());
+    }
+
+    public function testMarkAsDeletedIsIdempotent(): void
+    {
+        $setting = new ApplicationSetting(
+            Uuid::v7(),
+            Uuid::v7(),
+            'idempotent.test',
+            'value',
+            false
+        );
+
+        $setting->markAsDeleted();
+        $firstUpdatedAt = $setting->getUpdatedAt();
+
+        usleep(1000);
+        $setting->markAsDeleted(); // Second call should not change updatedAt
+
+        $this->assertEquals($firstUpdatedAt, $setting->getUpdatedAt());
+    }
 }

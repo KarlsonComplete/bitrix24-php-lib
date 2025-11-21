@@ -6,6 +6,7 @@ namespace Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine;
 
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSetting;
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingInterface;
+use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingStatus;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\Uid\Uuid;
@@ -41,7 +42,9 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->getRepository(ApplicationSetting::class)
             ->createQueryBuilder('s')
             ->where('s.id = :id')
+            ->andWhere('s.status = :status')
             ->setParameter('id', $id)
+            ->setParameter('status', ApplicationSettingStatus::Active)
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -56,8 +59,10 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->andWhere('s.key = :key')
             ->andWhere('s.b24UserId IS NULL')
             ->andWhere('s.b24DepartmentId IS NULL')
+            ->andWhere('s.status = :status')
             ->setParameter('applicationInstallationId', $applicationInstallationId)
             ->setParameter('key', $key)
+            ->setParameter('status', ApplicationSettingStatus::Active)
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -74,9 +79,11 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->where('s.applicationInstallationId = :applicationInstallationId')
             ->andWhere('s.key = :key')
             ->andWhere('s.b24UserId = :b24UserId')
+            ->andWhere('s.status = :status')
             ->setParameter('applicationInstallationId', $applicationInstallationId)
             ->setParameter('key', $key)
             ->setParameter('b24UserId', $b24UserId)
+            ->setParameter('status', ApplicationSettingStatus::Active)
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -94,9 +101,11 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->andWhere('s.key = :key')
             ->andWhere('s.b24DepartmentId = :b24DepartmentId')
             ->andWhere('s.b24UserId IS NULL')
+            ->andWhere('s.status = :status')
             ->setParameter('applicationInstallationId', $applicationInstallationId)
             ->setParameter('key', $key)
             ->setParameter('b24DepartmentId', $b24DepartmentId)
+            ->setParameter('status', ApplicationSettingStatus::Active)
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -113,8 +122,10 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->createQueryBuilder('s')
             ->where('s.applicationInstallationId = :applicationInstallationId')
             ->andWhere('s.key = :key')
+            ->andWhere('s.status = :status')
             ->setParameter('applicationInstallationId', $applicationInstallationId)
-            ->setParameter('key', $key);
+            ->setParameter('key', $key)
+            ->setParameter('status', ApplicationSettingStatus::Active);
 
         if (null !== $b24UserId) {
             $qb->andWhere('s.b24UserId = :b24UserId')
@@ -142,7 +153,9 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->where('s.applicationInstallationId = :applicationInstallationId')
             ->andWhere('s.b24UserId IS NULL')
             ->andWhere('s.b24DepartmentId IS NULL')
+            ->andWhere('s.status = :status')
             ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->setParameter('status', ApplicationSettingStatus::Active)
             ->orderBy('s.key', 'ASC')
             ->getQuery()
             ->getResult();
@@ -156,8 +169,10 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->createQueryBuilder('s')
             ->where('s.applicationInstallationId = :applicationInstallationId')
             ->andWhere('s.b24UserId = :b24UserId')
+            ->andWhere('s.status = :status')
             ->setParameter('applicationInstallationId', $applicationInstallationId)
             ->setParameter('b24UserId', $b24UserId)
+            ->setParameter('status', ApplicationSettingStatus::Active)
             ->orderBy('s.key', 'ASC')
             ->getQuery()
             ->getResult();
@@ -172,8 +187,10 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->where('s.applicationInstallationId = :applicationInstallationId')
             ->andWhere('s.b24DepartmentId = :b24DepartmentId')
             ->andWhere('s.b24UserId IS NULL')
+            ->andWhere('s.status = :status')
             ->setParameter('applicationInstallationId', $applicationInstallationId)
             ->setParameter('b24DepartmentId', $b24DepartmentId)
+            ->setParameter('status', ApplicationSettingStatus::Active)
             ->orderBy('s.key', 'ASC')
             ->getQuery()
             ->getResult();
@@ -186,7 +203,9 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->getRepository(ApplicationSetting::class)
             ->createQueryBuilder('s')
             ->where('s.applicationInstallationId = :applicationInstallationId')
+            ->andWhere('s.status = :status')
             ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->setParameter('status', ApplicationSettingStatus::Active)
             ->orderBy('s.key', 'ASC')
             ->getQuery()
             ->getResult();
@@ -200,6 +219,26 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->delete(ApplicationSetting::class, 's')
             ->where('s.applicationInstallationId = :applicationInstallationId')
             ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->getQuery()
+            ->execute();
+    }
+
+    /**
+     * Soft-delete all settings for application installation
+     */
+    public function softDeleteByApplicationInstallationId(Uuid $applicationInstallationId): void
+    {
+        $this->getEntityManager()
+            ->createQueryBuilder()
+            ->update(ApplicationSetting::class, 's')
+            ->set('s.status', ':status')
+            ->set('s.updatedAt', ':updatedAt')
+            ->where('s.applicationInstallationId = :applicationInstallationId')
+            ->andWhere('s.status = :activeStatus')
+            ->setParameter('status', ApplicationSettingStatus::Deleted)
+            ->setParameter('updatedAt', new \Carbon\CarbonImmutable())
+            ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->setParameter('activeStatus', ApplicationSettingStatus::Active)
             ->getQuery()
             ->execute();
     }

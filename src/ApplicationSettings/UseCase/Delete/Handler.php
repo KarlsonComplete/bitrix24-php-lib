@@ -48,11 +48,14 @@ readonly class Handler
         }
 
         $settingId = $setting->getId()->toRfc4122();
-        $this->applicationSettingRepository->delete($setting);
+
+        // Soft-delete: mark as deleted instead of removing
+        $setting->markAsDeleted();
         $this->flusher->flush();
 
         $this->logger->info('ApplicationSettings.Delete.finish', [
             'settingId' => $settingId,
+            'softDeleted' => true,
         ]);
     }
 }
