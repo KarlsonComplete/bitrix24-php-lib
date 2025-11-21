@@ -6,6 +6,7 @@ namespace Bitrix24\Lib\ApplicationSettings\Services;
 
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingInterface;
 use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingRepositoryInterface;
+use Bitrix24\Lib\ApplicationSettings\Services\Exception\SettingsItemNotFoundException;
 use Symfony\Component\Uid\Uuid;
 
 /**
@@ -23,21 +24,21 @@ readonly class SettingsFetcher
     ) {}
 
     /**
-     * Get setting value with cascading resolution.
+     * Get setting item with cascading resolution.
      *
      * Tries to find setting in following order:
      * 1. Personal (if userId provided)
      * 2. Departmental (if departmentId provided)
      * 3. Global (always as fallback)
      *
-     * Returns null if setting not found at any level.
+     * @throws SettingsItemNotFoundException if setting not found at any level
      */
-    public function getSetting(
+    public function getItem(
         Uuid $uuid,
         string $key,
         ?int $userId = null,
         ?int $departmentId = null
-    ): ?ApplicationSettingInterface {
+    ): ApplicationSettingInterface {
         $allSettings = $this->repository->findAllForInstallation($uuid);
 
         // Try to find personal setting (highest priority)
@@ -71,20 +72,22 @@ readonly class SettingsFetcher
             }
         }
 
-        return null;
+        throw SettingsItemNotFoundException::byKey($key);
     }
 
     /**
      * Get setting value as string (shortcut method).
+     *
+     * @throws SettingsItemNotFoundException if setting not found at any level
      */
     public function getSettingValue(
         Uuid $uuid,
         string $key,
         ?int $userId = null,
         ?int $departmentId = null
-    ): ?string {
-        $setting = $this->getSetting($uuid, $key, $userId, $departmentId);
+    ): string {
+        $applicationSetting = $this->getItem($uuid, $key, $userId, $departmentId);
 
-        return $setting?->getValue();
+        return $applicationSetting->getValue();
     }
 }

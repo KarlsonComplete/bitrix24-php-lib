@@ -6,6 +6,7 @@ namespace Bitrix24\Lib\Tests\Unit\ApplicationSettings\Services;
 
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSetting;
 use Bitrix24\Lib\ApplicationSettings\Infrastructure\InMemory\ApplicationSettingInMemoryRepository;
+use Bitrix24\Lib\ApplicationSettings\Services\Exception\SettingsItemNotFoundException;
 use Bitrix24\Lib\ApplicationSettings\Services\SettingsFetcher;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -50,9 +51,8 @@ class SettingsFetcherTest extends TestCase
 
         $this->repository->save($applicationSetting);
 
-        $result = $this->fetcher->getSetting($this->installationId, 'app.theme');
+        $result = $this->fetcher->getItem($this->installationId, 'app.theme');
 
-        $this->assertNotNull($result);
         $this->assertEquals('light', $result->getValue());
         $this->assertTrue($result->isGlobal());
     }
@@ -82,9 +82,8 @@ class SettingsFetcherTest extends TestCase
         $this->repository->save($deptSetting);
 
         // When requesting for department 456, should get departmental setting
-        $result = $this->fetcher->getSetting($this->installationId, 'app.theme', null, 456);
+        $result = $this->fetcher->getItem($this->installationId, 'app.theme', null, 456);
 
-        $this->assertNotNull($result);
         $this->assertEquals('blue', $result->getValue());
         $this->assertTrue($result->isDepartmental());
     }
@@ -124,9 +123,8 @@ class SettingsFetcherTest extends TestCase
         $this->repository->save($personalSetting);
 
         // When requesting for user 123 and department 456, should get personal setting
-        $result = $this->fetcher->getSetting($this->installationId, 'app.theme', 123, 456);
+        $result = $this->fetcher->getItem($this->installationId, 'app.theme', 123, 456);
 
-        $this->assertNotNull($result);
         $this->assertEquals('dark', $result->getValue());
         $this->assertTrue($result->isPersonal());
     }
@@ -145,9 +143,8 @@ class SettingsFetcherTest extends TestCase
         $this->repository->save($applicationSetting);
 
         // Request for user 123, should fallback to global
-        $result = $this->fetcher->getSetting($this->installationId, 'app.theme', 123);
+        $result = $this->fetcher->getItem($this->installationId, 'app.theme', 123);
 
-        $this->assertNotNull($result);
         $this->assertEquals('light', $result->getValue());
         $this->assertTrue($result->isGlobal());
     }
@@ -177,18 +174,18 @@ class SettingsFetcherTest extends TestCase
         $this->repository->save($deptSetting);
 
         // Request for user 999 (no personal setting) but department 456
-        $result = $this->fetcher->getSetting($this->installationId, 'app.theme', 999, 456);
+        $result = $this->fetcher->getItem($this->installationId, 'app.theme', 999, 456);
 
-        $this->assertNotNull($result);
         $this->assertEquals('blue', $result->getValue());
         $this->assertTrue($result->isDepartmental());
     }
 
-    public function testReturnsNullWhenNoSettingFound(): void
+    public function testThrowsExceptionWhenNoSettingFound(): void
     {
-        $result = $this->fetcher->getSetting($this->installationId, 'non.existent.key');
+        $this->expectException(SettingsItemNotFoundException::class);
+        $this->expectExceptionMessage('Setting with key "non.existent.key" not found');
 
-        $this->assertNull($result);
+        $this->fetcher->getItem($this->installationId, 'non.existent.key');
     }
 
     public function testGetSettingValueReturnsStringValue(): void
@@ -208,11 +205,12 @@ class SettingsFetcherTest extends TestCase
         $this->assertEquals('1.2.3', $result);
     }
 
-    public function testGetSettingValueReturnsNullWhenNotFound(): void
+    public function testGetSettingValueThrowsExceptionWhenNotFound(): void
     {
-        $result = $this->fetcher->getSettingValue($this->installationId, 'non.existent');
+        $this->expectException(SettingsItemNotFoundException::class);
+        $this->expectExceptionMessage('Setting with key "non.existent" not found');
 
-        $this->assertNull($result);
+        $this->fetcher->getSettingValue($this->installationId, 'non.existent');
     }
 
     public function testPersonalSettingForDifferentUserNotUsed(): void
@@ -239,9 +237,8 @@ class SettingsFetcherTest extends TestCase
         $this->repository->save($personalSetting);
 
         // Request for user 456 (different user), should get global
-        $result = $this->fetcher->getSetting($this->installationId, 'app.theme', 456);
+        $result = $this->fetcher->getItem($this->installationId, 'app.theme', 456);
 
-        $this->assertNotNull($result);
         $this->assertEquals('light', $result->getValue());
         $this->assertTrue($result->isGlobal());
     }
@@ -271,9 +268,8 @@ class SettingsFetcherTest extends TestCase
         $this->repository->save($deptSetting);
 
         // Request for dept 789 (different department), should get global
-        $result = $this->fetcher->getSetting($this->installationId, 'app.theme', null, 789);
+        $result = $this->fetcher->getItem($this->installationId, 'app.theme', null, 789);
 
-        $this->assertNotNull($result);
         $this->assertEquals('light', $result->getValue());
         $this->assertTrue($result->isGlobal());
     }
