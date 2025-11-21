@@ -13,9 +13,12 @@ use Symfony\Component\Uid\Uuid;
  * Application setting entity
  *
  * Stores key-value settings for application installations.
- * Each ApplicationInstallation can have multiple settings identified by unique keys.
+ * Settings can be:
+ * - Global (for entire application installation)
+ * - Personal (tied to specific Bitrix24 user)
+ * - Departmental (tied to specific department)
  */
-class ApplicationSetting extends AggregateRoot
+class ApplicationSetting extends AggregateRoot implements ApplicationSettingInterface
 {
     private readonly CarbonImmutable $createdAt;
     private CarbonImmutable $updatedAt;
@@ -25,10 +28,13 @@ class ApplicationSetting extends AggregateRoot
         private readonly Uuid $id,
         private readonly Uuid $applicationInstallationId,
         private readonly string $key,
-        string $value
+        string $value,
+        private readonly ?int $b24UserId = null,
+        private readonly ?int $b24DepartmentId = null
     ) {
         $this->validateKey($key);
         $this->validateValue($value);
+        $this->validateScope($b24UserId, $b24DepartmentId);
 
         $this->value = $value;
         $this->createdAt = new CarbonImmutable();
@@ -65,9 +71,22 @@ class ApplicationSetting extends AggregateRoot
         return $this->updatedAt;
     }
 
+    #[\Override]
+    public function getB24UserId(): ?int
+    {
+        return $this->b24UserId;
+    }
+
+    #[\Override]
+    public function getB24DepartmentId(): ?int
+    {
+        return $this->b24DepartmentId;
+    }
+
     /**
      * Update setting value
      */
+    #[\Override]
     public function updateValue(string $value): void
     {
         $this->validateValue($value);
@@ -79,7 +98,35 @@ class ApplicationSetting extends AggregateRoot
     }
 
     /**
+     * Check if setting is global (not tied to user or department)
+     */
+    #[\Override]
+    public function isGlobal(): bool
+    {
+        return null === $this->b24UserId && null === $this->b24DepartmentId;
+    }
+
+    /**
+     * Check if setting is personal (tied to specific user)
+     */
+    #[\Override]
+    public function isPersonal(): bool
+    {
+        return null !== $this->b24UserId;
+    }
+
+    /**
+     * Check if setting is departmental (tied to specific department)
+     */
+    #[\Override]
+    public function isDepartmental(): bool
+    {
+        return null !== $this->b24DepartmentId && null === $this->b24UserId;
+    }
+
+    /**
      * Validate setting key
+     * Only lowercase latin letters and dots are allowed, max 255 characters
      */
     private function validateKey(string $key): void
     {
@@ -91,10 +138,31 @@ class ApplicationSetting extends AggregateRoot
             throw new InvalidArgumentException('Setting key cannot exceed 255 characters');
         }
 
-        // Key should contain only alphanumeric characters, underscores, dots, and hyphens
-        if (!preg_match('/^[a-zA-Z0-9_.-]+$/', $key)) {
+        // Key should contain only lowercase latin letters and dots
+        if (!preg_match('/^[a-z.]+$/', $key)) {
             throw new InvalidArgumentException(
-                'Setting key can only contain alphanumeric characters, underscores, dots, and hyphens'
+                'Setting key can only contain lowercase latin letters and dots'
+            );
+        }
+    }
+
+    /**
+     * Validate scope parameters
+     */
+    private function validateScope(?int $b24UserId, ?int $b24DepartmentId): void
+    {
+        if (null !== $b24UserId && $b24UserId <= 0) {
+            throw new InvalidArgumentException('Bitrix24 user ID must be positive integer');
+        }
+
+        if (null !== $b24DepartmentId && $b24DepartmentId <= 0) {
+            throw new InvalidArgumentException('Bitrix24 department ID must be positive integer');
+        }
+
+        // User and department cannot be set simultaneously
+        if (null !== $b24UserId && null !== $b24DepartmentId) {
+            throw new InvalidArgumentException(
+                'Setting cannot be both personal and departmental. Choose one scope.'
             );
         }
     }

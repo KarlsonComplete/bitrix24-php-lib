@@ -1,0 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Bitrix24\Lib\ApplicationSettings\Entity;
+
+use Carbon\CarbonImmutable;
+use Symfony\Component\Uid\Uuid;
+
+/**
+ * Interface for ApplicationSetting entity
+ *
+ * @todo Move this interface to b24-php-sdk contracts after stabilization
+ */
+interface ApplicationSettingInterface
+{
+    public function getId(): Uuid;
+
+    public function getApplicationInstallationId(): Uuid;
+
+    public function getKey(): string;
+
+    public function getValue(): string;
+
+    public function getB24UserId(): ?int;
+
+    public function getB24DepartmentId(): ?int;
+
+    public function getCreatedAt(): CarbonImmutable;
+
+    public function getUpdatedAt(): CarbonImmutable;
+
+    /**
+     * Update setting value
+     */
+    public function updateValue(string $value): void;
+
+    /**
+     * Check if setting is global (not tied to user or department)
+     */
+    public function isGlobal(): bool;
+
+    /**
+     * Check if setting is personal (tied to specific user)
+     */
+    public function isPersonal(): bool;
+
+    /**
+     * Check if setting is departmental (tied to specific department)
+     */
+    public function isDepartmental(): bool;
+}

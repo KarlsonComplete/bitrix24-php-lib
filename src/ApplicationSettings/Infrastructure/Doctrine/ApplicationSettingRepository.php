@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine;
 
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSetting;
+use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\Uid\Uuid;
@@ -14,33 +15,27 @@ use Symfony\Component\Uid\Uuid;
  *
  * @extends EntityRepository<ApplicationSetting>
  */
-class ApplicationSettingRepository extends EntityRepository
+class ApplicationSettingRepository extends EntityRepository implements ApplicationSettingRepositoryInterface
 {
     public function __construct(EntityManagerInterface $entityManager)
     {
         parent::__construct($entityManager, $entityManager->getClassMetadata(ApplicationSetting::class));
     }
 
-    /**
-     * Save application setting
-     */
-    public function save(ApplicationSetting $applicationSetting): void
+    #[\Override]
+    public function save(ApplicationSettingInterface $applicationSetting): void
     {
         $this->getEntityManager()->persist($applicationSetting);
     }
 
-    /**
-     * Delete application setting
-     */
-    public function delete(ApplicationSetting $applicationSetting): void
+    #[\Override]
+    public function delete(ApplicationSettingInterface $applicationSetting): void
     {
         $this->getEntityManager()->remove($applicationSetting);
     }
 
-    /**
-     * Find setting by ID
-     */
-    public function findById(Uuid $id): ?ApplicationSetting
+    #[\Override]
+    public function findById(Uuid $id): ?ApplicationSettingInterface
     {
         return $this->getEntityManager()
             ->getRepository(ApplicationSetting::class)
@@ -51,30 +46,141 @@ class ApplicationSettingRepository extends EntityRepository
             ->getOneOrNullResult();
     }
 
-    /**
-     * Find setting by application installation ID and key
-     */
-    public function findByApplicationInstallationIdAndKey(
-        Uuid $applicationInstallationId,
-        string $key
-    ): ?ApplicationSetting {
+    #[\Override]
+    public function findGlobalByKey(Uuid $applicationInstallationId, string $key): ?ApplicationSettingInterface
+    {
         return $this->getEntityManager()
             ->getRepository(ApplicationSetting::class)
             ->createQueryBuilder('s')
             ->where('s.applicationInstallationId = :applicationInstallationId')
             ->andWhere('s.key = :key')
+            ->andWhere('s.b24UserId IS NULL')
+            ->andWhere('s.b24DepartmentId IS NULL')
             ->setParameter('applicationInstallationId', $applicationInstallationId)
             ->setParameter('key', $key)
             ->getQuery()
             ->getOneOrNullResult();
     }
 
-    /**
-     * Find all settings for application installation
-     *
-     * @return ApplicationSetting[]
-     */
-    public function findByApplicationInstallationId(Uuid $applicationInstallationId): array
+    #[\Override]
+    public function findPersonalByKey(
+        Uuid $applicationInstallationId,
+        string $key,
+        int $b24UserId
+    ): ?ApplicationSettingInterface {
+        return $this->getEntityManager()
+            ->getRepository(ApplicationSetting::class)
+            ->createQueryBuilder('s')
+            ->where('s.applicationInstallationId = :applicationInstallationId')
+            ->andWhere('s.key = :key')
+            ->andWhere('s.b24UserId = :b24UserId')
+            ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->setParameter('key', $key)
+            ->setParameter('b24UserId', $b24UserId)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    #[\Override]
+    public function findDepartmentalByKey(
+        Uuid $applicationInstallationId,
+        string $key,
+        int $b24DepartmentId
+    ): ?ApplicationSettingInterface {
+        return $this->getEntityManager()
+            ->getRepository(ApplicationSetting::class)
+            ->createQueryBuilder('s')
+            ->where('s.applicationInstallationId = :applicationInstallationId')
+            ->andWhere('s.key = :key')
+            ->andWhere('s.b24DepartmentId = :b24DepartmentId')
+            ->andWhere('s.b24UserId IS NULL')
+            ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->setParameter('key', $key)
+            ->setParameter('b24DepartmentId', $b24DepartmentId)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    #[\Override]
+    public function findByKey(
+        Uuid $applicationInstallationId,
+        string $key,
+        ?int $b24UserId = null,
+        ?int $b24DepartmentId = null
+    ): ?ApplicationSettingInterface {
+        $qb = $this->getEntityManager()
+            ->getRepository(ApplicationSetting::class)
+            ->createQueryBuilder('s')
+            ->where('s.applicationInstallationId = :applicationInstallationId')
+            ->andWhere('s.key = :key')
+            ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->setParameter('key', $key);
+
+        if (null !== $b24UserId) {
+            $qb->andWhere('s.b24UserId = :b24UserId')
+                ->setParameter('b24UserId', $b24UserId);
+        } else {
+            $qb->andWhere('s.b24UserId IS NULL');
+        }
+
+        if (null !== $b24DepartmentId) {
+            $qb->andWhere('s.b24DepartmentId = :b24DepartmentId')
+                ->setParameter('b24DepartmentId', $b24DepartmentId);
+        } else {
+            $qb->andWhere('s.b24DepartmentId IS NULL');
+        }
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+
+    #[\Override]
+    public function findAllGlobal(Uuid $applicationInstallationId): array
+    {
+        return $this->getEntityManager()
+            ->getRepository(ApplicationSetting::class)
+            ->createQueryBuilder('s')
+            ->where('s.applicationInstallationId = :applicationInstallationId')
+            ->andWhere('s.b24UserId IS NULL')
+            ->andWhere('s.b24DepartmentId IS NULL')
+            ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->orderBy('s.key', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    #[\Override]
+    public function findAllPersonal(Uuid $applicationInstallationId, int $b24UserId): array
+    {
+        return $this->getEntityManager()
+            ->getRepository(ApplicationSetting::class)
+            ->createQueryBuilder('s')
+            ->where('s.applicationInstallationId = :applicationInstallationId')
+            ->andWhere('s.b24UserId = :b24UserId')
+            ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->setParameter('b24UserId', $b24UserId)
+            ->orderBy('s.key', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    #[\Override]
+    public function findAllDepartmental(Uuid $applicationInstallationId, int $b24DepartmentId): array
+    {
+        return $this->getEntityManager()
+            ->getRepository(ApplicationSetting::class)
+            ->createQueryBuilder('s')
+            ->where('s.applicationInstallationId = :applicationInstallationId')
+            ->andWhere('s.b24DepartmentId = :b24DepartmentId')
+            ->andWhere('s.b24UserId IS NULL')
+            ->setParameter('applicationInstallationId', $applicationInstallationId)
+            ->setParameter('b24DepartmentId', $b24DepartmentId)
+            ->orderBy('s.key', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    #[\Override]
+    public function findAll(Uuid $applicationInstallationId): array
     {
         return $this->getEntityManager()
             ->getRepository(ApplicationSetting::class)
@@ -86,9 +192,7 @@ class ApplicationSettingRepository extends EntityRepository
             ->getResult();
     }
 
-    /**
-     * Delete all settings for application installation
-     */
+    #[\Override]
     public function deleteByApplicationInstallationId(Uuid $applicationInstallationId): void
     {
         $this->getEntityManager()

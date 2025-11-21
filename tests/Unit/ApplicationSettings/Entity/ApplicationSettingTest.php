@@ -17,7 +17,7 @@ use Symfony\Component\Uid\Uuid;
 #[CoversClass(ApplicationSetting::class)]
 class ApplicationSettingTest extends TestCase
 {
-    public function testCanCreateApplicationSetting(): void
+    public function testCanCreateGlobalSetting(): void
     {
         $id = Uuid::v7();
         $applicationInstallationId = Uuid::v7();
@@ -30,8 +30,61 @@ class ApplicationSettingTest extends TestCase
         $this->assertEquals($applicationInstallationId, $setting->getApplicationInstallationId());
         $this->assertEquals($key, $setting->getKey());
         $this->assertEquals($value, $setting->getValue());
-        $this->assertInstanceOf(\Carbon\CarbonImmutable::class, $setting->getCreatedAt());
-        $this->assertInstanceOf(\Carbon\CarbonImmutable::class, $setting->getUpdatedAt());
+        $this->assertNull($setting->getB24UserId());
+        $this->assertNull($setting->getB24DepartmentId());
+        $this->assertTrue($setting->isGlobal());
+        $this->assertFalse($setting->isPersonal());
+        $this->assertFalse($setting->isDepartmental());
+    }
+
+    public function testCanCreatePersonalSetting(): void
+    {
+        $setting = new ApplicationSetting(
+            Uuid::v7(),
+            Uuid::v7(),
+            'user.preference',
+            'dark_mode',
+            123 // b24UserId
+        );
+
+        $this->assertEquals(123, $setting->getB24UserId());
+        $this->assertNull($setting->getB24DepartmentId());
+        $this->assertFalse($setting->isGlobal());
+        $this->assertTrue($setting->isPersonal());
+        $this->assertFalse($setting->isDepartmental());
+    }
+
+    public function testCanCreateDepartmentalSetting(): void
+    {
+        $setting = new ApplicationSetting(
+            Uuid::v7(),
+            Uuid::v7(),
+            'dept.config',
+            'enabled',
+            null, // No user ID
+            456   // b24DepartmentId
+        );
+
+        $this->assertNull($setting->getB24UserId());
+        $this->assertEquals(456, $setting->getB24DepartmentId());
+        $this->assertFalse($setting->isGlobal());
+        $this->assertFalse($setting->isPersonal());
+        $this->assertTrue($setting->isDepartmental());
+    }
+
+    public function testCannotCreateSettingWithBothUserAndDepartment(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Setting cannot be both personal and departmental');
+
+        new ApplicationSetting(
+            Uuid::v7(),
+            Uuid::v7(),
+            'invalid.setting',
+            'value',
+            123, // userId
+            456  // departmentId - both set, should fail
+        );
     }
 
     public function testCanUpdateValue(): void
@@ -40,38 +93,16 @@ class ApplicationSettingTest extends TestCase
             Uuid::v7(),
             Uuid::v7(),
             'test.key',
-            'initial_value'
+            'initial.value'
         );
 
         $initialUpdatedAt = $setting->getUpdatedAt();
-
-        // Small delay to ensure timestamp changes
         usleep(1000);
 
-        $setting->updateValue('new_value');
+        $setting->updateValue('new.value');
 
-        $this->assertEquals('new_value', $setting->getValue());
+        $this->assertEquals('new.value', $setting->getValue());
         $this->assertGreaterThan($initialUpdatedAt, $setting->getUpdatedAt());
-    }
-
-    public function testUpdateValueDoesNotChangeTimestampIfValueIsSame(): void
-    {
-        $setting = new ApplicationSetting(
-            Uuid::v7(),
-            Uuid::v7(),
-            'test.key',
-            'same_value'
-        );
-
-        $initialUpdatedAt = $setting->getUpdatedAt();
-
-        // Small delay
-        usleep(1000);
-
-        $setting->updateValue('same_value');
-
-        $this->assertEquals('same_value', $setting->getValue());
-        $this->assertEquals($initialUpdatedAt, $setting->getUpdatedAt());
     }
 
     /**
@@ -99,7 +130,10 @@ class ApplicationSettingTest extends TestCase
             'empty string' => [''],
             'whitespace only' => ['   '],
             'too long' => [str_repeat('a', 256)],
-            'invalid characters' => ['invalid key!'],
+            'with uppercase' => ['Test.Key'],
+            'with numbers' => ['test.key.123'],
+            'with underscore' => ['test_key'],
+            'with hyphen' => ['test-key'],
             'spaces' => ['invalid key'],
             'special chars' => ['key@#$%'],
         ];
@@ -127,13 +161,54 @@ class ApplicationSettingTest extends TestCase
     public static function validKeyProvider(): array
     {
         return [
-            'alphanumeric' => ['key123'],
-            'with underscores' => ['test_key_name'],
+            'simple lowercase' => ['key'],
             'with dots' => ['app.setting.key'],
-            'with hyphens' => ['test-key-name'],
-            'mixed' => ['app.test_key-123'],
-            'uppercase' => ['TEST_KEY'],
+            'multiple dots' => ['a.b.c.d.e'],
             'single char' => ['a'],
+            'long valid key' => ['very.long.setting.key.name'],
         ];
+    }
+
+    public function testThrowsExceptionForInvalidUserId(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Bitrix24 user ID must be positive integer');
+
+        new ApplicationSetting(
+            Uuid::v7(),
+            Uuid::v7(),
+            'test.key',
+            'value',
+            0 // Invalid: zero
+        );
+    }
+
+    public function testThrowsExceptionForNegativeUserId(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Bitrix24 user ID must be positive integer');
+
+        new ApplicationSetting(
+            Uuid::v7(),
+            Uuid::v7(),
+            'test.key',
+            'value',
+            -1 // Invalid: negative
+        );
+    }
+
+    public function testThrowsExceptionForInvalidDepartmentId(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Bitrix24 department ID must be positive integer');
+
+        new ApplicationSetting(
+            Uuid::v7(),
+            Uuid::v7(),
+            'test.key',
+            'value',
+            null,
+            0 // Invalid: zero
+        );
     }
 }

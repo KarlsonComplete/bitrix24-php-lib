@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Bitrix24\Lib\ApplicationSettings\UseCase\Set;
 
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSetting;
-use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingRepository;
+use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingRepositoryInterface;
 use Bitrix24\Lib\Services\Flusher;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Uid\Uuid;
@@ -18,7 +18,7 @@ use Symfony\Component\Uid\Uuid;
 readonly class Handler
 {
     public function __construct(
-        private ApplicationSettingRepository $applicationSettingRepository,
+        private ApplicationSettingRepositoryInterface $applicationSettingRepository,
         private Flusher $flusher,
         private LoggerInterface $logger
     ) {
@@ -29,12 +29,16 @@ readonly class Handler
         $this->logger->info('ApplicationSettings.Set.start', [
             'applicationInstallationId' => $command->applicationInstallationId->toRfc4122(),
             'key' => $command->key,
+            'b24UserId' => $command->b24UserId,
+            'b24DepartmentId' => $command->b24DepartmentId,
         ]);
 
-        // Try to find existing setting
-        $setting = $this->applicationSettingRepository->findByApplicationInstallationIdAndKey(
+        // Try to find existing setting with the same scope
+        $setting = $this->applicationSettingRepository->findByKey(
             $command->applicationInstallationId,
-            $command->key
+            $command->key,
+            $command->b24UserId,
+            $command->b24DepartmentId
         );
 
         if (null !== $setting) {
@@ -49,7 +53,9 @@ readonly class Handler
                 Uuid::v7(),
                 $command->applicationInstallationId,
                 $command->key,
-                $command->value
+                $command->value,
+                $command->b24UserId,
+                $command->b24DepartmentId
             );
             $this->applicationSettingRepository->save($setting);
             $this->logger->debug('ApplicationSettings.Set.created', [
