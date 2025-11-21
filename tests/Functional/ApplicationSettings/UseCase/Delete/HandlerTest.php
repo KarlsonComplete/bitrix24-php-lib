@@ -63,10 +63,14 @@ class HandlerTest extends TestCase
         EntityManagerFactory::get()->clear();
 
         // Setting should not be found by regular find methods (soft-deleted)
-        $deletedSetting = $this->repository->findGlobalByKey(
-            $uuidV7,
-            'delete.test'
-        );
+        $allSettings = $this->repository->findAllForInstallation($uuidV7);
+        $deletedSetting = null;
+        foreach ($allSettings as $allSetting) {
+            if ($allSetting->getKey() === 'delete.test' && $allSetting->isGlobal()) {
+                $deletedSetting = $allSetting;
+                break;
+            }
+        }
 
         $this->assertNull($deletedSetting);
 

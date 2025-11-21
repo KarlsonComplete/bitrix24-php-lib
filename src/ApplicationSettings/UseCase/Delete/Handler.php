@@ -30,15 +30,24 @@ readonly class Handler
             'key' => $command->key,
         ]);
 
-        $setting = $this->applicationSettingRepository->findGlobalByKey(
-            $command->applicationInstallationId,
-            $command->key
+        // Find global setting by key
+        $allSettings = $this->applicationSettingRepository->findAllForInstallation(
+            $command->applicationInstallationId
         );
+
+        $setting = null;
+        foreach ($allSettings as $allSetting) {
+            if ($allSetting->getKey() === $command->key && $allSetting->isGlobal()) {
+                $setting = $allSetting;
+
+                break;
+            }
+        }
 
         if (!$setting instanceof ApplicationSettingInterface) {
             throw new InvalidArgumentException(
                 sprintf(
-                    'Setting with key "%s" not found for application installation "%s"',
+                    'Global setting with key "%s" not found for application installation "%s"',
                     $command->key,
                     $command->applicationInstallationId->toRfc4122()
                 )

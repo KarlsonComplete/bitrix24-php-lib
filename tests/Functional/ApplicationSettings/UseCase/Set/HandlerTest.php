@@ -53,10 +53,15 @@ class HandlerTest extends TestCase
 
         EntityManagerFactory::get()->clear();
 
-        $setting = $this->repository->findGlobalByKey(
-            $uuidV7,
-            'new.setting'
-        );
+        // Find created setting
+        $allSettings = $this->repository->findAllForInstallation($uuidV7);
+        $setting = null;
+        foreach ($allSettings as $allSetting) {
+            if ($allSetting->getKey() === 'new.setting' && $allSetting->isGlobal()) {
+                $setting = $allSetting;
+                break;
+            }
+        }
 
         $this->assertNotNull($setting);
         $this->assertEquals('new.setting', $setting->getKey());
@@ -86,10 +91,14 @@ class HandlerTest extends TestCase
         EntityManagerFactory::get()->clear();
 
         // Verify update
-        $setting = $this->repository->findGlobalByKey(
-            $uuidV7,
-            'update.test'
-        );
+        $allSettings = $this->repository->findAllForInstallation($uuidV7);
+        $setting = null;
+        foreach ($allSettings as $allSetting) {
+            if ($allSetting->getKey() === 'update.test' && $allSetting->isGlobal()) {
+                $setting = $allSetting;
+                break;
+            }
+        }
 
         $this->assertNotNull($setting);
         $this->assertEquals('updated_value', $setting->getValue());

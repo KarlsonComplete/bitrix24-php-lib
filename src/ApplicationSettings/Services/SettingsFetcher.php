@@ -1,0 +1,90 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Bitrix24\Lib\ApplicationSettings\Services;
+
+use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingInterface;
+use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingRepositoryInterface;
+use Symfony\Component\Uid\Uuid;
+
+/**
+ * Service for fetching settings with cascading resolution.
+ *
+ * Priority order:
+ * 1. Personal setting (if userId provided)
+ * 2. Departmental setting (if departmentId provided)
+ * 3. Global setting (fallback)
+ */
+readonly class SettingsFetcher
+{
+    public function __construct(
+        private ApplicationSettingRepositoryInterface $repository
+    ) {}
+
+    /**
+     * Get setting value with cascading resolution.
+     *
+     * Tries to find setting in following order:
+     * 1. Personal (if userId provided)
+     * 2. Departmental (if departmentId provided)
+     * 3. Global (always as fallback)
+     *
+     * Returns null if setting not found at any level.
+     */
+    public function getSetting(
+        Uuid $uuid,
+        string $key,
+        ?int $userId = null,
+        ?int $departmentId = null
+    ): ?ApplicationSettingInterface {
+        $allSettings = $this->repository->findAllForInstallation($uuid);
+
+        // Try to find personal setting (highest priority)
+        if (null !== $userId) {
+            foreach ($allSettings as $allSetting) {
+                if ($allSetting->getKey() === $key
+                    && $allSetting->isPersonal()
+                    && $allSetting->getB24UserId() === $userId
+                ) {
+                    return $allSetting;
+                }
+            }
+        }
+
+        // Try to find departmental setting (medium priority)
+        if (null !== $departmentId) {
+            foreach ($allSettings as $allSetting) {
+                if ($allSetting->getKey() === $key
+                    && $allSetting->isDepartmental()
+                    && $allSetting->getB24DepartmentId() === $departmentId
+                ) {
+                    return $allSetting;
+                }
+            }
+        }
+
+        // Fallback to global setting (lowest priority)
+        foreach ($allSettings as $allSetting) {
+            if ($allSetting->getKey() === $key && $allSetting->isGlobal()) {
+                return $allSetting;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get setting value as string (shortcut method).
+     */
+    public function getSettingValue(
+        Uuid $uuid,
+        string $key,
+        ?int $userId = null,
+        ?int $departmentId = null
+    ): ?string {
+        $setting = $this->getSetting($uuid, $key, $userId, $departmentId);
+
+        return $setting?->getValue();
+    }
+}

@@ -78,6 +78,22 @@ $handler->handle($command);
 - При удалении статус меняется на `Deleted`
 - Это позволяет сохранить историю и восстановить данные при необходимости
 
+### 5. Инварианты (ограничения)
+
+**Уникальность ключа:** Комбинация полей `applicationInstallationId + key + b24UserId + b24DepartmentId` должна быть уникальной.
+
+Это означает:
+- ✅ Можно иметь глобальную настройку `app.theme`
+- ✅ Можно иметь персональную настройку `app.theme` для пользователя 123
+- ✅ Можно иметь персональную настройку `app.theme` для пользователя 456
+- ✅ Можно иметь департаментскую настройку `app.theme` для отдела 789
+- ❌ Нельзя создать две глобальные настройки с ключом `app.theme` для одной инсталляции
+- ❌ Нельзя создать две персональные настройки с ключом `app.theme` для одного пользователя
+
+Это ограничение обеспечивается:
+- На уровне базы данных через UNIQUE INDEX
+- На уровне приложения через валидацию в UseCase\Set\Handler
+
 ## Структура данных
 
 ### Поля сущности ApplicationSetting
@@ -175,34 +191,35 @@ use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingR
 
 /** @var ApplicationSettingRepository $repository */
 
-// Найти глобальную настройку
-$setting = $repository->findGlobalByKey($installationId, 'app.version');
-
-// Найти персональную настройку
-$setting = $repository->findPersonalByKey($installationId, 'user.theme', $userId);
-
-// Найти департаментскую настройку
-$setting = $repository->findDepartmentalByKey($installationId, 'dept.schedule', $deptId);
-
-// Универсальный поиск с автоопределением scope
-$setting = $repository->findByKey(
-    applicationInstallationId: $installationId,
-    key: 'some.setting',
-    b24UserId: $userId,          // null для глобальных
-    b24DepartmentId: $deptId     // null для глобальных/персональных
-);
-
 // Получить все активные настройки для инсталляции
 $allSettings = $repository->findAllForInstallation($installationId);
 
-// Отфильтровать глобальные настройки
-$globalSettings = array_filter($allSettings, fn($s) => $s->isGlobal());
+// Найти глобальную настройку по ключу
+$globalSetting = null;
+foreach ($allSettings as $s) {
+    if ($s->getKey() === 'app.version' && $s->isGlobal()) {
+        $globalSetting = $s;
+        break;
+    }
+}
+
+// Найти персональную настройку пользователя
+$personalSetting = null;
+foreach ($allSettings as $s) {
+    if ($s->getKey() === 'user.theme' && $s->isPersonal() && $s->getB24UserId() === $userId) {
+        $personalSetting = $s;
+        break;
+    }
+}
+
+// Отфильтровать все глобальные настройки
+$globalSettings = array_filter($allSettings, fn ($s): bool => $s->isGlobal());
 
 // Отфильтровать персональные настройки пользователя
-$personalSettings = array_filter($allSettings, fn($s) => $s->isPersonal() && $s->getB24UserId() === $userId);
+$personalSettings = array_filter($allSettings, fn ($s): bool => $s->isPersonal() && $s->getB24UserId() === $userId);
 
 // Отфильтровать настройки отдела
-$deptSettings = array_filter($allSettings, fn($s) => $s->isDepartmental() && $s->getB24DepartmentId() === $deptId);
+$deptSettings = array_filter($allSettings, fn ($s): bool => $s->isDepartmental() && $s->getB24DepartmentId() === $deptId);
 ```
 
 **Важно:** Все методы find* возвращают только настройки со статусом `Active`. Удаленные настройки не возвращаются.
@@ -304,8 +321,15 @@ $command = new SetCommand(
 $handler->handle($command);
 
 // Чтение
-$setting = $repository->findGlobalByKey($installationId, 'integration.api.config');
-$config = json_decode($setting->getValue(), true);
+$allSettings = $repository->findAllForInstallation($installationId);
+$setting = null;
+foreach ($allSettings as $s) {
+    if ($s->getKey() === 'integration.api.config' && $s->isGlobal()) {
+        $setting = $s;
+        break;
+    }
+}
+$config = $setting ? json_decode($setting->getValue(), true) : [];
 ```
 
 ### Пример 2: Персонализация интерфейса
@@ -327,11 +351,14 @@ $command = new SetCommand(
 $handler->handle($command);
 
 // Получить предпочтения
-$setting = $repository->findPersonalByKey(
-    $installationId,
-    'ui.preferences',
-    $currentUserId
-);
+$allSettings = $repository->findAllForInstallation($installationId);
+$setting = null;
+foreach ($allSettings as $s) {
+    if ($s->getKey() === 'ui.preferences' && $s->isPersonal() && $s->getB24UserId() === $currentUserId) {
+        $setting = $s;
+        break;
+    }
+}
 $preferences = $setting ? json_decode($setting->getValue(), true) : [];
 ```
 
@@ -351,25 +378,34 @@ function getSetting(
     ?int $userId = null,
     ?int $deptId = null
 ): ?string {
+    $allSettings = $repository->findAllForInstallation($installationId);
+
     // Попробовать найти персональную
     if ($userId) {
-        $setting = $repository->findPersonalByKey($installationId, $key, $userId);
-        if ($setting) {
-            return $setting->getValue();
+        foreach ($allSettings as $s) {
+            if ($s->getKey() === $key && $s->isPersonal() && $s->getB24UserId() === $userId) {
+                return $s->getValue();
+            }
         }
     }
 
     // Попробовать найти департаментскую
     if ($deptId) {
-        $setting = $repository->findDepartmentalByKey($installationId, $key, $deptId);
-        if ($setting) {
-            return $setting->getValue();
+        foreach ($allSettings as $s) {
+            if ($s->getKey() === $key && $s->isDepartmental() && $s->getB24DepartmentId() === $deptId) {
+                return $s->getValue();
+            }
         }
     }
 
     // Fallback на глобальную
-    $setting = $repository->findGlobalByKey($installationId, $key);
-    return $setting?->getValue();
+    foreach ($allSettings as $s) {
+        if ($s->getKey() === $key && $s->isGlobal()) {
+            return $s->getValue();
+        }
+    }
+
+    return null;
 }
 ```
 

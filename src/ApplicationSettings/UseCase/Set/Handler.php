@@ -35,8 +35,12 @@ readonly class Handler
         ]);
 
         // Try to find existing setting with the same scope
-        $setting = $this->applicationSettingRepository->findByKey(
-            $command->applicationInstallationId,
+        $allSettings = $this->applicationSettingRepository->findAllForInstallation(
+            $command->applicationInstallationId
+        );
+
+        $setting = $this->findMatchingSetting(
+            $allSettings,
             $command->key,
             $command->b24UserId,
             $command->b24DepartmentId
@@ -75,5 +79,28 @@ readonly class Handler
         $this->logger->info('ApplicationSettings.Set.finish', [
             'settingId' => $setting->getId()->toRfc4122(),
         ]);
+    }
+
+    /**
+     * Find setting that matches key and scope.
+     *
+     * @param ApplicationSettingInterface[] $settings
+     */
+    private function findMatchingSetting(
+        array $settings,
+        string $key,
+        ?int $b24UserId,
+        ?int $b24DepartmentId
+    ): ?ApplicationSettingInterface {
+        foreach ($settings as $setting) {
+            if ($setting->getKey() === $key
+                && $setting->getB24UserId() === $b24UserId
+                && $setting->getB24DepartmentId() === $b24DepartmentId
+            ) {
+                return $setting;
+            }
+        }
+
+        return null;
     }
 }

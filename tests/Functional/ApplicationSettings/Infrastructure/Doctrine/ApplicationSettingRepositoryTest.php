@@ -67,10 +67,15 @@ class ApplicationSettingRepositoryTest extends TestCase
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
-        $foundSetting = $this->repository->findGlobalByKey(
-            $uuidV7,
-            'find.by.key'
-        );
+        // Find global setting by filtering
+        $allSettings = $this->repository->findAllForInstallation($uuidV7);
+        $foundSetting = null;
+        foreach ($allSettings as $allSetting) {
+            if ($allSetting->getKey() === 'find.by.key' && $allSetting->isGlobal()) {
+                $foundSetting = $allSetting;
+                break;
+            }
+        }
 
         $this->assertNotNull($foundSetting);
         $this->assertEquals('find.by.key', $foundSetting->getKey());
@@ -79,10 +84,16 @@ class ApplicationSettingRepositoryTest extends TestCase
 
     public function testReturnsNullForNonExistentKey(): void
     {
-        $foundSetting = $this->repository->findGlobalByKey(
-            Uuid::v7(),
-            'non.existent.key'
-        );
+        $uuidV7 = Uuid::v7();
+        $allSettings = $this->repository->findAllForInstallation($uuidV7);
+
+        $foundSetting = null;
+        foreach ($allSettings as $allSetting) {
+            if ($allSetting->getKey() === 'non.existent.key' && $allSetting->isGlobal()) {
+                $foundSetting = $allSetting;
+                break;
+            }
+        }
 
         $this->assertNull($foundSetting);
     }
@@ -157,11 +168,15 @@ class ApplicationSettingRepositoryTest extends TestCase
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
-        $foundSetting = $this->repository->findPersonalByKey(
-            $uuidV7,
-            'personal.key',
-            $userId
-        );
+        // Find personal setting by filtering
+        $allSettings = $this->repository->findAllForInstallation($uuidV7);
+        $foundSetting = null;
+        foreach ($allSettings as $allSetting) {
+            if ($allSetting->getKey() === 'personal.key' && $allSetting->isPersonal() && $allSetting->getB24UserId() === $userId) {
+                $foundSetting = $allSetting;
+                break;
+            }
+        }
 
         $this->assertNotNull($foundSetting);
         $this->assertEquals('personal.key', $foundSetting->getKey());
@@ -189,11 +204,15 @@ class ApplicationSettingRepositoryTest extends TestCase
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
-        $foundSetting = $this->repository->findDepartmentalByKey(
-            $uuidV7,
-            'dept.key',
-            $departmentId
-        );
+        // Find departmental setting by filtering
+        $allSettings = $this->repository->findAllForInstallation($uuidV7);
+        $foundSetting = null;
+        foreach ($allSettings as $allSetting) {
+            if ($allSetting->getKey() === 'dept.key' && $allSetting->isDepartmental() && $allSetting->getB24DepartmentId() === $departmentId) {
+                $foundSetting = $allSetting;
+                break;
+            }
+        }
 
         $this->assertNotNull($foundSetting);
         $this->assertEquals('dept.key', $foundSetting->getKey());
@@ -240,7 +259,15 @@ class ApplicationSettingRepositoryTest extends TestCase
         $this->assertEquals('active.key', $allSettings[0]->getKey());
 
         // Find by key should not return deleted
-        $foundDeleted = $this->repository->findGlobalByKey($uuidV7, 'deleted.key');
+        $allSettingsAfterDelete = $this->repository->findAllForInstallation($uuidV7);
+        $foundDeleted = null;
+        foreach ($allSettingsAfterDelete as $allSettingAfterDelete) {
+            if ($allSettingAfterDelete->getKey() === 'deleted.key' && $allSettingAfterDelete->isGlobal()) {
+                $foundDeleted = $allSettingAfterDelete;
+                break;
+            }
+        }
+
         $this->assertNull($foundDeleted);
 
         // Find by ID should not return deleted
@@ -289,9 +316,23 @@ class ApplicationSettingRepositoryTest extends TestCase
         EntityManagerFactory::get()->clear();
 
         // Each scope should return its own setting
-        $foundGlobal = $this->repository->findGlobalByKey($uuidV7, 'same.key');
-        $foundPersonal = $this->repository->findPersonalByKey($uuidV7, 'same.key', $userId);
-        $foundDept = $this->repository->findDepartmentalByKey($uuidV7, 'same.key', $departmentId);
+        $allSettings = $this->repository->findAllForInstallation($uuidV7);
+
+        $foundGlobal = null;
+        $foundPersonal = null;
+        $foundDept = null;
+
+        foreach ($allSettings as $allSetting) {
+            if ($allSetting->getKey() === 'same.key') {
+                if ($allSetting->isGlobal()) {
+                    $foundGlobal = $allSetting;
+                } elseif ($allSetting->isPersonal() && $allSetting->getB24UserId() === $userId) {
+                    $foundPersonal = $allSetting;
+                } elseif ($allSetting->isDepartmental() && $allSetting->getB24DepartmentId() === $departmentId) {
+                    $foundDept = $allSetting;
+                }
+            }
+        }
 
         $this->assertNotNull($foundGlobal);
         $this->assertEquals('global_value', $foundGlobal->getValue());
