@@ -41,9 +41,7 @@ readonly class Handler
         /** @var null|AggregateRootEventsEmitterInterface|ApplicationInstallationInterface $applicationInstallation */
         $applicationInstallation = $this->applicationInstallationRepository->findByBitrix24AccountMemberId($command->memberId);
 
-        $applicationStatus = new ApplicationStatus($command->applicationStatus);
-
-        $applicationInstallation->changeApplicationStatus($applicationStatus);
+        $applicationInstallation->changeApplicationStatus($command->applicationStatus);
 
         $applicationInstallation->setApplicationToken($command->applicationToken);
 

@@ -88,7 +88,7 @@ class HandlerTest extends TestCase
         $memberId = Uuid::v4()->toRfc4122();
         $domainUrl = Uuid::v4()->toRfc4122().'-example.com';
         $applicationToken = Uuid::v7()->toRfc4122();
-        $applicationStatus = 'T';
+        $applicationStatus = new ApplicationStatus('T');
 
         $bitrix24Account = (new Bitrix24AccountBuilder())
             ->withApplicationScope(new Scope(['crm']))
