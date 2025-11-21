@@ -39,13 +39,12 @@ readonly class SettingsFetcher
         ?int $userId = null,
         ?int $departmentId = null
     ): ApplicationSettingInterface {
-        $allSettings = $this->repository->findAllForInstallation($uuid);
+        $allSettings = $this->repository->findAllForInstallationByKey($uuid, $key);
 
         // Try to find personal setting (highest priority)
         if (null !== $userId) {
             foreach ($allSettings as $allSetting) {
-                if ($allSetting->getKey() === $key
-                    && $allSetting->isPersonal()
+                if ($allSetting->isPersonal()
                     && $allSetting->getB24UserId() === $userId
                 ) {
                     return $allSetting;
@@ -56,8 +55,7 @@ readonly class SettingsFetcher
         // Try to find departmental setting (medium priority)
         if (null !== $departmentId) {
             foreach ($allSettings as $allSetting) {
-                if ($allSetting->getKey() === $key
-                    && $allSetting->isDepartmental()
+                if ($allSetting->isDepartmental()
                     && $allSetting->getB24DepartmentId() === $departmentId
                 ) {
                     return $allSetting;
@@ -67,7 +65,7 @@ readonly class SettingsFetcher
 
         // Fallback to global setting (lowest priority)
         foreach ($allSettings as $allSetting) {
-            if ($allSetting->getKey() === $key && $allSetting->isGlobal()) {
+            if ($allSetting->isGlobal()) {
                 return $allSetting;
             }
         }

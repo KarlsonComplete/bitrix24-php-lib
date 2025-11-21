@@ -65,4 +65,21 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->getResult()
         ;
     }
+
+    #[\Override]
+    public function findAllForInstallationByKey(Uuid $uuid, string $key): array
+    {
+        return $this->getEntityManager()
+            ->getRepository(ApplicationSetting::class)
+            ->createQueryBuilder('s')
+            ->where('s.applicationInstallationId = :applicationInstallationId')
+            ->andWhere('s.key = :key')
+            ->andWhere('s.status = :status')
+            ->setParameter('applicationInstallationId', $uuid)
+            ->setParameter('key', $key)
+            ->setParameter('status', ApplicationSettingStatus::Active)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }

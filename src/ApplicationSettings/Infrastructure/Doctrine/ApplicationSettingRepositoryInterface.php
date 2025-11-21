@@ -35,4 +35,11 @@ interface ApplicationSettingRepositoryInterface
      * @return ApplicationSettingInterface[]
      */
     public function findAllForInstallation(Uuid $uuid): array;
+
+    /**
+     * Find all settings for application installation by key (all scopes with same key).
+     *
+     * @return ApplicationSettingInterface[]
+     */
+    public function findAllForInstallationByKey(Uuid $uuid, string $key): array;
 }

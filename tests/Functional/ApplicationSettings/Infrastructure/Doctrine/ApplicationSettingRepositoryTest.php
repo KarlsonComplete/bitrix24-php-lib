@@ -343,4 +343,61 @@ class ApplicationSettingRepositoryTest extends TestCase
         $this->assertNotNull($foundDept);
         $this->assertEquals('dept_value', $foundDept->getValue());
     }
+
+    public function testFindAllForInstallationByKeyReturnsOnlyMatchingKey(): void
+    {
+        $uuidV7 = Uuid::v7();
+
+        $setting1 = new ApplicationSetting(Uuid::v7(), $uuidV7, 'app.theme', 'light', false);
+        $setting2 = new ApplicationSetting(Uuid::v7(), $uuidV7, 'app.version', '1.0.0', false);
+        $setting3 = new ApplicationSetting(Uuid::v7(), $uuidV7, 'app.theme', 'dark', false, 123);
+
+        $this->repository->save($setting1);
+        $this->repository->save($setting2);
+        $this->repository->save($setting3);
+        EntityManagerFactory::get()->flush();
+        EntityManagerFactory::get()->clear();
+
+        $result = $this->repository->findAllForInstallationByKey($uuidV7, 'app.theme');
+
+        $this->assertCount(2, $result);
+        foreach ($result as $applicationSetting) {
+            $this->assertEquals('app.theme', $applicationSetting->getKey());
+        }
+    }
+
+    public function testFindAllForInstallationByKeyFiltersDeletedSettings(): void
+    {
+        $uuidV7 = Uuid::v7();
+
+        $activeSetting = new ApplicationSetting(Uuid::v7(), $uuidV7, 'app.theme', 'light', false);
+        $deletedSetting = new ApplicationSetting(Uuid::v7(), $uuidV7, 'app.theme', 'dark', false);
+
+        $this->repository->save($activeSetting);
+        $this->repository->save($deletedSetting);
+        EntityManagerFactory::get()->flush();
+
+        $deletedSetting->markAsDeleted();
+        EntityManagerFactory::get()->flush();
+        EntityManagerFactory::get()->clear();
+
+        $result = $this->repository->findAllForInstallationByKey($uuidV7, 'app.theme');
+
+        $this->assertCount(1, $result);
+        $this->assertEquals('light', $result[0]->getValue());
+    }
+
+    public function testFindAllForInstallationByKeyReturnsEmptyArrayWhenNoMatch(): void
+    {
+        $uuidV7 = Uuid::v7();
+
+        $applicationSetting = new ApplicationSetting(Uuid::v7(), $uuidV7, 'app.theme', 'light', false);
+        $this->repository->save($applicationSetting);
+        EntityManagerFactory::get()->flush();
+        EntityManagerFactory::get()->clear();
+
+        $result = $this->repository->findAllForInstallationByKey($uuidV7, 'non.existent.key');
+
+        $this->assertCount(0, $result);
+    }
 }

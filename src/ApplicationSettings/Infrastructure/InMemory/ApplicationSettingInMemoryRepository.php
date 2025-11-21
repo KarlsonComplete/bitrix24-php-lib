@@ -55,6 +55,22 @@ class ApplicationSettingInMemoryRepository implements ApplicationSettingReposito
         return $result;
     }
 
+    #[\Override]
+    public function findAllForInstallationByKey(Uuid $uuid, string $key): array
+    {
+        $result = [];
+        foreach ($this->settings as $setting) {
+            if ($setting->getApplicationInstallationId()->toRfc4122() === $uuid->toRfc4122()
+                && $setting->getKey() === $key
+                && $setting->isActive()
+            ) {
+                $result[] = $setting;
+            }
+        }
+
+        return $result;
+    }
+
     /**
      * Clear all settings (for testing).
      */
