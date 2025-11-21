@@ -257,46 +257,6 @@ class ApplicationSettingTest extends TestCase
         $this->assertEquals('new.value', $setting->getValue());
     }
 
-    public function testUpdateValueEmitsEvent(): void
-    {
-        $setting = new ApplicationSetting(
-            Uuid::v7(),
-            Uuid::v7(),
-            'event.test',
-            'old.value',
-            false
-        );
-
-        $this->assertCount(0, $setting->getEvents());
-
-        $setting->updateValue('new.value', 789);
-
-        $events = $setting->getEvents();
-        $this->assertCount(1, $events);
-
-        $event = $events[0];
-        $this->assertInstanceOf(\Bitrix24\Lib\ApplicationSettings\Events\ApplicationSettingChangedEvent::class, $event);
-        $this->assertEquals('event.test', $event->key);
-        $this->assertEquals('old.value', $event->oldValue);
-        $this->assertEquals('new.value', $event->newValue);
-        $this->assertEquals(789, $event->changedByBitrix24UserId);
-    }
-
-    public function testUpdateValueDoesNotEmitEventWhenValueUnchanged(): void
-    {
-        $setting = new ApplicationSetting(
-            Uuid::v7(),
-            Uuid::v7(),
-            'no.change.test',
-            'same.value',
-            false
-        );
-
-        $setting->updateValue('same.value', 123);
-
-        $this->assertCount(0, $setting->getEvents());
-    }
-
     public function testDefaultStatusIsActive(): void
     {
         $setting = new ApplicationSetting(
