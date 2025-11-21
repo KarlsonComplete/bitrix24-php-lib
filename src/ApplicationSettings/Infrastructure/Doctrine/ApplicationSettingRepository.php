@@ -152,61 +152,6 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
     }
 
     #[\Override]
-    public function findAllGlobal(Uuid $uuid): array
-    {
-        return $this->getEntityManager()
-            ->getRepository(ApplicationSetting::class)
-            ->createQueryBuilder('s')
-            ->where('s.applicationInstallationId = :applicationInstallationId')
-            ->andWhere('s.b24UserId IS NULL')
-            ->andWhere('s.b24DepartmentId IS NULL')
-            ->andWhere('s.status = :status')
-            ->setParameter('applicationInstallationId', $uuid)
-            ->setParameter('status', ApplicationSettingStatus::Active)
-            ->orderBy('s.key', 'ASC')
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-
-    #[\Override]
-    public function findAllPersonal(Uuid $uuid, int $b24UserId): array
-    {
-        return $this->getEntityManager()
-            ->getRepository(ApplicationSetting::class)
-            ->createQueryBuilder('s')
-            ->where('s.applicationInstallationId = :applicationInstallationId')
-            ->andWhere('s.b24UserId = :b24UserId')
-            ->andWhere('s.status = :status')
-            ->setParameter('applicationInstallationId', $uuid)
-            ->setParameter('b24UserId', $b24UserId)
-            ->setParameter('status', ApplicationSettingStatus::Active)
-            ->orderBy('s.key', 'ASC')
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-
-    #[\Override]
-    public function findAllDepartmental(Uuid $uuid, int $b24DepartmentId): array
-    {
-        return $this->getEntityManager()
-            ->getRepository(ApplicationSetting::class)
-            ->createQueryBuilder('s')
-            ->where('s.applicationInstallationId = :applicationInstallationId')
-            ->andWhere('s.b24DepartmentId = :b24DepartmentId')
-            ->andWhere('s.b24UserId IS NULL')
-            ->andWhere('s.status = :status')
-            ->setParameter('applicationInstallationId', $uuid)
-            ->setParameter('b24DepartmentId', $b24DepartmentId)
-            ->setParameter('status', ApplicationSettingStatus::Active)
-            ->orderBy('s.key', 'ASC')
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-
-    #[\Override]
     public function findAllForInstallation(Uuid $uuid): array
     {
         return $this->getEntityManager()
@@ -220,31 +165,5 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
             ->getQuery()
             ->getResult()
         ;
-    }
-
-    #[\Override]
-    public function deleteByApplicationInstallationId(Uuid $uuid): void
-    {
-        $this->getEntityManager()
-            ->createQueryBuilder()
-            ->delete(ApplicationSetting::class, 's')
-            ->where('s.applicationInstallationId = :applicationInstallationId')
-            ->setParameter('applicationInstallationId', $uuid)
-            ->getQuery()
-            ->execute()
-        ;
-    }
-
-    /**
-     * Find all settings for application installation ID.
-     *
-     * Alias for findAllForInstallation for backward compatibility.
-     *
-     * @return ApplicationSettingInterface[]
-     */
-    #[\Override]
-    public function findByApplicationInstallationId(Uuid $uuid): array
-    {
-        return $this->findAllForInstallation($uuid);
     }
 }

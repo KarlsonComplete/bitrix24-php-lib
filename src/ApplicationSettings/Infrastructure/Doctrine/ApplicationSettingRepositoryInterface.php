@@ -65,44 +65,9 @@ interface ApplicationSettingRepositoryInterface
     ): ?ApplicationSettingInterface;
 
     /**
-     * Find all global settings for application installation.
-     *
-     * @return ApplicationSettingInterface[]
-     */
-    public function findAllGlobal(Uuid $uuid): array;
-
-    /**
-     * Find all personal settings for specific user.
-     *
-     * @return ApplicationSettingInterface[]
-     */
-    public function findAllPersonal(Uuid $uuid, int $b24UserId): array;
-
-    /**
-     * Find all departmental settings for specific department.
-     *
-     * @return ApplicationSettingInterface[]
-     */
-    public function findAllDepartmental(Uuid $uuid, int $b24DepartmentId): array;
-
-    /**
      * Find all settings for application installation (all scopes).
      *
      * @return ApplicationSettingInterface[]
      */
     public function findAllForInstallation(Uuid $uuid): array;
-
-    /**
-     * Delete all settings for application installation.
-     */
-    public function deleteByApplicationInstallationId(Uuid $uuid): void;
-
-    /**
-     * Find all settings for application installation ID (alias for findAllForInstallation).
-     *
-     * For backward compatibility.
-     *
-     * @return ApplicationSettingInterface[]
-     */
-    public function findByApplicationInstallationId(Uuid $uuid): array;
 }

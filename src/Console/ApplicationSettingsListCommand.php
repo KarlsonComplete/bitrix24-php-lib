@@ -126,15 +126,17 @@ HELP
             return Command::FAILURE;
         }
 
-        // Fetch settings based on parameters
+        // Fetch all settings and filter based on parameters
+        $allSettings = $this->applicationSettingRepository->findAllForInstallation($installationId);
+
         if ($globalOnly || (null === $userId && null === $departmentId)) {
-            $settings = $this->applicationSettingRepository->findAllGlobal($installationId);
+            $settings = array_filter($allSettings, fn ($setting): bool => $setting->isGlobal());
             $scope = 'Global';
         } elseif (null !== $userId) {
-            $settings = $this->applicationSettingRepository->findAllPersonal($installationId, $userId);
+            $settings = array_filter($allSettings, fn ($setting): bool => $setting->isPersonal() && $setting->getB24UserId() === $userId);
             $scope = sprintf('Personal (User ID: %d)', $userId);
         } else {
-            $settings = $this->applicationSettingRepository->findAllDepartmental($installationId, $departmentId);
+            $settings = array_filter($allSettings, fn ($setting): bool => $setting->isDepartmental() && $setting->getB24DepartmentId() === $departmentId);
             $scope = sprintf('Departmental (Department ID: %d)', $departmentId);
         }
 

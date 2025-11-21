@@ -192,14 +192,17 @@ $setting = $repository->findByKey(
     b24DepartmentId: $deptId     // null для глобальных/персональных
 );
 
-// Получить все активные глобальные настройки
-$settings = $repository->findAllGlobal($installationId);
+// Получить все активные настройки для инсталляции
+$allSettings = $repository->findAllForInstallation($installationId);
 
-// Получить все персональные настройки пользователя
-$settings = $repository->findAllPersonal($installationId, $userId);
+// Отфильтровать глобальные настройки
+$globalSettings = array_filter($allSettings, fn($s) => $s->isGlobal());
 
-// Получить все настройки отдела
-$settings = $repository->findAllDepartmental($installationId, $deptId);
+// Отфильтровать персональные настройки пользователя
+$personalSettings = array_filter($allSettings, fn($s) => $s->isPersonal() && $s->getB24UserId() === $userId);
+
+// Отфильтровать настройки отдела
+$deptSettings = array_filter($allSettings, fn($s) => $s->isDepartmental() && $s->getB24DepartmentId() === $deptId);
 ```
 
 **Важно:** Все методы find* возвращают только настройки со статусом `Active`. Удаленные настройки не возвращаются.

@@ -106,7 +106,7 @@ class HandlerTest extends TestCase
         $this->handler->handle($command2);
         EntityManagerFactory::get()->clear();
 
-        $settings = $this->repository->findByApplicationInstallationId($uuidV7);
+        $settings = $this->repository->findAllForInstallation($uuidV7);
 
         $this->assertCount(2, $settings);
     }
