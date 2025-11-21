@@ -11,6 +11,8 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Handler for Delete command.
+ *
+ * Deletes global application settings only.
  */
 readonly class Handler
 {
@@ -25,15 +27,11 @@ readonly class Handler
         $this->logger->info('ApplicationSettings.Delete.start', [
             'applicationInstallationId' => $command->applicationInstallationId->toRfc4122(),
             'key' => $command->key,
-            'b24UserId' => $command->b24UserId,
-            'b24DepartmentId' => $command->b24DepartmentId,
         ]);
 
-        $setting = $this->applicationSettingRepository->findByKey(
+        $setting = $this->applicationSettingRepository->findGlobalByKey(
             $command->applicationInstallationId,
-            $command->key,
-            $command->b24UserId,
-            $command->b24DepartmentId
+            $command->key
         );
 
         if (null === $setting) {

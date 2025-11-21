@@ -90,7 +90,7 @@ interface ApplicationSettingRepositoryInterface
      *
      * @return ApplicationSettingInterface[]
      */
-    public function findAll(Uuid $applicationInstallationId): array;
+    public function findAllForInstallation(Uuid $applicationInstallationId): array;
 
     /**
      * Delete all settings for application installation.
@@ -98,7 +98,7 @@ interface ApplicationSettingRepositoryInterface
     public function deleteByApplicationInstallationId(Uuid $applicationInstallationId): void;
 
     /**
-     * Find all settings for application installation ID (alias for findAll).
+     * Find all settings for application installation ID (alias for findAllForInstallation).
      *
      * For backward compatibility.
      *

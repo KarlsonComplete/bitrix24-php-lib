@@ -30,7 +30,7 @@ readonly class Handler
         ]);
 
         // Get all active settings for this installation
-        $settings = $this->applicationSettingRepository->findAll($command->applicationInstallationId);
+        $settings = $this->applicationSettingRepository->findAllForInstallation($command->applicationInstallationId);
 
         // Mark each setting as deleted
         foreach ($settings as $setting) {

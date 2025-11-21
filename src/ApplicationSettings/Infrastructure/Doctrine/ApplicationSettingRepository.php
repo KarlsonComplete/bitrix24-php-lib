@@ -207,7 +207,7 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
     }
 
     #[\Override]
-    public function findAll(Uuid $applicationInstallationId): array
+    public function findAllForInstallation(Uuid $applicationInstallationId): array
     {
         return $this->getEntityManager()
             ->getRepository(ApplicationSetting::class)
@@ -238,13 +238,13 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
     /**
      * Find all settings for application installation ID.
      *
-     * Alias for findAll for backward compatibility.
+     * Alias for findAllForInstallation for backward compatibility.
      *
      * @return ApplicationSettingInterface[]
      */
     #[\Override]
     public function findByApplicationInstallationId(Uuid $applicationInstallationId): array
     {
-        return $this->findAll($applicationInstallationId);
+        return $this->findAllForInstallation($applicationInstallationId);
     }
 }

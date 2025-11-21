@@ -82,7 +82,7 @@ class HandlerTest extends TestCase
         EntityManagerFactory::get()->clear();
 
         // Settings should not be found by regular find methods
-        $activeSettings = $this->repository->findAll($applicationInstallationId);
+        $activeSettings = $this->repository->findAllForInstallation($applicationInstallationId);
         $this->assertCount(0, $activeSettings);
 
         // But should still exist in database with deleted status
@@ -136,11 +136,11 @@ class HandlerTest extends TestCase
         EntityManagerFactory::get()->clear();
 
         // First installation settings should be soft-deleted
-        $installation1Settings = $this->repository->findAll($installation1);
+        $installation1Settings = $this->repository->findAllForInstallation($installation1);
         $this->assertCount(0, $installation1Settings);
 
         // Second installation settings should remain active
-        $installation2Settings = $this->repository->findAll($installation2);
+        $installation2Settings = $this->repository->findAllForInstallation($installation2);
         $this->assertCount(1, $installation2Settings);
         $this->assertTrue($installation2Settings[0]->isActive());
     }
