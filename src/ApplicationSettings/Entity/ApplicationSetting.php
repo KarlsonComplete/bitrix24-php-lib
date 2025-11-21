@@ -23,20 +23,24 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
     private readonly CarbonImmutable $createdAt;
     private CarbonImmutable $updatedAt;
     private string $value;
+    private ?int $changedByBitrix24UserId = null;
 
     public function __construct(
         private readonly Uuid $id,
         private readonly Uuid $applicationInstallationId,
         private readonly string $key,
         string $value,
+        private readonly bool $isRequired = false,
         private readonly ?int $b24UserId = null,
-        private readonly ?int $b24DepartmentId = null
+        private readonly ?int $b24DepartmentId = null,
+        ?int $changedByBitrix24UserId = null
     ) {
         $this->validateKey($key);
         $this->validateValue($value);
         $this->validateScope($b24UserId, $b24DepartmentId);
 
         $this->value = $value;
+        $this->changedByBitrix24UserId = $changedByBitrix24UserId;
         $this->createdAt = new CarbonImmutable();
         $this->updatedAt = new CarbonImmutable();
     }
@@ -83,17 +87,41 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
         return $this->b24DepartmentId;
     }
 
+    #[\Override]
+    public function getChangedByBitrix24UserId(): ?int
+    {
+        return $this->changedByBitrix24UserId;
+    }
+
+    #[\Override]
+    public function isRequired(): bool
+    {
+        return $this->isRequired;
+    }
+
     /**
      * Update setting value
      */
     #[\Override]
-    public function updateValue(string $value): void
+    public function updateValue(string $value, ?int $changedByBitrix24UserId = null): void
     {
         $this->validateValue($value);
 
         if ($this->value !== $value) {
+            $oldValue = $this->value;
             $this->value = $value;
+            $this->changedByBitrix24UserId = $changedByBitrix24UserId;
             $this->updatedAt = new CarbonImmutable();
+
+            // Emit event about setting change
+            $this->events[] = new \Bitrix24\Lib\ApplicationSettings\Events\ApplicationSettingChangedEvent(
+                $this->id,
+                $this->key,
+                $oldValue,
+                $value,
+                $changedByBitrix24UserId,
+                $this->updatedAt
+            );
         }
     }
 

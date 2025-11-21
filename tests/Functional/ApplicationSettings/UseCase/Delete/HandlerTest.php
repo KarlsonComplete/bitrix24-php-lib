@@ -47,7 +47,8 @@ class HandlerTest extends TestCase
             Uuid::v7(),
             $applicationInstallationId,
             'delete.test',
-            'value'
+            'value',
+            false
         );
 
         $this->repository->save($setting);

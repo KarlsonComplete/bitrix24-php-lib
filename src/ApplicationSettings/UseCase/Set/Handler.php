@@ -43,9 +43,10 @@ readonly class Handler
 
         if (null !== $setting) {
             // Update existing setting
-            $setting->updateValue($command->value);
+            $setting->updateValue($command->value, $command->changedByBitrix24UserId);
             $this->logger->debug('ApplicationSettings.Set.updated', [
                 'settingId' => $setting->getId()->toRfc4122(),
+                'changedBy' => $command->changedByBitrix24UserId,
             ]);
         } else {
             // Create new setting
@@ -54,12 +55,16 @@ readonly class Handler
                 $command->applicationInstallationId,
                 $command->key,
                 $command->value,
+                $command->isRequired,
                 $command->b24UserId,
-                $command->b24DepartmentId
+                $command->b24DepartmentId,
+                $command->changedByBitrix24UserId
             );
             $this->applicationSettingRepository->save($setting);
             $this->logger->debug('ApplicationSettings.Set.created', [
                 'settingId' => $setting->getId()->toRfc4122(),
+                'isRequired' => $command->isRequired,
+                'changedBy' => $command->changedByBitrix24UserId,
             ]);
         }
 

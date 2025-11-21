@@ -21,8 +21,10 @@ readonly class Command
         public Uuid $applicationInstallationId,
         public string $key,
         public string $value,
+        public bool $isRequired = false,
         public ?int $b24UserId = null,
-        public ?int $b24DepartmentId = null
+        public ?int $b24DepartmentId = null,
+        public ?int $changedByBitrix24UserId = null
     ) {
         $this->validate();
     }

@@ -26,6 +26,10 @@ interface ApplicationSettingInterface
 
     public function getB24DepartmentId(): ?int;
 
+    public function getChangedByBitrix24UserId(): ?int;
+
+    public function isRequired(): bool;
+
     public function getCreatedAt(): CarbonImmutable;
 
     public function getUpdatedAt(): CarbonImmutable;
@@ -33,7 +37,7 @@ interface ApplicationSettingInterface
     /**
      * Update setting value
      */
-    public function updateValue(string $value): void;
+    public function updateValue(string $value, ?int $changedByBitrix24UserId = null): void;
 
     /**
      * Check if setting is global (not tied to user or department)

@@ -24,7 +24,7 @@ class ApplicationSettingTest extends TestCase
         $key = 'test.setting.key';
         $value = '{"foo":"bar"}';
 
-        $setting = new ApplicationSetting($id, $applicationInstallationId, $key, $value);
+        $setting = new ApplicationSetting($id, $applicationInstallationId, $key, $value, false);
 
         $this->assertEquals($id, $setting->getId());
         $this->assertEquals($applicationInstallationId, $setting->getApplicationInstallationId());
@@ -35,6 +35,7 @@ class ApplicationSettingTest extends TestCase
         $this->assertTrue($setting->isGlobal());
         $this->assertFalse($setting->isPersonal());
         $this->assertFalse($setting->isDepartmental());
+        $this->assertFalse($setting->isRequired());
     }
 
     public function testCanCreatePersonalSetting(): void
@@ -44,6 +45,7 @@ class ApplicationSettingTest extends TestCase
             Uuid::v7(),
             'user.preference',
             'dark_mode',
+            false, // isRequired
             123 // b24UserId
         );
 
@@ -61,8 +63,9 @@ class ApplicationSettingTest extends TestCase
             Uuid::v7(),
             'dept.config',
             'enabled',
-            null, // No user ID
-            456   // b24DepartmentId
+            false, // isRequired
+            null,  // No user ID
+            456    // b24DepartmentId
         );
 
         $this->assertNull($setting->getB24UserId());
@@ -82,8 +85,9 @@ class ApplicationSettingTest extends TestCase
             Uuid::v7(),
             'invalid.setting',
             'value',
-            123, // userId
-            456  // departmentId - both set, should fail
+            false, // isRequired
+            123,   // userId
+            456    // departmentId - both set, should fail
         );
     }
 
@@ -93,7 +97,8 @@ class ApplicationSettingTest extends TestCase
             Uuid::v7(),
             Uuid::v7(),
             'test.key',
-            'initial.value'
+            'initial.value',
+            false
         );
 
         $initialUpdatedAt = $setting->getUpdatedAt();
@@ -117,7 +122,8 @@ class ApplicationSettingTest extends TestCase
             Uuid::v7(),
             Uuid::v7(),
             $invalidKey,
-            'value'
+            'value',
+            false
         );
     }
 
@@ -149,7 +155,8 @@ class ApplicationSettingTest extends TestCase
             Uuid::v7(),
             Uuid::v7(),
             $validKey,
-            'value'
+            'value',
+            false
         );
 
         $this->assertEquals($validKey, $setting->getKey());
@@ -179,7 +186,8 @@ class ApplicationSettingTest extends TestCase
             Uuid::v7(),
             'test.key',
             'value',
-            0 // Invalid: zero
+            false, // isRequired
+            0      // Invalid: zero
         );
     }
 
@@ -193,7 +201,8 @@ class ApplicationSettingTest extends TestCase
             Uuid::v7(),
             'test.key',
             'value',
-            -1 // Invalid: negative
+            false, // isRequired
+            -1     // Invalid: negative
         );
     }
 
@@ -207,8 +216,84 @@ class ApplicationSettingTest extends TestCase
             Uuid::v7(),
             'test.key',
             'value',
-            null,
-            0 // Invalid: zero
+            false, // isRequired
+            null,  // No user ID
+            0      // Invalid: zero
         );
+    }
+
+    public function testCanCreateRequiredSetting(): void
+    {
+        $setting = new ApplicationSetting(
+            Uuid::v7(),
+            Uuid::v7(),
+            'required.setting',
+            'value',
+            true // isRequired
+        );
+
+        $this->assertTrue($setting->isRequired());
+    }
+
+    public function testCanTrackWhoChangedSetting(): void
+    {
+        $setting = new ApplicationSetting(
+            Uuid::v7(),
+            Uuid::v7(),
+            'tracking.test',
+            'initial.value',
+            false,
+            null,
+            null,
+            123 // changedByBitrix24UserId
+        );
+
+        $this->assertEquals(123, $setting->getChangedByBitrix24UserId());
+
+        // Update value with different user
+        $setting->updateValue('new.value', 456);
+
+        $this->assertEquals(456, $setting->getChangedByBitrix24UserId());
+        $this->assertEquals('new.value', $setting->getValue());
+    }
+
+    public function testUpdateValueEmitsEvent(): void
+    {
+        $setting = new ApplicationSetting(
+            Uuid::v7(),
+            Uuid::v7(),
+            'event.test',
+            'old.value',
+            false
+        );
+
+        $this->assertCount(0, $setting->getEvents());
+
+        $setting->updateValue('new.value', 789);
+
+        $events = $setting->getEvents();
+        $this->assertCount(1, $events);
+
+        $event = $events[0];
+        $this->assertInstanceOf(\Bitrix24\Lib\ApplicationSettings\Events\ApplicationSettingChangedEvent::class, $event);
+        $this->assertEquals('event.test', $event->key);
+        $this->assertEquals('old.value', $event->oldValue);
+        $this->assertEquals('new.value', $event->newValue);
+        $this->assertEquals(789, $event->changedByBitrix24UserId);
+    }
+
+    public function testUpdateValueDoesNotEmitEventWhenValueUnchanged(): void
+    {
+        $setting = new ApplicationSetting(
+            Uuid::v7(),
+            Uuid::v7(),
+            'no.change.test',
+            'same.value',
+            false
+        );
+
+        $setting->updateValue('same.value', 123);
+
+        $this->assertCount(0, $setting->getEvents());
     }
 }

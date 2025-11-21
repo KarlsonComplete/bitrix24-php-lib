@@ -34,7 +34,8 @@ class ApplicationSettingRepositoryTest extends TestCase
             $id,
             $applicationInstallationId,
             'test.key',
-            'test_value'
+            'test_value',
+            false
         );
 
         $this->repository->save($setting);
@@ -57,7 +58,8 @@ class ApplicationSettingRepositoryTest extends TestCase
             Uuid::v7(),
             $applicationInstallationId,
             'find.by.key',
-            'value123'
+            'value123',
+            false
         );
 
         $this->repository->save($setting);
@@ -92,21 +94,24 @@ class ApplicationSettingRepositoryTest extends TestCase
             Uuid::v7(),
             $applicationInstallationId,
             'key1',
-            'value1'
+            'value1',
+            false
         );
 
         $setting2 = new ApplicationSetting(
             Uuid::v7(),
             $applicationInstallationId,
             'key2',
-            'value2'
+            'value2',
+            false
         );
 
         $setting3 = new ApplicationSetting(
             Uuid::v7(),
             Uuid::v7(), // Different installation
             'key3',
-            'value3'
+            'value3',
+            false
         );
 
         $this->repository->save($setting1);
@@ -129,7 +134,8 @@ class ApplicationSettingRepositoryTest extends TestCase
             $id,
             Uuid::v7(),
             'delete.test',
-            'value'
+            'value',
+            false
         );
 
         $this->repository->save($setting);
@@ -151,14 +157,16 @@ class ApplicationSettingRepositoryTest extends TestCase
             Uuid::v7(),
             $applicationInstallationId,
             'bulk.delete.1',
-            'value1'
+            'value1',
+            false
         );
 
         $setting2 = new ApplicationSetting(
             Uuid::v7(),
             $applicationInstallationId,
             'bulk.delete.2',
-            'value2'
+            'value2',
+            false
         );
 
         $this->repository->save($setting1);
@@ -181,14 +189,16 @@ class ApplicationSettingRepositoryTest extends TestCase
             Uuid::v7(),
             $applicationInstallationId,
             'unique.key',
-            'value1'
+            'value1',
+            false
         );
 
         $setting2 = new ApplicationSetting(
             Uuid::v7(),
             $applicationInstallationId,
             'unique.key', // Same key
-            'value2'
+            'value2',
+            false
         );
 
         $this->repository->save($setting1);

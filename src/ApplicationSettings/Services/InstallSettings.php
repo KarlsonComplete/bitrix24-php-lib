@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Bitrix24\Lib\Services;
+namespace Bitrix24\Lib\ApplicationSettings\Services;
 
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSetting;
 use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingRepositoryInterface;
+use Bitrix24\Lib\Services\Flusher;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Uid\Uuid;
 
@@ -28,7 +29,7 @@ readonly class InstallSettings
      * Create default settings for application installation
      *
      * @param Uuid $applicationInstallationId Application installation UUID
-     * @param array<string, string> $defaultSettings Key-value pairs of default settings
+     * @param array<string, array{value: string, required: bool}> $defaultSettings Settings with value and required flag
      */
     public function createDefaultSettings(
         Uuid $applicationInstallationId,
@@ -39,7 +40,7 @@ readonly class InstallSettings
             'settingsCount' => count($defaultSettings),
         ]);
 
-        foreach ($defaultSettings as $key => $value) {
+        foreach ($defaultSettings as $key => $config) {
             // Check if setting already exists
             $existingSetting = $this->applicationSettingRepository->findGlobalByKey(
                 $applicationInstallationId,
@@ -52,7 +53,8 @@ readonly class InstallSettings
                     Uuid::v7(),
                     $applicationInstallationId,
                     $key,
-                    $value,
+                    $config['value'],
+                    $config['required'],
                     null, // Global setting - no user ID
                     null  // Global setting - no department ID
                 );
@@ -62,6 +64,7 @@ readonly class InstallSettings
                 $this->logger->debug('InstallSettings.settingCreated', [
                     'key' => $key,
                     'settingId' => $setting->getId()->toRfc4122(),
+                    'isRequired' => $config['required'],
                 ]);
             } else {
                 $this->logger->debug('InstallSettings.settingAlreadyExists', [
@@ -81,16 +84,16 @@ readonly class InstallSettings
     /**
      * Get recommended default settings structure
      *
-     * @return array<string, string> Recommended default settings
+     * @return array<string, array{value: string, required: bool}> Recommended default settings
      */
     public static function getRecommendedDefaults(): array
     {
         return [
-            'app.enabled' => 'true',
-            'app.version' => '1.0.0',
-            'app.locale' => 'en',
-            'feature.notifications' => 'true',
-            'feature.analytics' => 'false',
+            'app.enabled' => ['value' => 'true', 'required' => true],
+            'app.version' => ['value' => '1.0.0', 'required' => true],
+            'app.locale' => ['value' => 'en', 'required' => false],
+            'feature.notifications' => ['value' => 'true', 'required' => false],
+            'feature.analytics' => ['value' => 'false', 'required' => false],
         ];
     }
 }
