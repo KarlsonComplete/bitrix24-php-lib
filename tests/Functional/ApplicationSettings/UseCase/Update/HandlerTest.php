@@ -48,7 +48,6 @@ class HandlerTest extends TestCase
 
         // Create initial setting
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'update.test',
             'initial_value',
@@ -109,7 +108,6 @@ class HandlerTest extends TestCase
 
         // Create initial personal setting
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'personal.test',
             'user_value',
@@ -154,7 +152,6 @@ class HandlerTest extends TestCase
 
         // Create initial departmental setting
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'dept.test',
             'dept_value',

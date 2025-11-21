@@ -19,14 +19,13 @@ class ApplicationSettingsItemTest extends TestCase
 {
     public function testCanCreateGlobalSetting(): void
     {
-        $uuidV7 = Uuid::v7();
         $applicationInstallationId = Uuid::v7();
         $key = 'test.setting.key';
         $value = '{"foo":"bar"}';
 
-        $applicationSettingsItem = new ApplicationSettingsItem($uuidV7, $applicationInstallationId, $key, $value, false);
+        $applicationSettingsItem = new ApplicationSettingsItem($applicationInstallationId, $key, $value, false);
 
-        $this->assertEquals($uuidV7, $applicationSettingsItem->getId());
+        $this->assertInstanceOf(Uuid::class, $applicationSettingsItem->getId());
         $this->assertEquals($applicationInstallationId, $applicationSettingsItem->getApplicationInstallationId());
         $this->assertEquals($key, $applicationSettingsItem->getKey());
         $this->assertEquals($value, $applicationSettingsItem->getValue());
@@ -41,7 +40,6 @@ class ApplicationSettingsItemTest extends TestCase
     public function testCanCreatePersonalSetting(): void
     {
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             Uuid::v7(),
             'user.preference',
             'dark_mode',
@@ -59,7 +57,6 @@ class ApplicationSettingsItemTest extends TestCase
     public function testCanCreateDepartmentalSetting(): void
     {
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             Uuid::v7(),
             'dept.config',
             'enabled',
@@ -82,7 +79,6 @@ class ApplicationSettingsItemTest extends TestCase
 
         new ApplicationSettingsItem(
             Uuid::v7(),
-            Uuid::v7(),
             'invalid.setting',
             'value',
             false, // isRequired
@@ -94,7 +90,6 @@ class ApplicationSettingsItemTest extends TestCase
     public function testCanUpdateValue(): void
     {
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             Uuid::v7(),
             'test.key',
             'initial.value',
@@ -116,7 +111,6 @@ class ApplicationSettingsItemTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         new ApplicationSettingsItem(
-            Uuid::v7(),
             Uuid::v7(),
             $invalidKey,
             'value',
@@ -147,7 +141,6 @@ class ApplicationSettingsItemTest extends TestCase
     {
         $applicationSettingsItem = new ApplicationSettingsItem(
             Uuid::v7(),
-            Uuid::v7(),
             $validKey,
             'value',
             false
@@ -177,7 +170,6 @@ class ApplicationSettingsItemTest extends TestCase
 
         new ApplicationSettingsItem(
             Uuid::v7(),
-            Uuid::v7(),
             'test.key',
             'value',
             false, // isRequired
@@ -191,7 +183,6 @@ class ApplicationSettingsItemTest extends TestCase
         $this->expectExceptionMessage('Bitrix24 user ID must be positive integer');
 
         new ApplicationSettingsItem(
-            Uuid::v7(),
             Uuid::v7(),
             'test.key',
             'value',
@@ -207,7 +198,6 @@ class ApplicationSettingsItemTest extends TestCase
 
         new ApplicationSettingsItem(
             Uuid::v7(),
-            Uuid::v7(),
             'test.key',
             'value',
             false, // isRequired
@@ -220,7 +210,6 @@ class ApplicationSettingsItemTest extends TestCase
     {
         $applicationSettingsItem = new ApplicationSettingsItem(
             Uuid::v7(),
-            Uuid::v7(),
             'required.setting',
             'value',
             true // isRequired
@@ -232,7 +221,6 @@ class ApplicationSettingsItemTest extends TestCase
     public function testCanTrackWhoChangedSetting(): void
     {
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             Uuid::v7(),
             'tracking.test',
             'initial.value',
@@ -255,7 +243,6 @@ class ApplicationSettingsItemTest extends TestCase
     {
         $applicationSettingsItem = new ApplicationSettingsItem(
             Uuid::v7(),
-            Uuid::v7(),
             'status.test',
             'value',
             false
@@ -267,7 +254,6 @@ class ApplicationSettingsItemTest extends TestCase
     public function testCanMarkAsDeleted(): void
     {
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             Uuid::v7(),
             'delete.test',
             'value',
@@ -287,7 +273,6 @@ class ApplicationSettingsItemTest extends TestCase
     public function testMarkAsDeletedIsIdempotent(): void
     {
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             Uuid::v7(),
             'idempotent.test',
             'value',

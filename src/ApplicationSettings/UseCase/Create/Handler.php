@@ -11,7 +11,6 @@ use Bitrix24\Lib\ApplicationSettings\UseCase\Create\Exception\SettingsItemAlread
 use Bitrix24\Lib\Services\Flusher;
 use Bitrix24\SDK\Application\Contracts\Events\AggregateRootEventsEmitterInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Uid\Uuid;
 
 /**
  * Handler for Create command.
@@ -53,7 +52,6 @@ readonly class Handler
 
         // Create new setting
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $command->applicationInstallationId,
             $command->key,
             $command->value,

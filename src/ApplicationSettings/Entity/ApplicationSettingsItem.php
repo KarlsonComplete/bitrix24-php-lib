@@ -21,12 +21,13 @@ use Symfony\Component\Uid\Uuid;
  */
 class ApplicationSettingsItem extends AggregateRoot implements ApplicationSettingsItemInterface
 {
+    private readonly Uuid $id;
+
     private readonly CarbonImmutable $createdAt;
 
     private CarbonImmutable $updatedAt;
 
     public function __construct(
-        private readonly Uuid $id,
         private readonly Uuid $applicationInstallationId,
         private readonly string $key,
         private string $value,
@@ -36,6 +37,7 @@ class ApplicationSettingsItem extends AggregateRoot implements ApplicationSettin
         private ?int $changedByBitrix24UserId = null,
         private ApplicationSettingStatus $status = ApplicationSettingStatus::Active
     ) {
+        $this->id = Uuid::v7();
         $this->validateKey($key);
         $this->validateValue();
         $this->validateScope($b24UserId, $b24DepartmentId);

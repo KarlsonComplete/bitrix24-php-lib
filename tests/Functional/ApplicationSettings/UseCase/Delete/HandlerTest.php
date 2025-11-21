@@ -46,7 +46,6 @@ class HandlerTest extends TestCase
     {
         $uuidV7 = Uuid::v7();
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'delete.test',
             'value',

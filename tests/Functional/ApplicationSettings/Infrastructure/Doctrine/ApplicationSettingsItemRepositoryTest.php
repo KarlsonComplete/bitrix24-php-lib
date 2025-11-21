@@ -32,7 +32,6 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
         $applicationInstallationId = Uuid::v7();
 
         $applicationSettingsItem = new ApplicationSettingsItem(
-            $uuidV7,
             $applicationInstallationId,
             'test.key',
             'test_value',
@@ -56,7 +55,6 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
         $uuidV7 = Uuid::v7();
 
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'find.by.key',
             'value123',
@@ -104,7 +102,6 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
         $uuidV7 = Uuid::v7();
         $applicationSettingsItem = new ApplicationSettingsItem(
             $uuidV7,
-            Uuid::v7(),
             'delete.test',
             'value',
             false
@@ -117,7 +114,7 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
-        $foundSetting = $this->repository->findById($uuidV7);
+        $foundSetting = $this->repository->findById($applicationSettingsItem->getId());
         $this->assertNull($foundSetting);
     }
 
@@ -126,7 +123,6 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
         $uuidV7 = Uuid::v7();
 
         $setting1 = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'unique.key',
             'value1',
@@ -134,7 +130,6 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
         );
 
         $setting2 = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'unique.key', // Same key
             'value2',
@@ -156,7 +151,6 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
         $userId = 123;
 
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'personal.key',
             'personal_value',
@@ -191,7 +185,6 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
         $departmentId = 456;
 
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'dept.key',
             'dept_value',
@@ -229,7 +222,6 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
         $uuidV7 = Uuid::v7();
 
         $activeSetting = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'active.key',
             'active_value',
@@ -237,7 +229,6 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
         );
 
         $deletedSetting = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'deleted.key',
             'deleted_value',
@@ -283,7 +274,6 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
 
         // Same key, different scopes
         $globalSetting = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'same.key',
             'global_value',
@@ -291,7 +281,6 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
         );
 
         $personalSetting = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'same.key',
             'personal_value',
@@ -300,7 +289,6 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
         );
 
         $deptSetting = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'same.key',
             'dept_value',
@@ -348,9 +336,9 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
     {
         $uuidV7 = Uuid::v7();
 
-        $setting1 = new ApplicationSettingsItem(Uuid::v7(), $uuidV7, 'app.theme', 'light', false);
-        $setting2 = new ApplicationSettingsItem(Uuid::v7(), $uuidV7, 'app.version', '1.0.0', false);
-        $setting3 = new ApplicationSettingsItem(Uuid::v7(), $uuidV7, 'app.theme', 'dark', false, 123);
+        $setting1 = new ApplicationSettingsItem( $uuidV7, 'app.theme', 'light', false);
+        $setting2 = new ApplicationSettingsItem( $uuidV7, 'app.version', '1.0.0', false);
+        $setting3 = new ApplicationSettingsItem( $uuidV7, 'app.theme', 'dark', false, 123);
 
         $this->repository->save($setting1);
         $this->repository->save($setting2);
@@ -370,8 +358,8 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
     {
         $uuidV7 = Uuid::v7();
 
-        $activeSetting = new ApplicationSettingsItem(Uuid::v7(), $uuidV7, 'app.theme', 'light', false);
-        $deletedSetting = new ApplicationSettingsItem(Uuid::v7(), $uuidV7, 'app.theme', 'dark', false);
+        $activeSetting = new ApplicationSettingsItem( $uuidV7, 'app.theme', 'light', false);
+        $deletedSetting = new ApplicationSettingsItem( $uuidV7, 'app.theme', 'dark', false);
 
         $this->repository->save($activeSetting);
         $this->repository->save($deletedSetting);
@@ -391,7 +379,7 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
     {
         $uuidV7 = Uuid::v7();
 
-        $applicationSettingsItem = new ApplicationSettingsItem(Uuid::v7(), $uuidV7, 'app.theme', 'light', false);
+        $applicationSettingsItem = new ApplicationSettingsItem( $uuidV7, 'app.theme', 'light', false);
         $this->repository->save($applicationSettingsItem);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();

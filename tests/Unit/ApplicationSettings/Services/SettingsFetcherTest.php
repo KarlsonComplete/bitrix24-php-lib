@@ -127,7 +127,6 @@ class SettingsFetcherTest extends TestCase
     {
         // Create only global setting
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'app.theme',
             'light',
@@ -146,7 +145,6 @@ class SettingsFetcherTest extends TestCase
     {
         // Create global and departmental settings
         $globalSetting = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'app.theme',
             'light',
@@ -154,7 +152,6 @@ class SettingsFetcherTest extends TestCase
         );
 
         $deptSetting = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'app.theme',
             'blue',
@@ -177,7 +174,6 @@ class SettingsFetcherTest extends TestCase
     {
         // Create all three levels
         $globalSetting = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'app.theme',
             'light',
@@ -185,7 +181,6 @@ class SettingsFetcherTest extends TestCase
         );
 
         $deptSetting = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'app.theme',
             'blue',
@@ -195,7 +190,6 @@ class SettingsFetcherTest extends TestCase
         );
 
         $personalSetting = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'app.theme',
             'dark',
@@ -218,7 +212,6 @@ class SettingsFetcherTest extends TestCase
     {
         // Only global setting exists
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'app.theme',
             'light',
@@ -238,7 +231,6 @@ class SettingsFetcherTest extends TestCase
     {
         // Global and departmental settings exist
         $globalSetting = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'app.theme',
             'light',
@@ -246,7 +238,6 @@ class SettingsFetcherTest extends TestCase
         );
 
         $deptSetting = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'app.theme',
             'blue',
@@ -276,7 +267,6 @@ class SettingsFetcherTest extends TestCase
     public function testGetValueReturnsStringValue(): void
     {
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'app.version',
             '1.2.3',
@@ -307,7 +297,6 @@ class SettingsFetcherTest extends TestCase
         ]);
 
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'api.config',
             $jsonValue,
@@ -333,7 +322,6 @@ class SettingsFetcherTest extends TestCase
         $jsonValue = '{"foo":"bar","baz":123}';
 
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'raw.setting',
             $jsonValue,
@@ -353,7 +341,6 @@ class SettingsFetcherTest extends TestCase
         $jsonValue = 'invalid json{';
 
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'broken.setting',
             $jsonValue,
@@ -381,7 +368,6 @@ class SettingsFetcherTest extends TestCase
     {
         // Create global and personal for user 123
         $globalSetting = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'app.theme',
             'light',
@@ -389,7 +375,6 @@ class SettingsFetcherTest extends TestCase
         );
 
         $personalSetting = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'app.theme',
             'dark',
@@ -411,7 +396,6 @@ class SettingsFetcherTest extends TestCase
     {
         // Create global and departmental for dept 456
         $globalSetting = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'app.theme',
             'light',
@@ -419,7 +403,6 @@ class SettingsFetcherTest extends TestCase
         );
 
         $deptSetting = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'app.theme',
             'blue',
@@ -443,7 +426,6 @@ class SettingsFetcherTest extends TestCase
         $jsonValue = json_encode(['value' => 'test string']);
 
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'string.setting',
             $jsonValue,
@@ -467,7 +449,6 @@ class SettingsFetcherTest extends TestCase
         $jsonValue = json_encode(['active' => true]);
 
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'bool.setting',
             $jsonValue,
@@ -488,7 +469,6 @@ class SettingsFetcherTest extends TestCase
         // Test with false
         $jsonValueFalse = json_encode(['active' => false]);
         $applicationSettingsItemFalse = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'bool.setting.false',
             $jsonValueFalse,
@@ -511,7 +491,6 @@ class SettingsFetcherTest extends TestCase
         $jsonValue = json_encode(['count' => 42]);
 
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'int.setting',
             $jsonValue,
@@ -536,7 +515,6 @@ class SettingsFetcherTest extends TestCase
         $jsonValue = json_encode(['price' => 99.99]);
 
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'float.setting',
             $jsonValue,
@@ -562,7 +540,6 @@ class SettingsFetcherTest extends TestCase
         $jsonValue = json_encode(['createdAt' => $dateTime->format(\DateTimeInterface::RFC3339)]);
 
         $applicationSettingsItem = new ApplicationSettingsItem(
-            Uuid::v7(),
             $this->installationId,
             'datetime.setting',
             $jsonValue,

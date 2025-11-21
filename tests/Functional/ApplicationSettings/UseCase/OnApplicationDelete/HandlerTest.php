@@ -48,7 +48,6 @@ class HandlerTest extends TestCase
 
         // Create multiple settings
         $setting1 = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'setting1',
             'value1',
@@ -56,7 +55,6 @@ class HandlerTest extends TestCase
         );
 
         $setting2 = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'setting2',
             'value2',
@@ -64,7 +62,6 @@ class HandlerTest extends TestCase
         );
 
         $setting3 = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'setting3',
             'value3',
@@ -111,7 +108,6 @@ class HandlerTest extends TestCase
 
         // Create settings for two installations
         $setting1 = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'setting',
             'value1',
@@ -119,7 +115,6 @@ class HandlerTest extends TestCase
         );
 
         $setting2 = new ApplicationSettingsItem(
-            Uuid::v7(),
             $installation2,
             'setting',
             'value2',
@@ -153,7 +148,6 @@ class HandlerTest extends TestCase
 
         // Create active and already deleted settings
         $activeSetting = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'active',
             'value',
@@ -161,7 +155,6 @@ class HandlerTest extends TestCase
         );
 
         $deletedSetting = new ApplicationSettingsItem(
-            Uuid::v7(),
             $uuidV7,
             'deleted',
             'value',
