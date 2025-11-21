@@ -17,12 +17,12 @@ interface ApplicationSettingsItemRepositoryInterface
     /**
      * Save application setting.
      */
-    public function save(ApplicationSettingsItemInterface $applicationSetting): void;
+    public function save(ApplicationSettingsItemInterface $applicationSettingsItem): void;
 
     /**
      * Delete application setting.
      */
-    public function delete(ApplicationSettingsItemInterface $applicationSetting): void;
+    public function delete(ApplicationSettingsItemInterface $applicationSettingsItem): void;
 
     /**
      * Find setting by ID.

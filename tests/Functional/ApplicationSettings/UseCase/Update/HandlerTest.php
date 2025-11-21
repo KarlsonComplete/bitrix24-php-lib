@@ -47,7 +47,7 @@ class HandlerTest extends TestCase
         $uuidV7 = Uuid::v7();
 
         // Create initial setting
-        $setting = new ApplicationSettingsItem(
+        $applicationSettingsItem = new ApplicationSettingsItem(
             Uuid::v7(),
             $uuidV7,
             'update.test',
@@ -57,7 +57,7 @@ class HandlerTest extends TestCase
             null,
             null
         );
-        $this->repository->save($setting);
+        $this->repository->save($applicationSettingsItem);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
@@ -108,7 +108,7 @@ class HandlerTest extends TestCase
         $uuidV7 = Uuid::v7();
 
         // Create initial personal setting
-        $setting = new ApplicationSettingsItem(
+        $applicationSettingsItem = new ApplicationSettingsItem(
             Uuid::v7(),
             $uuidV7,
             'personal.test',
@@ -118,7 +118,7 @@ class HandlerTest extends TestCase
             null,
             null
         );
-        $this->repository->save($setting);
+        $this->repository->save($applicationSettingsItem);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
@@ -153,7 +153,7 @@ class HandlerTest extends TestCase
         $uuidV7 = Uuid::v7();
 
         // Create initial departmental setting
-        $setting = new ApplicationSettingsItem(
+        $applicationSettingsItem = new ApplicationSettingsItem(
             Uuid::v7(),
             $uuidV7,
             'dept.test',
@@ -163,7 +163,7 @@ class HandlerTest extends TestCase
             456,
             null
         );
-        $this->repository->save($setting);
+        $this->repository->save($applicationSettingsItem);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 

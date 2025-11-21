@@ -45,7 +45,7 @@ class HandlerTest extends TestCase
     public function testCanDeleteExistingSetting(): void
     {
         $uuidV7 = Uuid::v7();
-        $applicationSetting = new ApplicationSettingsItem(
+        $applicationSettingsItem = new ApplicationSettingsItem(
             Uuid::v7(),
             $uuidV7,
             'delete.test',
@@ -53,7 +53,7 @@ class HandlerTest extends TestCase
             false
         );
 
-        $this->repository->save($applicationSetting);
+        $this->repository->save($applicationSettingsItem);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 

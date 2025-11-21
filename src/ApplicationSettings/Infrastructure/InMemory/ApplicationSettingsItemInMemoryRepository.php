@@ -17,15 +17,15 @@ class ApplicationSettingsItemInMemoryRepository implements ApplicationSettingsIt
     private array $settings = [];
 
     #[\Override]
-    public function save(ApplicationSettingsItemInterface $applicationSetting): void
+    public function save(ApplicationSettingsItemInterface $applicationSettingsItem): void
     {
-        $this->settings[$applicationSetting->getId()->toRfc4122()] = $applicationSetting;
+        $this->settings[$applicationSettingsItem->getId()->toRfc4122()] = $applicationSettingsItem;
     }
 
     #[\Override]
-    public function delete(ApplicationSettingsItemInterface $applicationSetting): void
+    public function delete(ApplicationSettingsItemInterface $applicationSettingsItem): void
     {
-        unset($this->settings[$applicationSetting->getId()->toRfc4122()]);
+        unset($this->settings[$applicationSettingsItem->getId()->toRfc4122()]);
     }
 
     #[\Override]

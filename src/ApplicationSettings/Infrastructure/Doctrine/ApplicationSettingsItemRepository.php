@@ -24,15 +24,15 @@ class ApplicationSettingsItemRepository extends EntityRepository implements Appl
     }
 
     #[\Override]
-    public function save(ApplicationSettingsItemInterface $applicationSetting): void
+    public function save(ApplicationSettingsItemInterface $applicationSettingsItem): void
     {
-        $this->getEntityManager()->persist($applicationSetting);
+        $this->getEntityManager()->persist($applicationSettingsItem);
     }
 
     #[\Override]
-    public function delete(ApplicationSettingsItemInterface $applicationSetting): void
+    public function delete(ApplicationSettingsItemInterface $applicationSettingsItem): void
     {
-        $this->getEntityManager()->remove($applicationSetting);
+        $this->getEntityManager()->remove($applicationSettingsItem);
     }
 
     #[\Override]

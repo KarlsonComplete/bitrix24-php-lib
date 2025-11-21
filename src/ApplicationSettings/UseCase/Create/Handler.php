@@ -57,7 +57,7 @@ readonly class Handler
         }
 
         // Create new setting
-        $setting = new ApplicationSettingsItem(
+        $applicationSettingsItem = new ApplicationSettingsItem(
             Uuid::v7(),
             $command->applicationInstallationId,
             $command->key,
@@ -67,19 +67,19 @@ readonly class Handler
             $command->b24DepartmentId,
             $command->changedByBitrix24UserId
         );
-        $this->applicationSettingRepository->save($setting);
+        $this->applicationSettingRepository->save($applicationSettingsItem);
 
         $this->logger->debug('ApplicationSettings.Create.created', [
-            'settingId' => $setting->getId()->toRfc4122(),
+            'settingId' => $applicationSettingsItem->getId()->toRfc4122(),
             'isRequired' => $command->isRequired,
             'changedBy' => $command->changedByBitrix24UserId,
         ]);
 
-        /** @var AggregateRootEventsEmitterInterface&ApplicationSettingsItemInterface $setting */
-        $this->flusher->flush($setting);
+        /** @var AggregateRootEventsEmitterInterface&ApplicationSettingsItemInterface $applicationSettingsItem */
+        $this->flusher->flush($applicationSettingsItem);
 
         $this->logger->info('ApplicationSettings.Create.finish', [
-            'settingId' => $setting->getId()->toRfc4122(),
+            'settingId' => $applicationSettingsItem->getId()->toRfc4122(),
         ]);
     }
 

@@ -31,7 +31,7 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
         $uuidV7 = Uuid::v7();
         $applicationInstallationId = Uuid::v7();
 
-        $applicationSetting = new ApplicationSettingsItem(
+        $applicationSettingsItem = new ApplicationSettingsItem(
             $uuidV7,
             $applicationInstallationId,
             'test.key',
@@ -39,7 +39,7 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
             false
         );
 
-        $this->repository->save($applicationSetting);
+        $this->repository->save($applicationSettingsItem);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
@@ -55,7 +55,7 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
     {
         $uuidV7 = Uuid::v7();
 
-        $applicationSetting = new ApplicationSettingsItem(
+        $applicationSettingsItem = new ApplicationSettingsItem(
             Uuid::v7(),
             $uuidV7,
             'find.by.key',
@@ -63,7 +63,7 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
             false
         );
 
-        $this->repository->save($applicationSetting);
+        $this->repository->save($applicationSettingsItem);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
@@ -102,7 +102,7 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
     public function testCanDeleteSetting(): void
     {
         $uuidV7 = Uuid::v7();
-        $applicationSetting = new ApplicationSettingsItem(
+        $applicationSettingsItem = new ApplicationSettingsItem(
             $uuidV7,
             Uuid::v7(),
             'delete.test',
@@ -110,10 +110,10 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
             false
         );
 
-        $this->repository->save($applicationSetting);
+        $this->repository->save($applicationSettingsItem);
         EntityManagerFactory::get()->flush();
 
-        $this->repository->delete($applicationSetting);
+        $this->repository->delete($applicationSettingsItem);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
@@ -155,7 +155,7 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
         $uuidV7 = Uuid::v7();
         $userId = 123;
 
-        $applicationSetting = new ApplicationSettingsItem(
+        $applicationSettingsItem = new ApplicationSettingsItem(
             Uuid::v7(),
             $uuidV7,
             'personal.key',
@@ -164,7 +164,7 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
             $userId
         );
 
-        $this->repository->save($applicationSetting);
+        $this->repository->save($applicationSettingsItem);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
@@ -190,7 +190,7 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
         $uuidV7 = Uuid::v7();
         $departmentId = 456;
 
-        $applicationSetting = new ApplicationSettingsItem(
+        $applicationSettingsItem = new ApplicationSettingsItem(
             Uuid::v7(),
             $uuidV7,
             'dept.key',
@@ -200,7 +200,7 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
             $departmentId
         );
 
-        $this->repository->save($applicationSetting);
+        $this->repository->save($applicationSettingsItem);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
@@ -391,8 +391,8 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
     {
         $uuidV7 = Uuid::v7();
 
-        $applicationSetting = new ApplicationSettingsItem(Uuid::v7(), $uuidV7, 'app.theme', 'light', false);
-        $this->repository->save($applicationSetting);
+        $applicationSettingsItem = new ApplicationSettingsItem(Uuid::v7(), $uuidV7, 'app.theme', 'light', false);
+        $this->repository->save($applicationSettingsItem);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 

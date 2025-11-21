@@ -131,8 +131,8 @@ readonly class SettingsFetcher
             'class' => $class,
         ]);
 
-        $applicationSetting = $this->getItem($uuid, $key, $userId, $departmentId);
-        $value = $applicationSetting->getValue();
+        $applicationSettingsItem = $this->getItem($uuid, $key, $userId, $departmentId);
+        $value = $applicationSettingsItem->getValue();
 
         // If no class specified, return raw string
         if (null === $class) {
@@ -154,14 +154,14 @@ readonly class SettingsFetcher
             ]);
 
             return $object;
-        } catch (\Throwable $e) {
+        } catch (\Throwable $throwable) {
             $this->logger->error('SettingsFetcher.getValue.deserializationFailed', [
                 'key' => $key,
                 'class' => $class,
-                'error' => $e->getMessage(),
+                'error' => $throwable->getMessage(),
             ]);
 
-            throw $e;
+            throw $throwable;
         }
     }
 }

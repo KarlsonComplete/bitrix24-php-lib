@@ -63,7 +63,7 @@ class SettingsFetcherTest extends TestCase
     public function testReturnsGlobalSettingWhenNoOverrides(): void
     {
         // Create only global setting
-        $applicationSetting = new ApplicationSettingsItem(
+        $applicationSettingsItem = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'app.theme',
@@ -71,7 +71,7 @@ class SettingsFetcherTest extends TestCase
             false
         );
 
-        $this->repository->save($applicationSetting);
+        $this->repository->save($applicationSettingsItem);
 
         $result = $this->fetcher->getItem($this->installationId, 'app.theme');
 
@@ -154,7 +154,7 @@ class SettingsFetcherTest extends TestCase
     public function testFallsBackToGlobalWhenPersonalNotFound(): void
     {
         // Only global setting exists
-        $applicationSetting = new ApplicationSettingsItem(
+        $applicationSettingsItem = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'app.theme',
@@ -162,7 +162,7 @@ class SettingsFetcherTest extends TestCase
             false
         );
 
-        $this->repository->save($applicationSetting);
+        $this->repository->save($applicationSettingsItem);
 
         // Request for user 123, should fallback to global
         $result = $this->fetcher->getItem($this->installationId, 'app.theme', 123);
@@ -212,7 +212,7 @@ class SettingsFetcherTest extends TestCase
 
     public function testGetValueReturnsStringValue(): void
     {
-        $applicationSetting = new ApplicationSettingsItem(
+        $applicationSettingsItem = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'app.version',
@@ -220,7 +220,7 @@ class SettingsFetcherTest extends TestCase
             false
         );
 
-        $this->repository->save($applicationSetting);
+        $this->repository->save($applicationSettingsItem);
 
         $result = $this->fetcher->getValue($this->installationId, 'app.version');
 
@@ -243,7 +243,7 @@ class SettingsFetcherTest extends TestCase
             'enabled' => true,
         ]);
 
-        $applicationSetting = new ApplicationSettingsItem(
+        $applicationSettingsItem = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'api.config',
@@ -251,9 +251,9 @@ class SettingsFetcherTest extends TestCase
             false
         );
 
-        $this->repository->save($applicationSetting);
+        $this->repository->save($applicationSettingsItem);
 
-        $expectedObject = new TestConfigDto(
+        $testConfigDto = new TestConfigDto(
             endpoint: 'https://api.example.com',
             timeout: 60,
             enabled: true
@@ -262,7 +262,7 @@ class SettingsFetcherTest extends TestCase
         $this->serializer->expects($this->once())
             ->method('deserialize')
             ->with($jsonValue, TestConfigDto::class, 'json')
-            ->willReturn($expectedObject);
+            ->willReturn($testConfigDto);
 
         $result = $this->fetcher->getValue(
             $this->installationId,
@@ -280,7 +280,7 @@ class SettingsFetcherTest extends TestCase
     {
         $jsonValue = '{"foo":"bar","baz":123}';
 
-        $applicationSetting = new ApplicationSettingsItem(
+        $applicationSettingsItem = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'raw.setting',
@@ -288,7 +288,7 @@ class SettingsFetcherTest extends TestCase
             false
         );
 
-        $this->repository->save($applicationSetting);
+        $this->repository->save($applicationSettingsItem);
 
         // Serializer should NOT be called when class is not specified
         $this->serializer->expects($this->never())
@@ -304,7 +304,7 @@ class SettingsFetcherTest extends TestCase
     {
         $jsonValue = 'invalid json{';
 
-        $applicationSetting = new ApplicationSettingsItem(
+        $applicationSettingsItem = new ApplicationSettingsItem(
             Uuid::v7(),
             $this->installationId,
             'broken.setting',
@@ -312,7 +312,7 @@ class SettingsFetcherTest extends TestCase
             false
         );
 
-        $this->repository->save($applicationSetting);
+        $this->repository->save($applicationSettingsItem);
 
         $exception = new \Exception('Deserialization failed');
 
@@ -323,11 +323,9 @@ class SettingsFetcherTest extends TestCase
 
         $this->logger->expects($this->once())
             ->method('error')
-            ->with('SettingsFetcher.getValue.deserializationFailed', $this->callback(function ($context) {
-                return isset($context['key'], $context['class'], $context['error'])
-                    && 'broken.setting' === $context['key']
-                    && TestConfigDto::class === $context['class'];
-            }));
+            ->with('SettingsFetcher.getValue.deserializationFailed', $this->callback(fn($context): bool => isset($context['key'], $context['class'], $context['error'])
+                && 'broken.setting' === $context['key']
+                && TestConfigDto::class === $context['class']));
 
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Deserialization failed');
