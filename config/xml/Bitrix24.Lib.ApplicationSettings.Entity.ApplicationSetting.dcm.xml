@@ -1,0 +1,28 @@
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xs="https://www.w3.org/2001/XMLSchema"
+                  xmlns:orm="https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSetting"
+            table="application_setting">
+        <id name="id" type="uuid" column="id">
+
+        </id>
+
+        <field name="applicationInstallationId" type="uuid" column="application_installation_id" nullable="false"/>
+
+        <field name="key" type="string" column="key" length="255" nullable="false"/>
+
+        <field name="value" type="text" column="value" nullable="false"/>
+
+        <field name="createdAt" type="carbon_immutable" column="created_at_utc" precision="3" nullable="false"/>
+
+        <field name="updatedAt" type="carbon_immutable" column="updated_at_utc" precision="3" nullable="false"/>
+
+        <unique-constraints>
+            <unique-constraint columns="application_installation_id,key" name="unique_app_installation_key"/>
+        </unique-constraints>
+
+        <indexes>
+            <index name="idx_application_installation_id" columns="application_installation_id"/>
+        </indexes>
+    </entity>
+</doctrine-mapping>

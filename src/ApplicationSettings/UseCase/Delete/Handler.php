@@ -1,0 +1,54 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Bitrix24\Lib\ApplicationSettings\UseCase\Delete;
+
+use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingRepository;
+use Bitrix24\Lib\Services\Flusher;
+use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
+use Psr\Log\LoggerInterface;
+
+/**
+ * Handler for Delete command
+ */
+readonly class Handler
+{
+    public function __construct(
+        private ApplicationSettingRepository $applicationSettingRepository,
+        private Flusher $flusher,
+        private LoggerInterface $logger
+    ) {
+    }
+
+    public function handle(Command $command): void
+    {
+        $this->logger->info('ApplicationSettings.Delete.start', [
+            'applicationInstallationId' => $command->applicationInstallationId->toRfc4122(),
+            'key' => $command->key,
+        ]);
+
+        $setting = $this->applicationSettingRepository->findByApplicationInstallationIdAndKey(
+            $command->applicationInstallationId,
+            $command->key
+        );
+
+        if (null === $setting) {
+            throw new InvalidArgumentException(
+                sprintf(
+                    'Setting with key "%s" not found for application installation "%s"',
+                    $command->key,
+                    $command->applicationInstallationId->toRfc4122()
+                )
+            );
+        }
+
+        $settingId = $setting->getId()->toRfc4122();
+        $this->applicationSettingRepository->delete($setting);
+        $this->flusher->flush();
+
+        $this->logger->info('ApplicationSettings.Delete.finish', [
+            'settingId' => $settingId,
+        ]);
+    }
+}
