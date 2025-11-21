@@ -18,8 +18,10 @@ use Symfony\Component\Uid\Uuid;
 #[CoversClass(InstallSettings::class)]
 class InstallSettingsTest extends TestCase
 {
+    /** @var Handler&\PHPUnit\Framework\MockObject\MockObject */
     private Handler $setHandler;
 
+    /** @var LoggerInterface&\PHPUnit\Framework\MockObject\MockObject */
     private LoggerInterface $logger;
 
     private InstallSettings $service;
@@ -43,7 +45,7 @@ class InstallSettingsTest extends TestCase
         // Expect Set Handler to be called twice (once for each setting)
         $this->setHandler->expects($this->exactly(2))
             ->method('handle')
-            ->with($this->callback(function (Command $command) use ($uuidV7, $defaultSettings): bool {
+            ->with($this->callback(function (Command $command) use ($uuidV7): bool {
                 // Verify command has correct application installation ID
                 if ($command->applicationInstallationId->toRfc4122() !== $uuidV7->toRfc4122()) {
                     return false;
