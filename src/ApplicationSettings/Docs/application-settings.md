@@ -248,15 +248,6 @@ class SettingChangeLogger implements EventSubscriberInterface
 ```php
 use Bitrix24\Lib\ApplicationSettings\Services\InstallSettings;
 
-// Получить рекомендуемые настройки
-$defaults = InstallSettings::getRecommendedDefaults();
-// Возвращает:
-// [
-//     'app.enabled' => ['value' => 'true', 'required' => true],
-//     'app.version' => ['value' => '1.0.0', 'required' => true],
-//     ...
-// ]
-
 // Создать все настройки для новой установки
 $installer = new InstallSettings(
     $repository,
@@ -264,9 +255,9 @@ $installer = new InstallSettings(
     $logger
 );
 
-$installer->install(
+$installer->createDefaultSettings(
     applicationInstallationId: $installationId,
-    settings: [
+    defaultSettings: [
         'app.name' => ['value' => 'My App', 'required' => true],
         'app.language' => ['value' => 'ru', 'required' => true],
         'features.notifications' => ['value' => 'true', 'required' => false],

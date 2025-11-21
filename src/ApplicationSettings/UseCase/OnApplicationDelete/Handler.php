@@ -29,15 +29,19 @@ readonly class Handler
             'applicationInstallationId' => $command->applicationInstallationId->toRfc4122(),
         ]);
 
-        // Soft-delete all settings for this installation
-        $this->applicationSettingRepository->softDeleteByApplicationInstallationId(
-            $command->applicationInstallationId
-        );
+        // Get all active settings for this installation
+        $settings = $this->applicationSettingRepository->findAll($command->applicationInstallationId);
+
+        // Mark each setting as deleted
+        foreach ($settings as $setting) {
+            $setting->markAsDeleted();
+        }
 
         $this->flusher->flush();
 
         $this->logger->info('ApplicationSettings.OnApplicationDelete.finish', [
             'applicationInstallationId' => $command->applicationInstallationId->toRfc4122(),
+            'deletedCount' => count($settings),
         ]);
     }
 }

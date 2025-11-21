@@ -104,12 +104,6 @@ class ApplicationSetting extends AggregateRoot implements ApplicationSettingInte
     }
 
     #[\Override]
-    public function getStatus(): ApplicationSettingStatus
-    {
-        return $this->status;
-    }
-
-    #[\Override]
     public function isActive(): bool
     {
         return $this->status->isActive();

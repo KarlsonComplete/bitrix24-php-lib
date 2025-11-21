@@ -61,7 +61,7 @@ class HandlerTest extends TestCase
         EntityManagerFactory::get()->clear();
 
         // Setting should not be found by regular find methods (soft-deleted)
-        $deletedSetting = $this->repository->findByApplicationInstallationIdAndKey(
+        $deletedSetting = $this->repository->findGlobalByKey(
             $applicationInstallationId,
             'delete.test'
         );
@@ -81,7 +81,7 @@ class HandlerTest extends TestCase
             ->getOneOrNullResult();
 
         $this->assertNotNull($settingById);
-        $this->assertEquals(\Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingStatus::Deleted, $settingById->getStatus());
+        $this->assertFalse($settingById->isActive());
     }
 
     public function testThrowsExceptionForNonExistentSetting(): void

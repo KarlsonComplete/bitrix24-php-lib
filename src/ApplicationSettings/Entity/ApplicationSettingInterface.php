@@ -30,8 +30,6 @@ interface ApplicationSettingInterface
 
     public function isRequired(): bool;
 
-    public function getStatus(): ApplicationSettingStatus;
-
     public function isActive(): bool;
 
     public function getCreatedAt(): CarbonImmutable;

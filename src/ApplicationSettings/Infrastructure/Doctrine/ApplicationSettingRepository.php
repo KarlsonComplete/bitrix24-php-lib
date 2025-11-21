@@ -7,7 +7,6 @@ namespace Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine;
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSetting;
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingInterface;
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingStatus;
-use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\Uid\Uuid;
@@ -237,41 +236,11 @@ class ApplicationSettingRepository extends EntityRepository implements Applicati
     }
 
     /**
-     * Soft-delete all settings for application installation.
-     */
-    public function softDeleteByApplicationInstallationId(Uuid $applicationInstallationId): void
-    {
-        $this->getEntityManager()
-            ->createQueryBuilder()
-            ->update(ApplicationSetting::class, 's')
-            ->set('s.status', ':status')
-            ->set('s.updatedAt', ':updatedAt')
-            ->where('s.applicationInstallationId = :applicationInstallationId')
-            ->andWhere('s.status = :activeStatus')
-            ->setParameter('status', ApplicationSettingStatus::Deleted)
-            ->setParameter('updatedAt', new CarbonImmutable())
-            ->setParameter('applicationInstallationId', $applicationInstallationId)
-            ->setParameter('activeStatus', ApplicationSettingStatus::Active)
-            ->getQuery()
-            ->execute()
-        ;
-    }
-
-    /**
-     * Find setting by application installation ID and key
-     * Alias for findGlobalByKey for backward compatibility.
-     */
-    #[\Override]
-    public function findByApplicationInstallationIdAndKey(
-        Uuid $applicationInstallationId,
-        string $key
-    ): ?ApplicationSettingInterface {
-        return $this->findGlobalByKey($applicationInstallationId, $key);
-    }
-
-    /**
-     * Find all settings for application installation ID
+     * Find all settings for application installation ID.
+     *
      * Alias for findAll for backward compatibility.
+     *
+     * @return ApplicationSettingInterface[]
      */
     #[\Override]
     public function findByApplicationInstallationId(Uuid $applicationInstallationId): array

@@ -98,7 +98,7 @@ class HandlerTest extends TestCase
         $this->assertCount(3, $allSettings);
 
         foreach ($allSettings as $setting) {
-            $this->assertEquals(ApplicationSettingStatus::Deleted, $setting->getStatus());
+            $this->assertFalse($setting->isActive());
         }
     }
 

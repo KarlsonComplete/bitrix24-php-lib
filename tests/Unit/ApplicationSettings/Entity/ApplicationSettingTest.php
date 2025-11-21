@@ -267,7 +267,6 @@ class ApplicationSettingTest extends TestCase
             false
         );
 
-        $this->assertEquals(\Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingStatus::Active, $setting->getStatus());
         $this->assertTrue($setting->isActive());
     }
 
@@ -287,7 +286,6 @@ class ApplicationSettingTest extends TestCase
         usleep(1000);
         $setting->markAsDeleted();
 
-        $this->assertEquals(\Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingStatus::Deleted, $setting->getStatus());
         $this->assertFalse($setting->isActive());
         $this->assertGreaterThan($initialUpdatedAt, $setting->getUpdatedAt());
     }

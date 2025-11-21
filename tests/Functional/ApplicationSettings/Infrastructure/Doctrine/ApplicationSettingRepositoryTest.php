@@ -66,7 +66,7 @@ class ApplicationSettingRepositoryTest extends TestCase
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
-        $foundSetting = $this->repository->findByApplicationInstallationIdAndKey(
+        $foundSetting = $this->repository->findGlobalByKey(
             $applicationInstallationId,
             'find.by.key'
         );
@@ -78,7 +78,7 @@ class ApplicationSettingRepositoryTest extends TestCase
 
     public function testReturnsNullForNonExistentKey(): void
     {
-        $foundSetting = $this->repository->findByApplicationInstallationIdAndKey(
+        $foundSetting = $this->repository->findGlobalByKey(
             Uuid::v7(),
             'non.existent.key'
         );

@@ -51,7 +51,7 @@ class HandlerTest extends TestCase
 
         EntityManagerFactory::get()->clear();
 
-        $setting = $this->repository->findByApplicationInstallationIdAndKey(
+        $setting = $this->repository->findGlobalByKey(
             $applicationInstallationId,
             'new.setting'
         );
@@ -84,7 +84,7 @@ class HandlerTest extends TestCase
         EntityManagerFactory::get()->clear();
 
         // Verify update
-        $setting = $this->repository->findByApplicationInstallationIdAndKey(
+        $setting = $this->repository->findGlobalByKey(
             $applicationInstallationId,
             'update.test'
         );

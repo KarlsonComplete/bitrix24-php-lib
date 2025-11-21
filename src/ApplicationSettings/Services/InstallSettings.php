@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Bitrix24\Lib\ApplicationSettings\Services;
 
-use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSetting;
-use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingRepositoryInterface;
-use Bitrix24\Lib\Services\Flusher;
+use Bitrix24\Lib\ApplicationSettings\UseCase\Set\Command;
+use Bitrix24\Lib\ApplicationSettings\UseCase\Set\Handler;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Uid\Uuid;
 
@@ -19,8 +18,7 @@ use Symfony\Component\Uid\Uuid;
 readonly class InstallSettings
 {
     public function __construct(
-        private ApplicationSettingRepositoryInterface $applicationSettingRepository,
-        private Flusher $flusher,
+        private Handler $setHandler,
         private LoggerInterface $logger
     ) {}
 
@@ -40,59 +38,24 @@ readonly class InstallSettings
         ]);
 
         foreach ($defaultSettings as $key => $config) {
-            // Check if setting already exists
-            $existingSetting = $this->applicationSettingRepository->findGlobalByKey(
-                $applicationInstallationId,
-                $key
+            // Use Set UseCase to create or update setting
+            $command = new Command(
+                applicationInstallationId: $applicationInstallationId,
+                key: $key,
+                value: $config['value'],
+                isRequired: $config['required']
             );
 
-            if (null === $existingSetting) {
-                // Create new global setting
-                $setting = new ApplicationSetting(
-                    Uuid::v7(),
-                    $applicationInstallationId,
-                    $key,
-                    $config['value'],
-                    $config['required'],
-                    null, // Global setting - no user ID
-                    null  // Global setting - no department ID
-                );
+            $this->setHandler->handle($command);
 
-                $this->applicationSettingRepository->save($setting);
-
-                $this->logger->debug('InstallSettings.settingCreated', [
-                    'key' => $key,
-                    'settingId' => $setting->getId()->toRfc4122(),
-                    'isRequired' => $config['required'],
-                ]);
-            } else {
-                $this->logger->debug('InstallSettings.settingAlreadyExists', [
-                    'key' => $key,
-                    'settingId' => $existingSetting->getId()->toRfc4122(),
-                ]);
-            }
+            $this->logger->debug('InstallSettings.settingProcessed', [
+                'key' => $key,
+                'isRequired' => $config['required'],
+            ]);
         }
-
-        $this->flusher->flush();
 
         $this->logger->info('InstallSettings.createDefaultSettings.finish', [
             'applicationInstallationId' => $applicationInstallationId->toRfc4122(),
         ]);
-    }
-
-    /**
-     * Get recommended default settings structure.
-     *
-     * @return array<string, array{value: string, required: bool}> Recommended default settings
-     */
-    public static function getRecommendedDefaults(): array
-    {
-        return [
-            'app.enabled' => ['value' => 'true', 'required' => true],
-            'app.version' => ['value' => '1.0.0', 'required' => true],
-            'app.locale' => ['value' => 'en', 'required' => false],
-            'feature.notifications' => ['value' => 'true', 'required' => false],
-            'feature.analytics' => ['value' => 'false', 'required' => false],
-        ];
     }
 }
