@@ -64,6 +64,11 @@
   - Updated all code examples to reflect current codebase
   - Corrected exception class names (SettingsItemAlreadyExistsException, SettingsItemNotFoundException)
   - Improved best practices and security sections
+- **Test infrastructure improvements**
+  - Created contract tests for ApplicationSettingsItemRepositoryInterface
+  - Moved ApplicationSettingsItemInMemoryRepository from src to tests/Helpers
+  - Added contract test implementations for both InMemory and Doctrine repositories
+  - Refactored existing repository tests to focus on implementation-specific behavior
 
 ### Fixed
 - **PHPStan level 5 errors related to SDK interface compatibility** — [#67](https://github.com/mesilov/bitrix24-php-lib/issues/67)

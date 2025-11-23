@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Bitrix24\Lib\ApplicationSettings\Infrastructure\InMemory;
+namespace Bitrix24\Lib\Tests\Helpers\ApplicationSettings;
 
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItemInterface;
 use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingsItemRepositoryInterface;

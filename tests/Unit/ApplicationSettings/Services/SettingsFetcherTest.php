@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Bitrix24\Lib\Tests\Unit\ApplicationSettings\Services;
 
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItem;
-use Bitrix24\Lib\ApplicationSettings\Infrastructure\InMemory\ApplicationSettingsItemInMemoryRepository;
 use Bitrix24\Lib\ApplicationSettings\Services\Exception\SettingsItemNotFoundException;
+use Bitrix24\Lib\Tests\Helpers\ApplicationSettings\ApplicationSettingsItemInMemoryRepository;
 use Bitrix24\Lib\ApplicationSettings\Services\SettingsFetcher;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;

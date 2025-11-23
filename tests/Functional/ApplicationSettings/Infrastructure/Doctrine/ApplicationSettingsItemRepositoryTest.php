@@ -7,11 +7,14 @@ namespace Bitrix24\Lib\Tests\Functional\ApplicationSettings\Infrastructure\Doctr
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItem;
 use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingsItemRepository;
 use Bitrix24\Lib\Tests\EntityManagerFactory;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Uid\Uuid;
 
 /**
+ * Tests for Doctrine-specific functionality (not covered by contract tests).
+ *
  * @internal
  */
 #[CoversClass(ApplicationSettingsItemRepository::class)]
@@ -26,99 +29,17 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
         $this->repository = new ApplicationSettingsItemRepository($entityManager);
     }
 
-    public function testCanSaveAndFindById(): void
+    #[\Override]
+    protected function tearDown(): void
     {
-        $uuidV7 = Uuid::v7();
-        $applicationInstallationId = Uuid::v7();
-
-        $applicationSettingsItem = new ApplicationSettingsItem(
-            $applicationInstallationId,
-            'test.key',
-            'test_value',
-            false
-        );
-
-        $this->repository->save($applicationSettingsItem);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
-
-        $foundSetting = $this->repository->findById($uuidV7);
-
-        $this->assertNotNull($foundSetting);
-        $this->assertEquals($uuidV7->toRfc4122(), $foundSetting->getId()->toRfc4122());
-        $this->assertEquals('test.key', $foundSetting->getKey());
-        $this->assertEquals('test_value', $foundSetting->getValue());
     }
 
-    public function testCanFindByApplicationInstallationIdAndKey(): void
-    {
-        $uuidV7 = Uuid::v7();
-
-        $applicationSettingsItem = new ApplicationSettingsItem(
-            $uuidV7,
-            'find.by.key',
-            'value123',
-            false
-        );
-
-        $this->repository->save($applicationSettingsItem);
-        EntityManagerFactory::get()->flush();
-        EntityManagerFactory::get()->clear();
-
-        // Find global setting by filtering
-        $allSettings = $this->repository->findAllForInstallation($uuidV7);
-        $foundSetting = null;
-        foreach ($allSettings as $allSetting) {
-            if ($allSetting->getKey() === 'find.by.key' && $allSetting->isGlobal()) {
-                $foundSetting = $allSetting;
-                break;
-            }
-        }
-
-        $this->assertNotNull($foundSetting);
-        $this->assertEquals('find.by.key', $foundSetting->getKey());
-        $this->assertEquals('value123', $foundSetting->getValue());
-    }
-
-    public function testReturnsNullForNonExistentKey(): void
-    {
-        $uuidV7 = Uuid::v7();
-        $allSettings = $this->repository->findAllForInstallation($uuidV7);
-
-        $foundSetting = null;
-        foreach ($allSettings as $allSetting) {
-            if ($allSetting->getKey() === 'non.existent.key' && $allSetting->isGlobal()) {
-                $foundSetting = $allSetting;
-                break;
-            }
-        }
-
-        $this->assertNull($foundSetting);
-    }
-
-
-    public function testCanDeleteSetting(): void
-    {
-        $uuidV7 = Uuid::v7();
-        $applicationSettingsItem = new ApplicationSettingsItem(
-            $uuidV7,
-            'delete.test',
-            'value',
-            false
-        );
-
-        $this->repository->save($applicationSettingsItem);
-        EntityManagerFactory::get()->flush();
-
-        $this->repository->delete($applicationSettingsItem);
-        EntityManagerFactory::get()->flush();
-        EntityManagerFactory::get()->clear();
-
-        $foundSetting = $this->repository->findById($applicationSettingsItem->getId());
-        $this->assertNull($foundSetting);
-    }
-
-    public function testUniqueConstraintOnApplicationInstallationIdAndKey(): void
+    /**
+     * Test Doctrine-specific unique constraint on (installation_id, key, user_id, department_id).
+     */
+    public function testUniqueConstraintOnApplicationInstallationIdAndKeyAndScope(): void
     {
         $uuidV7 = Uuid::v7();
 
@@ -131,7 +52,7 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
 
         $setting2 = new ApplicationSettingsItem(
             $uuidV7,
-            'unique.key', // Same key
+            'unique.key', // Same key, same scope (global)
             'value2',
             false
         );
@@ -139,253 +60,119 @@ class ApplicationSettingsItemRepositoryTest extends TestCase
         $this->repository->save($setting1);
         EntityManagerFactory::get()->flush();
 
-        $this->expectException(\Doctrine\DBAL\Exception\UniqueConstraintViolationException::class);
+        $this->expectException(UniqueConstraintViolationException::class);
 
         $this->repository->save($setting2);
         EntityManagerFactory::get()->flush();
     }
 
-    public function testCanFindPersonalSettingByKey(): void
-    {
-        $uuidV7 = Uuid::v7();
-        $userId = 123;
-
-        $applicationSettingsItem = new ApplicationSettingsItem(
-            $uuidV7,
-            'personal.key',
-            'personal_value',
-            false,
-            $userId
-        );
-
-        $this->repository->save($applicationSettingsItem);
-        EntityManagerFactory::get()->flush();
-        EntityManagerFactory::get()->clear();
-
-        // Find personal setting by filtering
-        $allSettings = $this->repository->findAllForInstallation($uuidV7);
-        $foundSetting = null;
-        foreach ($allSettings as $allSetting) {
-            if ($allSetting->getKey() === 'personal.key' && $allSetting->isPersonal() && $allSetting->getB24UserId() === $userId) {
-                $foundSetting = $allSetting;
-                break;
-            }
-        }
-
-        $this->assertNotNull($foundSetting);
-        $this->assertEquals('personal.key', $foundSetting->getKey());
-        $this->assertEquals('personal_value', $foundSetting->getValue());
-        $this->assertEquals($userId, $foundSetting->getB24UserId());
-        $this->assertTrue($foundSetting->isPersonal());
-    }
-
-    public function testCanFindDepartmentalSettingByKey(): void
-    {
-        $uuidV7 = Uuid::v7();
-        $departmentId = 456;
-
-        $applicationSettingsItem = new ApplicationSettingsItem(
-            $uuidV7,
-            'dept.key',
-            'dept_value',
-            false,
-            null,
-            $departmentId
-        );
-
-        $this->repository->save($applicationSettingsItem);
-        EntityManagerFactory::get()->flush();
-        EntityManagerFactory::get()->clear();
-
-        // Find departmental setting by filtering
-        $allSettings = $this->repository->findAllForInstallation($uuidV7);
-        $foundSetting = null;
-        foreach ($allSettings as $allSetting) {
-            if ($allSetting->getKey() === 'dept.key' && $allSetting->isDepartmental() && $allSetting->getB24DepartmentId() === $departmentId) {
-                $foundSetting = $allSetting;
-                break;
-            }
-        }
-
-        $this->assertNotNull($foundSetting);
-        $this->assertEquals('dept.key', $foundSetting->getKey());
-        $this->assertEquals('dept_value', $foundSetting->getValue());
-        $this->assertEquals($departmentId, $foundSetting->getB24DepartmentId());
-        $this->assertTrue($foundSetting->isDepartmental());
-    }
-
-
-
-
-    public function testSoftDeletedSettingsAreNotReturnedByFindMethods(): void
+    /**
+     * Test that different scopes with same key don't violate unique constraint.
+     */
+    public function testDifferentScopesWithSameKeyAreAllowed(): void
     {
         $uuidV7 = Uuid::v7();
 
-        $activeSetting = new ApplicationSettingsItem(
-            $uuidV7,
-            'active.key',
-            'active_value',
-            false
-        );
-
-        $deletedSetting = new ApplicationSettingsItem(
-            $uuidV7,
-            'deleted.key',
-            'deleted_value',
-            false
-        );
-
-        $this->repository->save($activeSetting);
-        $this->repository->save($deletedSetting);
-        EntityManagerFactory::get()->flush();
-
-        // Mark one as deleted
-        $deletedSetting->markAsDeleted();
-        EntityManagerFactory::get()->flush();
-        EntityManagerFactory::get()->clear();
-
-        // Find all should only return active
-        $allSettings = $this->repository->findAllForInstallation($uuidV7);
-        $this->assertCount(1, $allSettings);
-        $this->assertEquals('active.key', $allSettings[0]->getKey());
-
-        // Find by key should not return deleted
-        $allSettingsAfterDelete = $this->repository->findAllForInstallation($uuidV7);
-        $foundDeleted = null;
-        foreach ($allSettingsAfterDelete as $allSettingAfterDelete) {
-            if ($allSettingAfterDelete->getKey() === 'deleted.key' && $allSettingAfterDelete->isGlobal()) {
-                $foundDeleted = $allSettingAfterDelete;
-                break;
-            }
-        }
-
-        $this->assertNull($foundDeleted);
-
-        // Find by ID should not return deleted
-        $foundDeletedById = $this->repository->findById($deletedSetting->getId());
-        $this->assertNull($foundDeletedById);
-    }
-
-    public function testFindByKeySeparatesScopes(): void
-    {
-        $uuidV7 = Uuid::v7();
-        $userId = 123;
-        $departmentId = 456;
-
-        // Same key, different scopes
         $globalSetting = new ApplicationSettingsItem(
             $uuidV7,
-            'same.key',
+            'shared.key',
             'global_value',
             false
         );
 
         $personalSetting = new ApplicationSettingsItem(
             $uuidV7,
-            'same.key',
+            'shared.key',
             'personal_value',
             false,
-            $userId
+            b24UserId: 123
         );
 
-        $deptSetting = new ApplicationSettingsItem(
+        $departmentalSetting = new ApplicationSettingsItem(
             $uuidV7,
-            'same.key',
-            'dept_value',
+            'shared.key',
+            'departmental_value',
             false,
-            null,
-            $departmentId
+            b24DepartmentId: 456
         );
 
         $this->repository->save($globalSetting);
         $this->repository->save($personalSetting);
-        $this->repository->save($deptSetting);
+        $this->repository->save($departmentalSetting);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
-        // Each scope should return its own setting
-        $allSettings = $this->repository->findAllForInstallation($uuidV7);
+        // All three should be saved successfully
+        $allSettings = $this->repository->findAllForInstallationByKey($uuidV7, 'shared.key');
 
-        $foundGlobal = null;
-        $foundPersonal = null;
-        $foundDept = null;
-
-        foreach ($allSettings as $allSetting) {
-            if ($allSetting->getKey() === 'same.key') {
-                if ($allSetting->isGlobal()) {
-                    $foundGlobal = $allSetting;
-                } elseif ($allSetting->isPersonal() && $allSetting->getB24UserId() === $userId) {
-                    $foundPersonal = $allSetting;
-                } elseif ($allSetting->isDepartmental() && $allSetting->getB24DepartmentId() === $departmentId) {
-                    $foundDept = $allSetting;
-                }
-            }
-        }
-
-        $this->assertNotNull($foundGlobal);
-        $this->assertEquals('global_value', $foundGlobal->getValue());
-
-        $this->assertNotNull($foundPersonal);
-        $this->assertEquals('personal_value', $foundPersonal->getValue());
-
-        $this->assertNotNull($foundDept);
-        $this->assertEquals('dept_value', $foundDept->getValue());
+        $this->assertCount(3, $allSettings);
     }
 
-    public function testFindAllForInstallationByKeyReturnsOnlyMatchingKey(): void
+    /**
+     * Test that entity manager persistence and flushing works correctly.
+     */
+    public function testPersistenceAcrossFlushAndClear(): void
     {
         $uuidV7 = Uuid::v7();
 
-        $setting1 = new ApplicationSettingsItem( $uuidV7, 'app.theme', 'light', false);
-        $setting2 = new ApplicationSettingsItem( $uuidV7, 'app.version', '1.0.0', false);
-        $setting3 = new ApplicationSettingsItem( $uuidV7, 'app.theme', 'dark', false, 123);
+        $applicationSettingsItem = new ApplicationSettingsItem(
+            $uuidV7,
+            'persistence.test',
+            'test_value',
+            false
+        );
 
-        $this->repository->save($setting1);
-        $this->repository->save($setting2);
-        $this->repository->save($setting3);
-        EntityManagerFactory::get()->flush();
-        EntityManagerFactory::get()->clear();
+        $uuid = $applicationSettingsItem->getId();
 
-        $result = $this->repository->findAllForInstallationByKey($uuidV7, 'app.theme');
-
-        $this->assertCount(2, $result);
-        foreach ($result as $applicationSetting) {
-            $this->assertEquals('app.theme', $applicationSetting->getKey());
-        }
-    }
-
-    public function testFindAllForInstallationByKeyFiltersDeletedSettings(): void
-    {
-        $uuidV7 = Uuid::v7();
-
-        $activeSetting = new ApplicationSettingsItem( $uuidV7, 'app.theme', 'light', false);
-        $deletedSetting = new ApplicationSettingsItem( $uuidV7, 'app.theme', 'dark', false);
-
-        $this->repository->save($activeSetting);
-        $this->repository->save($deletedSetting);
-        EntityManagerFactory::get()->flush();
-
-        $deletedSetting->markAsDeleted();
-        EntityManagerFactory::get()->flush();
-        EntityManagerFactory::get()->clear();
-
-        $result = $this->repository->findAllForInstallationByKey($uuidV7, 'app.theme');
-
-        $this->assertCount(1, $result);
-        $this->assertEquals('light', $result[0]->getValue());
-    }
-
-    public function testFindAllForInstallationByKeyReturnsEmptyArrayWhenNoMatch(): void
-    {
-        $uuidV7 = Uuid::v7();
-
-        $applicationSettingsItem = new ApplicationSettingsItem( $uuidV7, 'app.theme', 'light', false);
         $this->repository->save($applicationSettingsItem);
         EntityManagerFactory::get()->flush();
         EntityManagerFactory::get()->clear();
 
-        $result = $this->repository->findAllForInstallationByKey($uuidV7, 'non.existent.key');
+        // After clear, entity should still be retrievable from database
+        $retrieved = $this->repository->findById($uuid);
 
-        $this->assertCount(0, $result);
+        $this->assertNotNull($retrieved);
+        $this->assertEquals('persistence.test', $retrieved->getKey());
+        $this->assertEquals('test_value', $retrieved->getValue());
+    }
+
+    /**
+     * Test that soft-deleted settings persist in database but are not returned by queries.
+     */
+    public function testSoftDeletePersistsInDatabase(): void
+    {
+        $uuidV7 = Uuid::v7();
+
+        $applicationSettingsItem = new ApplicationSettingsItem(
+            $uuidV7,
+            'to.soft.delete',
+            'value',
+            false
+        );
+
+        $uuid = $applicationSettingsItem->getId();
+
+        $this->repository->save($applicationSettingsItem);
+        EntityManagerFactory::get()->flush();
+
+        // Soft delete
+        $applicationSettingsItem->markAsDeleted();
+        $this->repository->save($applicationSettingsItem);
+        EntityManagerFactory::get()->flush();
+        EntityManagerFactory::get()->clear();
+
+        // Should not be returned by findById (filters deleted)
+        $retrieved = $this->repository->findById($uuid);
+        $this->assertNull($retrieved);
+
+        // Verify it still exists in database using DQL (bypasses soft-delete filtering)
+        $entityManager = EntityManagerFactory::get();
+        $dql = 'SELECT COUNT(s.id) FROM Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItem s WHERE s.id = :id';
+        $query = $entityManager->createQuery($dql);
+        $query->setParameter('id', $uuid);
+
+        $count = $query->getSingleScalarResult();
+
+        $this->assertEquals(1, $count, 'Soft-deleted setting should still exist in database');
     }
 }
