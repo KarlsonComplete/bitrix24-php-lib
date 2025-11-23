@@ -1,40 +1,40 @@
-# ApplicationSettings - Подсистема хранения настроек приложения
+# ApplicationSettings - Application Configuration Management
 
-## Обзор
+## Overview
 
-Подсистема ApplicationSettings предназначена для хранения и управления настройками приложений Bitrix24 с использованием паттерна Domain-Driven Design и CQRS.
+ApplicationSettings is a bounded context designed for storing and managing Bitrix24 application settings using Domain-Driven Design and CQRS patterns.
 
-## Основные концепции
+## Core Concepts
 
 ### 1. Bounded Context
 
-ApplicationSettings - это отдельный bounded context, который инкапсулирует всю логику работы с настройками приложения.
+ApplicationSettings is a separate bounded context that encapsulates all application settings management logic.
 
-### 2. Уровни настроек (Scopes)
+### 2. Setting Scopes
 
-Система поддерживает три уровня настроек:
+The system supports three levels of settings:
 
-#### Глобальные настройки (Global)
-Применяются ко всей установке приложения, доступны всем пользователям.
+#### Global Settings
+Applied to the entire application installation, available to all users.
 
 ```php
 use Bitrix24\Lib\ApplicationSettings\UseCase\Create\Command as CreateCommand;
 use Bitrix24\Lib\ApplicationSettings\UseCase\Create\Handler as CreateHandler;
 use Symfony\Component\Uid\Uuid;
 
-// Создание глобальной настройки
+// Create global setting
 $command = new CreateCommand(
     applicationInstallationId: $installationId,
     key: 'app.language',
-    value: 'ru',
-    isRequired: true  // Обязательная настройка
+    value: 'en',
+    isRequired: true  // Required setting
 );
 
 $handler->handle($command);
 ```
 
-#### Персональные настройки (Personal)
-Привязаны к конкретному пользователю Bitrix24.
+#### Personal Settings
+Tied to a specific Bitrix24 user.
 
 ```php
 $command = new CreateCommand(
@@ -42,14 +42,14 @@ $command = new CreateCommand(
     key: 'user.theme',
     value: 'dark',
     isRequired: false,
-    b24UserId: 123  // ID пользователя
+    b24UserId: 123  // User ID
 );
 
 $handler->handle($command);
 ```
 
-#### Департаментские настройки (Departmental)
-Привязаны к конкретному отделу.
+#### Departmental Settings
+Tied to a specific department.
 
 ```php
 $command = new CreateCommand(
@@ -57,74 +57,74 @@ $command = new CreateCommand(
     key: 'department.workingHours',
     value: '9:00-18:00',
     isRequired: false,
-    b24DepartmentId: 456  // ID отдела
+    b24DepartmentId: 456  // Department ID
 );
 
 $handler->handle($command);
 ```
 
-### 3. Статусы настроек
+### 3. Setting Status
 
-Каждая настройка имеет статус (enum `ApplicationSettingStatus`):
+Each setting has a status (enum `ApplicationSettingStatus`):
 
-- **Active** - активная настройка, доступна для использования
-- **Deleted** - мягко удаленная настройка (soft-delete)
+- **Active** - active setting, available for use
+- **Deleted** - soft-deleted setting
 
 ### 4. Soft Delete
 
-Система использует паттерн soft-delete:
-- Настройки не удаляются физически из БД
-- При удалении статус меняется на `Deleted`
-- Это позволяет сохранить историю и восстановить данные при необходимости
+The system uses the soft-delete pattern:
+- Settings are not physically deleted from the database
+- When deleted, status changes to `Deleted`
+- This allows preserving history and restoring data if needed
 
-### 5. Инварианты (ограничения)
+### 5. Invariants (Constraints)
 
-**Уникальность ключа:** Комбинация полей `applicationInstallationId + key + b24UserId + b24DepartmentId` должна быть уникальной.
+**Key Uniqueness:** The combination of `applicationInstallationId + key + b24UserId + b24DepartmentId` must be unique.
 
-Это означает:
-- ✅ Можно иметь глобальную настройку `app.theme`
-- ✅ Можно иметь персональную настройку `app.theme` для пользователя 123
-- ✅ Можно иметь персональную настройку `app.theme` для пользователя 456
-- ✅ Можно иметь департаментскую настройку `app.theme` для отдела 789
-- ❌ Нельзя создать две глобальные настройки с ключом `app.theme` для одной инсталляции
-- ❌ Нельзя создать две персональные настройки с ключом `app.theme` для одного пользователя
+This means:
+- ✅ You can have a global setting `app.theme`
+- ✅ You can have a personal setting `app.theme` for user 123
+- ✅ You can have a personal setting `app.theme` for user 456
+- ✅ You can have a departmental setting `app.theme` for department 789
+- ❌ You cannot create two global settings with key `app.theme` for one installation
+- ❌ You cannot create two personal settings with key `app.theme` for one user
 
-Это ограничение обеспечивается:
-- На уровне базы данных через UNIQUE INDEX
-- На уровне приложения через валидацию в UseCase\Create\Handler и UseCase\Update\Handler
+This constraint is enforced:
+- At the database level through UNIQUE INDEX
+- At the application level through validation in UseCase\Create\Handler and UseCase\Update\Handler
 
-## Структура данных
+## Data Structure
 
-### Поля сущности ApplicationSettingsItem
+### ApplicationSettingsItem Entity Fields
 
 ```php
 class ApplicationSettingsItem
 {
     private Uuid $id;                           // UUID v7
-    private Uuid $applicationInstallationId;     // Связь с установкой
-    private string $key;                         // Ключ (только a-z и точки)
-    private string $value;                       // Значение (любая строка, JSON)
-    private bool $isRequired;                    // Обязательная ли настройка
-    private ?int $b24UserId;                     // ID пользователя (для personal)
-    private ?int $b24DepartmentId;               // ID отдела (для departmental)
-    private ?int $changedByBitrix24UserId;       // Кто последний изменил
-    private ApplicationSettingStatus $status;    // Статус (active/deleted)
-    private CarbonImmutable $createdAt;         // Дата создания
-    private CarbonImmutable $updatedAt;         // Дата обновления
+    private Uuid $applicationInstallationId;     // Link to installation
+    private string $key;                         // Key (only a-z and dots)
+    private string $value;                       // Value (any string, JSON)
+    private bool $isRequired;                    // Is setting required
+    private ?int $b24UserId;                     // User ID (for personal)
+    private ?int $b24DepartmentId;               // Department ID (for departmental)
+    private ?int $changedByBitrix24UserId;       // Who last modified
+    private ApplicationSettingStatus $status;    // Status (active/deleted)
+    private CarbonImmutable $createdAt;         // Creation date
+    private CarbonImmutable $updatedAt;         // Update date
 }
 ```
 
-### Таблица в базе данных
+### Database Table
 
-Таблица: `application_settings`
+Table: `application_settings`
 
-### Правила валидации ключей
+### Key Validation Rules
 
-- Только строчные латинские буквы (a-z) и точки
-- Максимальная длина 255 символов
-- Рекомендуемый формат: `category.subcategory.name`
+- Only lowercase latin letters (a-z) and dots
+- Maximum length 255 characters
+- Recommended format: `category.subcategory.name`
 
-Примеры валидных ключей:
+Valid key examples:
 ```php
 'app.version'
 'user.interface.theme'
@@ -132,11 +132,11 @@ class ApplicationSettingsItem
 'integration.api.timeout'
 ```
 
-## Use Cases (Команды)
+## Use Cases (Commands)
 
-### Create - Создание новой настройки
+### Create - Creating New Setting
 
-Создает новую настройку. Если настройка с таким ключом и scope уже существует, выбрасывает исключение.
+Creates a new setting. If a setting with the same key and scope already exists, throws an exception.
 
 ```php
 use Bitrix24\Lib\ApplicationSettings\UseCase\Create\Command;
@@ -149,17 +149,17 @@ $command = new Command(
     isRequired: true,
     b24UserId: null,
     b24DepartmentId: null,
-    changedByBitrix24UserId: 100  // Кто создает настройку
+    changedByBitrix24UserId: 100  // Who creates the setting
 );
 
 $handler->handle($command);
 ```
 
-**Важно:** Create выбросит `InvalidArgumentException`, если настройка уже существует для данного scope.
+**Important:** Create will throw `SettingsItemAlreadyExistsException` if the setting already exists for the given scope.
 
-### Update - Обновление существующей настройки
+### Update - Updating Existing Setting
 
-Обновляет значение существующей настройки. Если настройка не найдена, выбрасывает исключение.
+Updates the value of an existing setting. If the setting is not found, throws an exception.
 
 ```php
 use Bitrix24\Lib\ApplicationSettings\UseCase\Update\Command;
@@ -171,15 +171,15 @@ $command = new Command(
     value: 'disabled',
     b24UserId: null,
     b24DepartmentId: null,
-    changedByBitrix24UserId: 100  // Кто вносит изменение
+    changedByBitrix24UserId: 100  // Who makes the change
 );
 
 $handler->handle($command);
 ```
 
-**Важно:** Update автоматически генерирует событие `ApplicationSettingsItemChangedEvent` при изменении значения.
+**Important:** Update automatically emits `ApplicationSettingsItemChangedEvent` when the value changes.
 
-### Delete - Мягкое удаление настройки
+### Delete - Soft Delete Setting
 
 ```php
 use Bitrix24\Lib\ApplicationSettings\UseCase\Delete\Command;
@@ -188,42 +188,42 @@ use Bitrix24\Lib\ApplicationSettings\UseCase\Delete\Handler;
 $command = new Command(
     applicationInstallationId: $installationId,
     key: 'deprecated.setting',
-    b24UserId: null,        // Опционально
-    b24DepartmentId: null   // Опционально
+    b24UserId: null,        // Optional
+    b24DepartmentId: null   // Optional
 );
 
 $handler->handle($command);
-// Настройка помечена как deleted, но остается в БД
+// Setting is marked as deleted, but remains in DB
 ```
 
-### OnApplicationDelete - Удаление всех настроек при деинсталляции
+### OnApplicationDelete - Delete All Settings on Uninstall
 
 ```php
 use Bitrix24\Lib\ApplicationSettings\UseCase\OnApplicationDelete\Command;
 use Bitrix24\Lib\ApplicationSettings\UseCase\OnApplicationDelete\Handler;
 
-// При деинсталляции приложения
+// When application is uninstalled
 $command = new Command(
     applicationInstallationId: $installationId
 );
 
 $handler->handle($command);
-// Все настройки помечены как deleted
+// All settings marked as deleted
 ```
 
-## Работа с Repository
+## Working with Repository
 
-### Поиск настроек
+### Finding Settings
 
 ```php
 use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingsItemRepository;
 
 /** @var ApplicationSettingsItemRepository $repository */
 
-// Получить все активные настройки для инсталляции
+// Get all active settings for installation
 $allSettings = $repository->findAllForInstallation($installationId);
 
-// Найти глобальную настройку по ключу
+// Find global setting by key
 $globalSetting = null;
 foreach ($allSettings as $s) {
     if ($s->getKey() === 'app.version' && $s->isGlobal()) {
@@ -232,7 +232,7 @@ foreach ($allSettings as $s) {
     }
 }
 
-// Найти персональную настройку пользователя
+// Find user's personal setting
 $personalSetting = null;
 foreach ($allSettings as $s) {
     if ($s->getKey() === 'user.theme' && $s->isPersonal() && $s->getB24UserId() === $userId) {
@@ -241,57 +241,66 @@ foreach ($allSettings as $s) {
     }
 }
 
-// Отфильтровать все глобальные настройки
-$globalSettings = array_filter($allSettings, fn ($s): bool => $s->isGlobal());
+// Filter all global settings
+$globalSettings = array_filter(
+    $allSettings,
+    fn($s): bool => $s->isGlobal()
+);
 
-// Отфильтровать персональные настройки пользователя
-$personalSettings = array_filter($allSettings, fn ($s): bool => $s->isPersonal() && $s->getB24UserId() === $userId);
+// Filter user's personal settings
+$personalSettings = array_filter(
+    $allSettings,
+    fn($s): bool => $s->isPersonal() && $s->getB24UserId() === $userId
+);
 
-// Отфильтровать настройки отдела
-$deptSettings = array_filter($allSettings, fn ($s): bool => $s->isDepartmental() && $s->getB24DepartmentId() === $deptId);
+// Filter department settings
+$deptSettings = array_filter(
+    $allSettings,
+    fn($s): bool => $s->isDepartmental() && $s->getB24DepartmentId() === $deptId
+);
 ```
 
-**Важно:** Все методы find* возвращают только настройки со статусом `Active`. Удаленные настройки не возвращаются.
+**Important:** All find* methods return only settings with `Active` status. Deleted settings are not returned.
 
-## Сервис SettingsFetcher
+## SettingsFetcher Service
 
-Утилита для получения настроек с каскадным разрешением (Personal → Departmental → Global) и автоматической десериализацией в объекты.
+Utility for retrieving settings with cascading resolution (Personal → Departmental → Global) and automatic deserialization to objects.
 
-### Основные возможности
+### Key Features
 
-1. **Каскадное разрешение**: Personal → Departmental → Global
-2. **Автоматическая десериализация** JSON в объекты через Symfony Serializer
-3. **Логирование** всех операций для отладки
+1. **Cascading resolution**: Personal → Departmental → Global
+2. **Automatic deserialization** of JSON to objects via Symfony Serializer
+3. **Logging** of all operations for debugging
 
-### Получение строкового значения
+### Getting String Value
 
 ```php
 use Bitrix24\Lib\ApplicationSettings\Services\SettingsFetcher;
 
 /** @var SettingsFetcher $fetcher */
 
-// Получить значение с учетом приоритетов
+// Get value with priority resolution
 try {
     $value = $fetcher->getValue(
         uuid: $installationId,
         key: 'app.theme',
-        userId: 123,           // Опционально
-        departmentId: 456      // Опционально
+        userId: 123,           // Optional
+        departmentId: 456      // Optional
     );
-    // Вернет персональную настройку, если есть
-    // Иначе департаментскую, если есть
-    // Иначе глобальную
+    // Returns personal setting if exists
+    // Otherwise departmental if exists
+    // Otherwise global
 } catch (SettingsItemNotFoundException $e) {
-    // Настройка не найдена ни на одном уровне
+    // Setting not found at any level
 }
 ```
 
-### Десериализация в объект
+### Deserialization to Object
 
-Метод `getValue` поддерживает автоматическую десериализацию JSON в объекты:
+The `getValue` method supports automatic JSON deserialization to objects:
 
 ```php
-// Определяем DTO класс
+// Define DTO class
 class ApiConfig
 {
     public function __construct(
@@ -301,25 +310,25 @@ class ApiConfig
     ) {}
 }
 
-// Десериализуем настройку в объект
+// Deserialize setting to object
 try {
     $config = $fetcher->getValue(
         uuid: $installationId,
         key: 'api.config',
-        class: ApiConfig::class  // Указываем класс для десериализации
+        class: ApiConfig::class  // Specify class for deserialization
     );
 
-    // $config теперь экземпляр ApiConfig
+    // $config is now an instance of ApiConfig
     echo $config->endpoint;  // https://api.example.com
     echo $config->timeout;   // 30
 } catch (SettingsItemNotFoundException $e) {
-    // Настройка не найдена
+    // Setting not found
 }
 ```
 
-### Получение полного объекта настройки
+### Getting Full Setting Object
 
-Если нужен доступ к метаданным (id, createdAt, updatedAt, scope и т.д.):
+If you need access to metadata (id, createdAt, updatedAt, scope, etc.):
 
 ```php
 $item = $fetcher->getItem(
@@ -329,18 +338,18 @@ $item = $fetcher->getItem(
     departmentId: 456
 );
 
-// Доступ к метаданным
+// Access metadata
 $settingId = $item->getId();
 $createdAt = $item->getCreatedAt();
 $isPersonal = $item->isPersonal();
 $value = $item->getValue();
 ```
 
-## Events (События)
+## Events
 
 ### ApplicationSettingsItemChangedEvent
 
-Генерируется при изменении значения настройки (через Update use case или метод updateValue() на entity):
+Emitted when a setting value changes (via Update use case or updateValue() method on entity):
 
 ```php
 class ApplicationSettingsItemChangedEvent
@@ -354,7 +363,7 @@ class ApplicationSettingsItemChangedEvent
 }
 ```
 
-События можно перехватывать для логирования, аудита или триггера других действий:
+Events can be captured for logging, auditing, or triggering other actions:
 
 ```php
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -373,14 +382,14 @@ class SettingChangeLogger implements EventSubscriberInterface
 }
 ```
 
-## Сервис InstallSettings
+## InstallSettings Service
 
-Утилита для создания набора настроек по умолчанию при установке приложения:
+Utility for creating a set of default settings during application installation:
 
 ```php
 use Bitrix24\Lib\ApplicationSettings\Services\InstallSettings;
 
-// Создать все настройки для новой установки
+// Create all settings for new installation
 $installer = new InstallSettings(
     $createHandler,
     $logger
@@ -390,41 +399,41 @@ $installer->createDefaultSettings(
     uuid: $installationId,
     defaultSettings: [
         'app.name' => ['value' => 'My App', 'required' => true],
-        'app.language' => ['value' => 'ru', 'required' => true],
+        'app.language' => ['value' => 'en', 'required' => true],
         'features.notifications' => ['value' => 'true', 'required' => false],
     ]
 );
 ```
 
-**Важно:** InstallSettings использует Create use case, поэтому если настройка уже существует, будет выброшено исключение.
+**Important:** InstallSettings uses Create use case, so if a setting already exists, an exception will be thrown.
 
-## CLI команды
+## CLI Commands
 
-### Просмотр настроек
+### Viewing Settings
 
 ```bash
-# Все настройки установки
+# All installation settings
 php bin/console app:settings:list <installation-id>
 
-# Только глобальные
+# Only global
 php bin/console app:settings:list <installation-id> --global-only
 
-# Персональные пользователя
+# User's personal
 php bin/console app:settings:list <installation-id> --user-id=123
 
-# Департаментские
+# Departmental
 php bin/console app:settings:list <installation-id> --department-id=456
 ```
 
-## Примеры использования
+## Usage Examples
 
-### Пример 1: Создание и обновление настройки
+### Example 1: Creating and Updating Setting
 
 ```php
 use Bitrix24\Lib\ApplicationSettings\UseCase\Create\Command as CreateCommand;
 use Bitrix24\Lib\ApplicationSettings\UseCase\Update\Command as UpdateCommand;
 
-// Создать новую настройку
+// Create new setting
 $createCmd = new CreateCommand(
     applicationInstallationId: $installationId,
     key: 'integration.api.config',
@@ -436,24 +445,24 @@ $createCmd = new CreateCommand(
 );
 $createHandler->handle($createCmd);
 
-// Обновить существующую настройку
+// Update existing setting
 $updateCmd = new UpdateCommand(
     applicationInstallationId: $installationId,
     key: 'integration.api.config',
     value: json_encode([
         'endpoint' => 'https://api.example.com',
-        'timeout' => 60,  // Изменили timeout
-        'retries' => 3,   // Добавили retries
+        'timeout' => 60,  // Changed timeout
+        'retries' => 3,   // Added retries
     ]),
     changedByBitrix24UserId: 100
 );
 $updateHandler->handle($updateCmd);
 ```
 
-### Пример 2: Хранение и десериализация JSON-конфигурации
+### Example 2: Storing and Deserializing JSON Configuration
 
 ```php
-// Создание настройки с JSON значением
+// Create setting with JSON value
 $command = new CreateCommand(
     applicationInstallationId: $installationId,
     key: 'integration.api.config',
@@ -466,11 +475,11 @@ $command = new CreateCommand(
 );
 $handler->handle($command);
 
-// Чтение как строки
+// Read as string
 $value = $fetcher->getValue($installationId, 'integration.api.config');
 $config = json_decode($value, true);
 
-// ИЛИ автоматическая десериализация в объект
+// OR automatic deserialization to object
 class ApiConfig
 {
     public function __construct(
@@ -486,21 +495,21 @@ $config = $fetcher->getValue(
     class: ApiConfig::class
 );
 
-// Использование типизированного объекта
+// Use typed object
 echo $config->endpoint;  // https://api.example.com
 echo $config->timeout;   // 30
 ```
 
-### Пример 3: Персонализация интерфейса
+### Example 3: UI Personalization
 
 ```php
-// Сохранить предпочтения пользователя
+// Save user preferences
 $command = new CreateCommand(
     applicationInstallationId: $installationId,
     key: 'ui.preferences',
     value: json_encode([
         'theme' => 'dark',
-        'language' => 'ru',
+        'language' => 'en',
         'dashboard_layout' => 'compact',
     ]),
     isRequired: false,
@@ -509,7 +518,7 @@ $command = new CreateCommand(
 );
 $handler->handle($command);
 
-// Получить предпочтения с приоритетом личных настроек
+// Get preferences with personal settings priority
 try {
     $value = $fetcher->getValue(
         uuid: $installationId,
@@ -522,16 +531,16 @@ try {
 }
 ```
 
-### Пример 4: Каскадное разрешение настроек
+### Example 4: Cascading Resolution
 
 ```php
 use Bitrix24\Lib\ApplicationSettings\Services\SettingsFetcher;
 
 /**
- * SettingsFetcher автоматически использует приоритеты:
- * 1. Персональная (если userId предоставлен и настройка существует)
- * 2. Департаментская (если departmentId предоставлен и настройка существует)
- * 3. Глобальная (fallback)
+ * SettingsFetcher automatically uses priorities:
+ * 1. Personal (if userId provided and setting exists)
+ * 2. Departmental (if departmentId provided and setting exists)
+ * 3. Global (fallback)
  */
 
 $value = $fetcher->getValue(
@@ -541,16 +550,16 @@ $value = $fetcher->getValue(
     departmentId: 456
 );
 
-// Если существует персональная настройка для user 123 - вернет её
-// Иначе если существует департаментская для dept 456 - вернет её
-// Иначе вернет глобальную
-// Если ни одна не найдена - выбросит SettingsItemNotFoundException
+// If personal setting exists for user 123 - returns it
+// Otherwise if departmental exists for dept 456 - returns it
+// Otherwise returns global
+// If none found - throws SettingsItemNotFoundException
 ```
 
-### Пример 5: Аудит изменений
+### Example 5: Change Auditing
 
 ```php
-// При создании настройки указываем, кто создал
+// When creating setting, specify who created it
 $createCmd = new CreateCommand(
     applicationInstallationId: $installationId,
     key: 'security.two_factor',
@@ -560,7 +569,7 @@ $createCmd = new CreateCommand(
 );
 $createHandler->handle($createCmd);
 
-// При изменении настройки указываем, кто изменил
+// When updating setting, specify who changed it
 $updateCmd = new UpdateCommand(
     applicationInstallationId: $installationId,
     key: 'security.two_factor',
@@ -569,30 +578,30 @@ $updateCmd = new UpdateCommand(
 );
 $updateHandler->handle($updateCmd);
 
-// События автоматически логируются с информацией о том, кто изменил
+// Events are automatically logged with information about who made the change
 ```
 
-## Рекомендации
+## Best Practices
 
-### 1. Именование ключей
+### 1. Key Naming
 
-Используйте понятные, иерархические имена:
+Use clear, hierarchical names:
 
 ```php
-// Хорошо
+// Good
 'app.feature.notifications.email'
 'user.interface.theme'
 'integration.crm.enabled'
 
-// Плохо
+// Bad
 'notif'
 'th'
 'crm1'
 ```
 
-### 2. Типизация значений
+### 2. Value Typing
 
-Храните JSON для сложных структур:
+Store JSON for complex structures:
 
 ```php
 $command = new CreateCommand(
@@ -607,114 +616,113 @@ $command = new CreateCommand(
 );
 ```
 
-### 3. Обязательные настройки
+### 3. Required Settings
 
-Помечайте критичные настройки как `isRequired`:
+Mark critical settings as `isRequired`:
 
 ```php
 $command = new CreateCommand(
     applicationInstallationId: $installationId,
     key: 'app.license_key',
     value: $licenseKey,
-    isRequired: true  // Приложение не работает без этого
+    isRequired: true  // Application won't work without this
 );
 ```
 
-### 4. Разделение Create и Update
+### 4. Separating Create and Update
 
-Всегда используйте правильный use case:
+Always use the correct use case:
 
 ```php
-// ✅ Для создания новых настроек
+// ✅ For creating new settings
 $createHandler->handle(new CreateCommand(...));
 
-// ✅ Для изменения существующих
+// ✅ For modifying existing settings
 $updateHandler->handle(new UpdateCommand(...));
 
-// ❌ НЕ используйте Create для обновления
-// Это выбросит InvalidArgumentException
+// ❌ DON'T use Create for updates
+// This will throw SettingsItemAlreadyExistsException
 ```
 
-### 5. Мягкое удаление
+### 5. Soft Delete
 
-Используйте soft-delete вместо физического удаления:
+Use soft-delete instead of physical deletion:
 
 ```php
-// Используйте мягкое удаление
+// Use soft delete
 $deleteCommand = new DeleteCommand($installationId, 'old.setting');
 $deleteHandler->handle($deleteCommand);
 ```
 
-### 6. Обработка исключений
+### 6. Exception Handling
 
 ```php
 use Bitrix24\Lib\ApplicationSettings\Services\Exception\SettingsItemNotFoundException;
-use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
+use Bitrix24\Lib\ApplicationSettings\Services\Exception\SettingsItemAlreadyExistsException;
 
-// Create может выбросить InvalidArgumentException если настройка существует
+// Create may throw SettingsItemAlreadyExistsException if setting exists
 try {
     $createHandler->handle($createCommand);
-} catch (InvalidArgumentException $e) {
-    // Настройка уже существует, используйте Update
+} catch (SettingsItemAlreadyExistsException $e) {
+    // Setting already exists, use Update instead
 }
 
-// Update может выбросить InvalidArgumentException если настройка не найдена
+// Update may throw SettingsItemNotFoundException if setting not found
 try {
     $updateHandler->handle($updateCommand);
-} catch (InvalidArgumentException $e) {
-    // Настройка не существует, используйте Create
+} catch (SettingsItemNotFoundException $e) {
+    // Setting doesn't exist, use Create instead
 }
 
-// SettingsFetcher может выбросить SettingsItemNotFoundException
+// SettingsFetcher may throw SettingsItemNotFoundException
 try {
     $value = $fetcher->getValue($uuid, $key);
 } catch (SettingsItemNotFoundException $e) {
-    // Используйте значение по умолчанию
+    // Use default value
 }
 ```
 
-## Безопасность
+## Security
 
-1. **Валидация ключей** - автоматическая, только разрешенные символы
-2. **Изоляция данных** - настройки привязаны к `applicationInstallationId`
-3. **Аудит** - отслеживание кто и когда изменил (`changedByBitrix24UserId`)
-4. **История** - soft-delete сохраняет историю для расследований
-5. **ACID гарантии** - все операции в транзакциях Doctrine
+1. **Key validation** - automatic, only allowed characters
+2. **Data isolation** - settings tied to `applicationInstallationId`
+3. **Audit trail** - tracking who and when changed (`changedByBitrix24UserId`)
+4. **History** - soft-delete preserves history for investigations
+5. **ACID guarantees** - all operations in Doctrine transactions
 
-## Производительность
+## Performance
 
-1. **Индексы** - все ключевые поля индексированы (installation_id, key, user_id, department_id, status)
-2. **Кэширование** - рекомендуется кэшировать часто используемые настройки
-3. **Batch операции** - используйте `InstallSettings` для массового создания
-4. **Оптимизированные запросы** - `findAllForInstallationByKey` фильтрует на уровне БД
+1. **Indexes** - all key fields are indexed (installation_id, key, user_id, department_id, status)
+2. **Caching** - recommended to cache frequently used settings
+3. **Batch operations** - use `InstallSettings` for bulk creation
+4. **Optimized queries** - `findAllForInstallationByKey` filters at DB level
 
-## Миграция схемы БД
+## Database Schema Migration
 
-После внесения изменений в код необходимо обновить схему БД:
+After making code changes, update the database schema:
 
 ```bash
-# Создать схему (первый раз)
+# Create schema (first time)
 make schema-create
 
-# Или сгенерировать миграцию
+# Or generate migration
 php bin/console doctrine:migrations:diff
 php bin/console doctrine:migrations:migrate
 ```
 
-## Тестирование
+## Testing
 
-Система полностью покрыта тестами:
+The system is fully covered by tests:
 
 ```bash
-# Unit-тесты
+# Unit tests
 make test-run-unit
 
-# Functional-тесты (требует БД)
+# Functional tests (requires DB)
 make test-run-functional
 ```
 
 ---
 
-**Дополнительные материалы:**
-- [Tech Stack](./tech-stack.md)
-- [CLAUDE.md](../../../CLAUDE.md) - Основные команды и архитектура проекта
+**Additional Resources:**
+- [CLAUDE.md](../../../CLAUDE.md) - Main commands and project architecture

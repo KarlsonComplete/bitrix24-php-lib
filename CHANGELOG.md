@@ -59,6 +59,11 @@
   - Added `#[\Override]` attributes to overridden methods
   - Applied PHP-CS-Fixer formatting consistently
   - Added symfony/property-access dependency for ObjectNormalizer
+- **Documentation improvements**
+  - Translated ApplicationSettings documentation to English
+  - Updated all code examples to reflect current codebase
+  - Corrected exception class names (SettingsItemAlreadyExistsException, SettingsItemNotFoundException)
+  - Improved best practices and security sections
 
 ### Fixed
 - **PHPStan level 5 errors related to SDK interface compatibility** — [#67](https://github.com/mesilov/bitrix24-php-lib/issues/67)
