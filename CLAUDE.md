@@ -93,11 +93,15 @@ src/
 3. Follow DDD principles
 4. Use CQRS for write operations
 5. Validate all inputs in command constructors
+6. **After each refactoring task, automatically run linters and tests:**
+   - Run all linters: `make lint-phpstan && make lint-cs-fixer && make lint-rector`
+   - Run unit tests: `make test-run-unit`
+   - Run functional tests: `make test-run-functional`
+   - Fix any errors before proceeding to the next task
 
 ## Git Workflow
 - Main branch: `main`
 - Feature branches: `feature/issue-number-description`
-- Current branch: `feature/46-fix-errors`
 
 ## Docker Setup
 - PHP CLI container for development
