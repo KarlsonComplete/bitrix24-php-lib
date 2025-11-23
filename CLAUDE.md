@@ -98,6 +98,7 @@ src/
    - Run unit tests: `make test-run-unit`
    - Run functional tests: `make test-run-functional`
    - Fix any errors before proceeding to the next task
+7. After refactoring, summarize changes in `changelog.md`
 
 ## Git Workflow
 - Main branch: `main`
@@ -126,3 +127,4 @@ The `.env` file contains default values that work out-of-the-box with Docker Com
 - `POSTGRES_VERSION=16`
 
 These defaults allow running functional tests immediately after `make up` without additional configuration.
+- Always update changelog.md

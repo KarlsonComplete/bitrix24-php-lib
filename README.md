@@ -47,7 +47,7 @@ Responsible for
 storing [Bitrix24 partners](https://github.com/bitrix24/b24phpsdk/tree/main/src/Application/Contracts/Bitrix24Partners) who performed installation or service
 the portal
 
-### ApplicationSettings — ⏳ work in progress
+### ApplicationSettings — ✅
 
 Responsible for
 storing [application settings](https://github.com/bitrix24/b24phpsdk/tree/main/src/Application/Contracts/ApplicationSettings)

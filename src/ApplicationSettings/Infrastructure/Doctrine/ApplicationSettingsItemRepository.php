@@ -8,37 +8,31 @@ use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItem;
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItemInterface;
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingStatus;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\EntityRepository;
 use Symfony\Component\Uid\Uuid;
 
 /**
  * Repository for ApplicationSettingsItem entity.
- *
- * @extends EntityRepository<ApplicationSettingsItem>
  */
-class ApplicationSettingsItemRepository extends EntityRepository implements ApplicationSettingsItemRepositoryInterface
+class ApplicationSettingsItemRepository implements ApplicationSettingsItemRepositoryInterface
 {
-    public function __construct(EntityManagerInterface $entityManager)
-    {
-        parent::__construct($entityManager, $entityManager->getClassMetadata(ApplicationSettingsItem::class));
-    }
+    public function __construct(private readonly EntityManagerInterface $entityManager) {}
 
     #[\Override]
     public function save(ApplicationSettingsItemInterface $applicationSettingsItem): void
     {
-        $this->getEntityManager()->persist($applicationSettingsItem);
+        $this->entityManager->persist($applicationSettingsItem);
     }
 
     #[\Override]
     public function delete(ApplicationSettingsItemInterface $applicationSettingsItem): void
     {
-        $this->getEntityManager()->remove($applicationSettingsItem);
+        $this->entityManager->remove($applicationSettingsItem);
     }
 
     #[\Override]
     public function findById(Uuid $uuid): ?ApplicationSettingsItemInterface
     {
-        return $this->getEntityManager()
+        return $this->entityManager
             ->getRepository(ApplicationSettingsItem::class)
             ->createQueryBuilder('s')
             ->where('s.id = :id')
@@ -53,7 +47,7 @@ class ApplicationSettingsItemRepository extends EntityRepository implements Appl
     #[\Override]
     public function findAllForInstallation(Uuid $uuid): array
     {
-        return $this->getEntityManager()
+        return $this->entityManager
             ->getRepository(ApplicationSettingsItem::class)
             ->createQueryBuilder('s')
             ->where('s.applicationInstallationId = :applicationInstallationId')
@@ -69,7 +63,7 @@ class ApplicationSettingsItemRepository extends EntityRepository implements Appl
     #[\Override]
     public function findAllForInstallationByKey(Uuid $uuid, string $key): array
     {
-        return $this->getEntityManager()
+        return $this->entityManager
             ->getRepository(ApplicationSettingsItem::class)
             ->createQueryBuilder('s')
             ->where('s.applicationInstallationId = :applicationInstallationId')
