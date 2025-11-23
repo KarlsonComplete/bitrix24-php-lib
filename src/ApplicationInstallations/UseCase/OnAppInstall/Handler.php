@@ -65,8 +65,6 @@ readonly class Handler
 
     private function findMasterAccountByMemberId(string $memberId): Bitrix24AccountInterface
     {
-        // todo fixme
-        /** @phpstan-ignore-next-line */
         $bitrix24Accounts = $this->bitrix24AccountRepository->findByMemberId(
             $memberId,
             Bitrix24AccountStatus::active,
