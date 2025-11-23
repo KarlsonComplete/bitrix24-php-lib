@@ -74,7 +74,7 @@ readonly class Handler
         // Filter for master accounts only
         $masterAccounts = array_filter(
             $bitrix24Accounts,
-            fn(Bitrix24AccountInterface $account) => $account->isMasterAccount()
+            fn(Bitrix24AccountInterface $bitrix24Account): bool => $bitrix24Account->isMasterAccount()
         );
 
         if ([] === $masterAccounts) {

@@ -32,10 +32,10 @@ class ApplicationSettingsItemInMemoryRepositoryTest extends TestCase
 
     public function testCanSaveAndFindById(): void
     {
-        $installationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
 
         $applicationSettingsItem = new ApplicationSettingsItem(
-            $installationId,
+            $uuidV7,
             'test.key',
             'test_value',
             false

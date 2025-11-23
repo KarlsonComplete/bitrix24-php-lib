@@ -305,16 +305,16 @@ class SettingsFetcherTest extends TestCase
 
         $this->repository->save($applicationSettingsItem);
 
-        $result = $this->fetcher->getValue(
+        $testConfigDto = $this->fetcher->getValue(
             $this->installationId,
             'api.config',
             class: TestConfigDto::class
         );
 
-        $this->assertInstanceOf(TestConfigDto::class, $result);
-        $this->assertEquals('https://api.example.com', $result->endpoint);
-        $this->assertEquals(60, $result->timeout);
-        $this->assertTrue($result->enabled);
+        $this->assertInstanceOf(TestConfigDto::class, $testConfigDto);
+        $this->assertEquals('https://api.example.com', $testConfigDto->endpoint);
+        $this->assertEquals(60, $testConfigDto->timeout);
+        $this->assertTrue($testConfigDto->enabled);
     }
 
     public function testGetValueWithoutClassReturnsRawString(): void
@@ -434,14 +434,14 @@ class SettingsFetcherTest extends TestCase
 
         $this->repository->save($applicationSettingsItem);
 
-        $result = $this->fetcher->getValue(
+        $stringTypeDto = $this->fetcher->getValue(
             $this->installationId,
             'string.setting',
             class: StringTypeDto::class
         );
 
-        $this->assertInstanceOf(StringTypeDto::class, $result);
-        $this->assertEquals('test string', $result->value);
+        $this->assertInstanceOf(StringTypeDto::class, $stringTypeDto);
+        $this->assertEquals('test string', $stringTypeDto->value);
     }
 
     public function testGetValueDeserializesBoolType(): void
@@ -457,14 +457,14 @@ class SettingsFetcherTest extends TestCase
 
         $this->repository->save($applicationSettingsItem);
 
-        $result = $this->fetcher->getValue(
+        $boolTypeDto = $this->fetcher->getValue(
             $this->installationId,
             'bool.setting',
             class: BoolTypeDto::class
         );
 
-        $this->assertInstanceOf(BoolTypeDto::class, $result);
-        $this->assertTrue($result->active);
+        $this->assertInstanceOf(BoolTypeDto::class, $boolTypeDto);
+        $this->assertTrue($boolTypeDto->active);
 
         // Test with false
         $jsonValueFalse = json_encode(['active' => false]);
@@ -499,15 +499,15 @@ class SettingsFetcherTest extends TestCase
 
         $this->repository->save($applicationSettingsItem);
 
-        $result = $this->fetcher->getValue(
+        $intTypeDto = $this->fetcher->getValue(
             $this->installationId,
             'int.setting',
             class: IntTypeDto::class
         );
 
-        $this->assertInstanceOf(IntTypeDto::class, $result);
-        $this->assertIsInt($result->count);
-        $this->assertEquals(42, $result->count);
+        $this->assertInstanceOf(IntTypeDto::class, $intTypeDto);
+        $this->assertIsInt($intTypeDto->count);
+        $this->assertEquals(42, $intTypeDto->count);
     }
 
     public function testGetValueDeserializesFloatType(): void
@@ -523,15 +523,15 @@ class SettingsFetcherTest extends TestCase
 
         $this->repository->save($applicationSettingsItem);
 
-        $result = $this->fetcher->getValue(
+        $floatTypeDto = $this->fetcher->getValue(
             $this->installationId,
             'float.setting',
             class: FloatTypeDto::class
         );
 
-        $this->assertInstanceOf(FloatTypeDto::class, $result);
-        $this->assertIsFloat($result->price);
-        $this->assertEquals(99.99, $result->price);
+        $this->assertInstanceOf(FloatTypeDto::class, $floatTypeDto);
+        $this->assertIsFloat($floatTypeDto->price);
+        $this->assertEquals(99.99, $floatTypeDto->price);
     }
 
     public function testGetValueDeserializesDateTimeType(): void
@@ -548,15 +548,15 @@ class SettingsFetcherTest extends TestCase
 
         $this->repository->save($applicationSettingsItem);
 
-        $result = $this->fetcher->getValue(
+        $dateTimeTypeDto = $this->fetcher->getValue(
             $this->installationId,
             'datetime.setting',
             class: DateTimeTypeDto::class
         );
 
-        $this->assertInstanceOf(DateTimeTypeDto::class, $result);
-        $this->assertInstanceOf(\DateTimeInterface::class, $result->createdAt);
-        $this->assertEquals('2025-01-15', $result->createdAt->format('Y-m-d'));
-        $this->assertEquals('10:30:00', $result->createdAt->format('H:i:s'));
+        $this->assertInstanceOf(DateTimeTypeDto::class, $dateTimeTypeDto);
+        $this->assertInstanceOf(\DateTimeInterface::class, $dateTimeTypeDto->createdAt);
+        $this->assertEquals('2025-01-15', $dateTimeTypeDto->createdAt->format('Y-m-d'));
+        $this->assertEquals('10:30:00', $dateTimeTypeDto->createdAt->format('H:i:s'));
     }
 }

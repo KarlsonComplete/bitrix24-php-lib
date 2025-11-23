@@ -19,14 +19,14 @@ class ApplicationSettingsItemTest extends TestCase
 {
     public function testCanCreateGlobalSetting(): void
     {
-        $applicationInstallationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
         $key = 'test.setting.key';
         $value = '{"foo":"bar"}';
 
-        $applicationSettingsItem = new ApplicationSettingsItem($applicationInstallationId, $key, $value, false);
+        $applicationSettingsItem = new ApplicationSettingsItem($uuidV7, $key, $value, false);
 
         $this->assertInstanceOf(Uuid::class, $applicationSettingsItem->getId());
-        $this->assertEquals($applicationInstallationId, $applicationSettingsItem->getApplicationInstallationId());
+        $this->assertEquals($uuidV7, $applicationSettingsItem->getApplicationInstallationId());
         $this->assertEquals($key, $applicationSettingsItem->getKey());
         $this->assertEquals($value, $applicationSettingsItem->getValue());
         $this->assertNull($applicationSettingsItem->getB24UserId());
