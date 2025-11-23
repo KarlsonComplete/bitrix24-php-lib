@@ -27,10 +27,15 @@ class ApplicationSettingsItemRepositoryContractTest extends ApplicationSettingsI
     }
 
     #[\Override]
+    protected function flushChanges(): void
+    {
+        EntityManagerFactory::get()->flush();
+    }
+
+    #[\Override]
     protected function clearRepository(): void
     {
-        // Flush and clear entity manager between tests
-        EntityManagerFactory::get()->flush();
+        // Clear entity manager between tests
         EntityManagerFactory::get()->clear();
     }
 

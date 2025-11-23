@@ -99,8 +99,8 @@ class HandlerTest extends TestCase
     {
         $uuidV7 = Uuid::v7();
 
-        $command1 = new Command($uuidV7, 'setting1', 'value1');
-        $command2 = new Command($uuidV7, 'setting2', 'value2');
+        $command1 = new Command($uuidV7, 'setting.one', 'value1');
+        $command2 = new Command($uuidV7, 'setting.two', 'value2');
 
         $this->handler->handle($command1);
         $this->handler->handle($command2);

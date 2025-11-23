@@ -49,21 +49,21 @@ class HandlerTest extends TestCase
         // Create multiple settings
         $setting1 = new ApplicationSettingsItem(
             $uuidV7,
-            'setting1',
+            'setting.one',
             'value1',
             false
         );
 
         $setting2 = new ApplicationSettingsItem(
             $uuidV7,
-            'setting2',
+            'setting.two',
             'value2',
             false
         );
 
         $setting3 = new ApplicationSettingsItem(
             $uuidV7,
-            'setting3',
+            'setting.three',
             'value3',
             true // required
         );

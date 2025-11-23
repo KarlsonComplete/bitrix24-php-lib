@@ -39,6 +39,16 @@ abstract class ApplicationSettingsItemRepositoryInterfaceContractTest extends Te
         // Override in implementation if needed
     }
 
+    /**
+     * Flush changes to persistence layer (optional).
+     *
+     * Override this method for repositories that require explicit flush (e.g., Doctrine).
+     */
+    protected function flushChanges(): void
+    {
+        // Override in implementation if needed (e.g., EntityManager::flush())
+    }
+
     #[\Override]
     protected function setUp(): void
     {
@@ -61,6 +71,7 @@ abstract class ApplicationSettingsItemRepositoryInterfaceContractTest extends Te
         );
 
         $this->repository->save($applicationSettingsItem);
+        $this->flushChanges();
 
         $retrieved = $this->repository->findById($applicationSettingsItem->getId());
 
@@ -97,8 +108,10 @@ abstract class ApplicationSettingsItemRepositoryInterfaceContractTest extends Te
         );
 
         $this->repository->save($applicationSettingsItem);
+        $this->flushChanges();
         $applicationSettingsItem->markAsDeleted();
         $this->repository->save($applicationSettingsItem);
+        $this->flushChanges();
 
         $result = $this->repository->findById($applicationSettingsItem->getId());
 
@@ -135,8 +148,11 @@ abstract class ApplicationSettingsItemRepositoryInterfaceContractTest extends Te
         );
 
         $this->repository->save($setting1);
+        $this->flushChanges();
         $this->repository->save($setting2);
+        $this->flushChanges();
         $this->repository->save($otherSetting);
+        $this->flushChanges();
 
         $results = $this->repository->findAllForInstallation($uuidV7);
 
@@ -166,10 +182,13 @@ abstract class ApplicationSettingsItemRepositoryInterfaceContractTest extends Te
         );
 
         $this->repository->save($activeSetting);
+        $this->flushChanges();
         $this->repository->save($deletedSetting);
+        $this->flushChanges();
 
         $deletedSetting->markAsDeleted();
         $this->repository->save($deletedSetting);
+        $this->flushChanges();
 
         $results = $this->repository->findAllForInstallation($uuidV7);
 
@@ -210,8 +229,11 @@ abstract class ApplicationSettingsItemRepositoryInterfaceContractTest extends Te
         );
 
         $this->repository->save($globalSetting);
+        $this->flushChanges();
         $this->repository->save($personalSetting);
+        $this->flushChanges();
         $this->repository->save($differentKeySetting);
+        $this->flushChanges();
 
         $results = $this->repository->findAllForInstallationByKey($uuidV7, 'theme');
 
@@ -244,10 +266,13 @@ abstract class ApplicationSettingsItemRepositoryInterfaceContractTest extends Te
         );
 
         $this->repository->save($activeSetting);
+        $this->flushChanges();
         $this->repository->save($deletedSetting);
+        $this->flushChanges();
 
         $deletedSetting->markAsDeleted();
         $this->repository->save($deletedSetting);
+        $this->flushChanges();
 
         $results = $this->repository->findAllForInstallationByKey($uuidV7, 'config');
 
@@ -270,6 +295,7 @@ abstract class ApplicationSettingsItemRepositoryInterfaceContractTest extends Te
         );
 
         $this->repository->save($applicationSettingsItem);
+        $this->flushChanges();
 
         $results = $this->repository->findAllForInstallationByKey($uuidV7, 'non.existent.key');
 
@@ -291,9 +317,11 @@ abstract class ApplicationSettingsItemRepositoryInterfaceContractTest extends Te
         );
 
         $this->repository->save($applicationSettingsItem);
+        $this->flushChanges();
 
         $applicationSettingsItem->updateValue('updated value', 100);
         $this->repository->save($applicationSettingsItem);
+        $this->flushChanges();
 
         $retrieved = $this->repository->findById($applicationSettingsItem->getId());
 
@@ -335,8 +363,11 @@ abstract class ApplicationSettingsItemRepositoryInterfaceContractTest extends Te
         );
 
         $this->repository->save($globalSetting);
+        $this->flushChanges();
         $this->repository->save($personalSetting);
+        $this->flushChanges();
         $this->repository->save($departmentalSetting);
+        $this->flushChanges();
 
         $results = $this->repository->findAllForInstallationByKey($uuidV7, 'multi.scope');
 
