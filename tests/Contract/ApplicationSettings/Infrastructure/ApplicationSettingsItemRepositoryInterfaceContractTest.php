@@ -115,14 +115,14 @@ abstract class ApplicationSettingsItemRepositoryInterfaceContractTest extends Te
 
         $setting1 = new ApplicationSettingsItem(
             applicationInstallationId: $uuidV7,
-            key: 'key1',
+            key: 'key.one',
             value: 'value1',
             isRequired: true
         );
 
         $setting2 = new ApplicationSettingsItem(
             applicationInstallationId: $uuidV7,
-            key: 'key2',
+            key: 'key.two',
             value: 'value2',
             isRequired: false
         );
