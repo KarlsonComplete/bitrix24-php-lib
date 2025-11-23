@@ -43,6 +43,7 @@ readonly class Handler
         ]);
 
         /** @var AggregateRootEventsEmitterInterface|ApplicationInstallationInterface $activeInstallation */
+        /** @phpstan-ignore-next-line Method exists in implementation but not in SDK interface - TODO: see ApplicationInstallationRepository */
         $activeInstallation = $this->applicationInstallationRepository->findByApplicationToken($command->applicationToken);
 
         if (null !== $activeInstallation) {

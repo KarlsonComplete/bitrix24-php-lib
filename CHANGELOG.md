@@ -1,3 +1,91 @@
+
+
+
+## 0.1.2
+### Added
+- **ApplicationSettings bounded context** for application configuration management — [#67](https://github.com/mesilov/bitrix24-php-lib/issues/67)
+  - Full CRUD functionality with CQRS pattern (Create, Update, Delete use cases)
+  - Multi-scope support: Global, Departmental, and Personal settings with cascading resolution
+  - **SettingsFetcher service** with automatic deserialization support
+    - Cascading resolution logic (Personal → Departmental → Global)
+    - JSON deserialization to objects using Symfony Serializer
+    - Comprehensive logging with LoggerInterface
+  - **InstallSettings service** for bulk creation of default settings
+  - Soft-delete support with `ApplicationSettingStatus` enum (Active/Deleted)
+  - Event system with `ApplicationSettingsItemChangedEvent` for change tracking
+  - CLI command `app:settings:list` for viewing settings with scope filtering
+  - InMemory repository implementation for fast unit testing
+  - Unique constraint on (installation_id, key, user_id, department_id)
+  - Tracking fields: `changedByBitrix24UserId`, `isRequired`
+- Database schema updates
+  - Table `application_settings` with UUID v7 IDs
+  - Scope fields: `b24_user_id`, `b24_department_id`
+  - Status field with index for query optimization
+  - Timestamp tracking: `created_at_utc`, `updated_at_utc`
+- Comprehensive test coverage
+  - Unit tests for entity validation and business logic
+  - Functional tests for repository operations and use case handlers
+  - Tests for all scope types and soft-delete behavior
+
+### Changed
+- **Refactored ApplicationSettings entity naming**
+  - Renamed `ApplicationSetting` → `ApplicationSettingsItem`
+  - Renamed all interfaces and events accordingly
+  - Updated table name from `application_setting` → `application_settings`
+- **Separated Create/Update use cases**
+  - Create UseCase now only creates new settings (throws exception if exists)
+  - Update UseCase for modifying existing settings (throws exception if not found)
+  - Update automatically emits `ApplicationSettingsItemChangedEvent`
+- **Simplified repository API**
+  - Removed 6 redundant methods, kept only `findAllForInstallation()`
+  - Renamed `findAll()` → `findAllForInstallationByKey()` to avoid conflicts
+  - All find methods now filter by `status=Active` by default
+  - Added optimized `findAllForInstallationByKey()` method
+- **Enhanced SettingsFetcher**
+  - Renamed `getSetting()` → `getItem()`
+  - Renamed `getSettingValue()` → `getValue()`
+  - Added automatic deserialization with type-safe generics
+  - Non-nullable return types with exception throwing
+- **ApplicationSettingsItem improvements**
+  - UUID v7 generation moved inside entity constructor
+  - Key validation: only lowercase latin letters and dots
+  - Scope methods: `isGlobal()`, `isPersonal()`, `isDepartmental()`
+  - `updateValue()` method emits change events
+- **Makefile improvements**
+  - Updated to use Docker for `composer-license-checker`
+  - Aligns with other linting and analysis workflows
+- **Code quality improvements**
+  - Applied Rector automatic refactoring (arrow functions, type hints, naming)
+  - Added `#[\Override]` attributes to overridden methods
+  - Applied PHP-CS-Fixer formatting consistently
+  - Added symfony/property-access dependency for ObjectNormalizer
+
+### Fixed
+- **PHPStan level 5 errors related to SDK interface compatibility** — [#67](https://github.com/mesilov/bitrix24-php-lib/issues/67)
+  - Removed invalid `#[\Override]` attributes from extension methods in `ApplicationInstallationRepository`
+  - Fixed `findByMemberId()` call with incorrect parameter count in `OnAppInstall\Handler`
+  - Added `@phpstan-ignore-next-line` comments for methods not yet available in SDK interface
+  - Added TODO comments to track SDK interface extension requirements
+- **Doctrine XML mapping**
+  - Fixed `enumType` → `enum-type` syntax for Doctrine ORM 3 compatibility
+- **Repository method naming conflicts**
+  - Renamed methods to avoid conflicts with EntityRepository base class
+- **Exception handling**
+  - Added `SettingsItemAlreadyExistsException` for Create use case
+  - Added `SettingsItemNotFoundException` for Get/Delete operations
+  - Updated all handlers to throw specific exceptions
+
+### Removed
+- **Get UseCase** - replaced with `SettingsFetcher` service (UseCases now only for data modification)
+- **Redundant repository methods**
+  - `findGlobalByKey()`, `findPersonalByKey()`, `findDepartmentalByKey()`
+  - `findAllGlobal()`, `findAllPersonal()`, `findAllDepartmental()`
+  - `deleteByApplicationInstallationId()`
+  - `softDeleteByApplicationInstallationId()`
+- **Hard delete from Delete UseCase** - replaced with soft-delete pattern
+- **Entity getStatus() method** - use `isActive()` instead for better encapsulation
+- **Static getRecommendedDefaults()** - developers should define their own defaults
+
 ## 0.1.1
 ### Added
 - Change php version requirements — [#44](https://github.com/mesilov/bitrix24-php-lib/pull/44)

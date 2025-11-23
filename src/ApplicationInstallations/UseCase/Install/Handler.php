@@ -44,6 +44,7 @@ readonly class Handler
         ]);
 
         /** @var null|AggregateRootEventsEmitterInterface|ApplicationInstallationInterface $activeInstallation */
+        /** @phpstan-ignore-next-line Method exists in implementation but not in SDK interface - TODO: see ApplicationInstallationRepository */
         $activeInstallation = $this->applicationInstallationRepository->findByBitrix24AccountMemberId($command->memberId);
 
         if (null !== $activeInstallation) {
