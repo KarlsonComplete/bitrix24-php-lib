@@ -134,7 +134,7 @@ class ApplicationInstallationRepository extends EntityRepository implements Appl
     }
 
     /**
-     * TODO: Create issue in b24-php-sdk to add this method to ApplicationInstallationRepositoryInterface
+     * TODO: Create issue in b24-php-sdk to add this method to ApplicationInstallationRepositoryInterface.
      */
     public function findByBitrix24AccountMemberId(string $memberId): ?ApplicationInstallationInterface
     {
