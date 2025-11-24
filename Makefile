@@ -90,7 +90,7 @@ composer:
 
 # check allowed licenses
 lint-allowed-licenses:
-	vendor/bin/composer-license-checker
+	docker-compose run --rm php-cli php vendor/bin/composer-license-checker
 # linters
 lint-phpstan:
 	docker-compose run --rm php-cli php vendor/bin/phpstan analyse --memory-limit 2G

@@ -105,10 +105,13 @@ class ApplicationInstallationRepository extends EntityRepository implements Appl
     /**
      * Find application installation by application token.
      *
+     * TODO: Create issue in b24-php-sdk to add this method to ApplicationInstallationRepositoryInterface
+     *
      * @param non-empty-string $applicationToken
      *
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function findByApplicationToken(string $applicationToken): ?ApplicationInstallationInterface
     {
         if ('' === trim($applicationToken)) {
@@ -131,6 +134,7 @@ class ApplicationInstallationRepository extends EntityRepository implements Appl
         ;
     }
 
+    #[\Override]
     public function findByBitrix24AccountMemberId(string $memberId): ?ApplicationInstallationInterface
     {
         if ('' === trim($memberId)) {
