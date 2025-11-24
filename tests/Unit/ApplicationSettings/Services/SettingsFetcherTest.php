@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Bitrix24\Lib\Tests\Unit\ApplicationSettings\Services;
 
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItem;
-use Bitrix24\Lib\ApplicationSettings\Services\Exception\SettingsItemNotFoundException;
 use Bitrix24\Lib\Tests\Helpers\ApplicationSettings\ApplicationSettingsItemInMemoryRepository;
 use Bitrix24\Lib\ApplicationSettings\Services\SettingsFetcher;
+use Bitrix24\SDK\Core\Exceptions\ItemNotFoundException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -258,8 +258,8 @@ class SettingsFetcherTest extends TestCase
 
     public function testThrowsExceptionWhenNoSettingFound(): void
     {
-        $this->expectException(SettingsItemNotFoundException::class);
-        $this->expectExceptionMessage('Setting with key "non.existent.key" not found');
+        $this->expectException(ItemNotFoundException::class);
+        $this->expectExceptionMessage('Settings item with key "non.existent.key" not found');
 
         $this->fetcher->getItem($this->installationId, 'non.existent.key');
     }
@@ -282,8 +282,8 @@ class SettingsFetcherTest extends TestCase
 
     public function testGetValueThrowsExceptionWhenNotFound(): void
     {
-        $this->expectException(SettingsItemNotFoundException::class);
-        $this->expectExceptionMessage('Setting with key "non.existent" not found');
+        $this->expectException(ItemNotFoundException::class);
+        $this->expectExceptionMessage('Settings item with key "non.existent" not found');
 
         $this->fetcher->getValue($this->installationId, 'non.existent');
     }

@@ -13,6 +13,7 @@ use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Entity\Applicati
 use Bitrix24\SDK\Application\Contracts\Bitrix24Accounts\Entity\Bitrix24AccountStatus;
 use Bitrix24\SDK\Application\PortalLicenseFamily;
 use Bitrix24\SDK\Core\Credentials\Scope;
+use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -85,7 +86,7 @@ class CommandTest extends TestCase
             new Domain($bitrix24AccountBuilder->getDomainUrl()),
             $applicationToken,
             $applicationStatus,
-            \InvalidArgumentException::class,
+            InvalidArgumentException::class,
         ];
 
         // Empty applicationToken
@@ -94,7 +95,7 @@ class CommandTest extends TestCase
             new Domain($bitrix24AccountBuilder->getDomainUrl()),
             '',
             $applicationStatus,
-            \InvalidArgumentException::class,
+            InvalidArgumentException::class,
         ];
 
         // Empty applicationStatus
@@ -103,7 +104,7 @@ class CommandTest extends TestCase
             new Domain($bitrix24AccountBuilder->getDomainUrl()),
             $applicationToken,
             '',
-            \InvalidArgumentException::class,
+            InvalidArgumentException::class,
         ];
     }
 }

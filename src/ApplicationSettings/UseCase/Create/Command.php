@@ -29,6 +29,9 @@ readonly class Command
         $this->validate();
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     private function validate(): void
     {
         if ('' === trim($this->key)) {

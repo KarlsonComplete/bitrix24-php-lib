@@ -99,6 +99,7 @@ src/
    - Run functional tests: `make test-run-functional`
    - Fix any errors before proceeding to the next task
 7. After refactoring, summarize changes in `changelog.md`
+8. Check and actualize documentation in related files and README
 
 ## Git Workflow
 - Main branch: `main`

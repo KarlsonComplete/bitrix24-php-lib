@@ -6,8 +6,8 @@ namespace Bitrix24\Lib\Tests\Functional\ApplicationSettings\UseCase\Create;
 
 use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingsItemRepository;
 use Bitrix24\Lib\ApplicationSettings\UseCase\Create\Command;
-use Bitrix24\Lib\ApplicationSettings\UseCase\Create\Exception\SettingsItemAlreadyExistsException;
 use Bitrix24\Lib\ApplicationSettings\UseCase\Create\Handler;
+use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Bitrix24\Lib\Services\Flusher;
 use Bitrix24\Lib\Tests\EntityManagerFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -89,8 +89,8 @@ class HandlerTest extends TestCase
             'another_value'
         );
 
-        $this->expectException(SettingsItemAlreadyExistsException::class);
-        $this->expectExceptionMessage('Setting with key "duplicate.test" already exists for this scope');
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Setting with key "duplicate.test" already exists.');
 
         $this->handler->handle($duplicateCommand);
     }

@@ -6,7 +6,7 @@ namespace Bitrix24\Lib\ApplicationSettings\Services;
 
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItemInterface;
 use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingsItemRepositoryInterface;
-use Bitrix24\Lib\ApplicationSettings\Services\Exception\SettingsItemNotFoundException;
+use Bitrix24\SDK\Core\Exceptions\ItemNotFoundException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Uid\Uuid;
@@ -35,7 +35,7 @@ readonly class SettingsFetcher
      * 2. Departmental (if departmentId provided)
      * 3. Global (always as fallback)
      *
-     * @throws SettingsItemNotFoundException if setting not found at any level
+     * @throws ItemNotFoundException
      */
     public function getItem(
         Uuid $uuid,
@@ -101,7 +101,7 @@ readonly class SettingsFetcher
             'key' => $key,
         ]);
 
-        throw SettingsItemNotFoundException::byKey($key);
+        throw new ItemNotFoundException(sprintf('Settings item with key "%s" not found', $key));
     }
 
     /**
@@ -116,7 +116,7 @@ readonly class SettingsFetcher
      *
      * @return ($class is null ? string : T)
      *
-     * @throws SettingsItemNotFoundException if setting not found at any level
+     * @throws ItemNotFoundException if setting not found at any level
      */
     public function getValue(
         Uuid $uuid,

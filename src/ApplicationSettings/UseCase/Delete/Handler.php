@@ -6,8 +6,8 @@ namespace Bitrix24\Lib\ApplicationSettings\UseCase\Delete;
 
 use Bitrix24\Lib\ApplicationSettings\Entity\ApplicationSettingsItemInterface;
 use Bitrix24\Lib\ApplicationSettings\Infrastructure\Doctrine\ApplicationSettingsItemRepositoryInterface;
-use Bitrix24\Lib\ApplicationSettings\Services\Exception\SettingsItemNotFoundException;
 use Bitrix24\Lib\Services\Flusher;
+use Bitrix24\SDK\Core\Exceptions\ItemNotFoundException;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -23,6 +23,9 @@ readonly class Handler
         private LoggerInterface $logger
     ) {}
 
+    /**
+     * @throws ItemNotFoundException
+     */
     public function handle(Command $command): void
     {
         $this->logger->info('ApplicationSettings.Delete.start', [
@@ -45,7 +48,7 @@ readonly class Handler
         }
 
         if (!$setting instanceof ApplicationSettingsItemInterface) {
-            throw SettingsItemNotFoundException::byKey($command->key);
+            throw new ItemNotFoundException(sprintf('Setting with key "%s" not found.', $command->key));
         }
 
         $settingId = $setting->getId()->toRfc4122();

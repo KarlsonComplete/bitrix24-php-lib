@@ -62,7 +62,7 @@
 - **Documentation improvements**
   - Translated ApplicationSettings documentation to English
   - Updated all code examples to reflect current codebase
-  - Corrected exception class names (SettingsItemAlreadyExistsException, SettingsItemNotFoundException)
+  - Updated exception references to use SDK standard exceptions
   - Improved best practices and security sections
 - **Test infrastructure improvements**
   - Created contract tests for ApplicationSettingsItemRepositoryInterface
@@ -80,10 +80,13 @@
   - Fixed `enumType` → `enum-type` syntax for Doctrine ORM 3 compatibility
 - **Repository method naming conflicts**
   - Renamed methods to avoid conflicts with EntityRepository base class
-- **Exception handling**
-  - Added `SettingsItemAlreadyExistsException` for Create use case
-  - Added `SettingsItemNotFoundException` for Get/Delete operations
-  - Updated all handlers to throw specific exceptions
+- **Exception handling standardization** — [#67](https://github.com/mesilov/bitrix24-php-lib/issues/67)
+  - Replaced custom exceptions with SDK standard exceptions for consistency
+  - Removed `SettingsItemAlreadyExistsException` → using `Bitrix24\SDK\Core\Exceptions\InvalidArgumentException`
+  - Removed `SettingsItemNotFoundException` → using `Bitrix24\SDK\Core\Exceptions\ItemNotFoundException`
+  - Created `BaseException` class in `src/Exceptions/` for future custom exceptions
+  - Updated all tests to expect correct SDK exception types
+  - Fixed PHPDoc annotations to reference correct exception types
 
 ### Removed
 - **Get UseCase** - replaced with `SettingsFetcher` service (UseCases now only for data modification)
@@ -95,6 +98,9 @@
 - **Hard delete from Delete UseCase** - replaced with soft-delete pattern
 - **Entity getStatus() method** - use `isActive()` instead for better encapsulation
 - **Static getRecommendedDefaults()** - developers should define their own defaults
+- **Custom exception classes** — [#67](https://github.com/mesilov/bitrix24-php-lib/issues/67)
+  - `ApplicationSettings\Services\Exception\SettingsItemNotFoundException`
+  - `ApplicationSettings\UseCase\Create\Exception\SettingsItemAlreadyExistsException`
 
 ## 0.1.1
 ### Added
