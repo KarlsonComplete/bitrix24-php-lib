@@ -382,15 +382,15 @@ class SettingChangeLogger implements EventSubscriberInterface
 }
 ```
 
-## InstallSettings Service
+## DefaultSettingsInstaller Service
 
 Utility for creating a set of default settings during application installation:
 
 ```php
-use Bitrix24\Lib\ApplicationSettings\Services\InstallSettings;
+use Bitrix24\Lib\ApplicationSettings\Services\DefaultSettingsInstaller;
 
 // Create all settings for new installation
-$installer = new InstallSettings(
+$installer = new DefaultSettingsInstaller(
     $createHandler,
     $logger
 );
@@ -405,7 +405,7 @@ $installer->createDefaultSettings(
 );
 ```
 
-**Important:** InstallSettings uses Create use case, so if a setting already exists, an exception will be thrown.
+**Important:** DefaultSettingsInstaller uses Create use case, so if a setting already exists, an exception will be thrown.
 
 ## CLI Commands
 
@@ -694,7 +694,7 @@ try {
 
 1. **Indexes** - all key fields are indexed (installation_id, key, user_id, department_id, status)
 2. **Caching** - recommended to cache frequently used settings
-3. **Batch operations** - use `InstallSettings` for bulk creation
+3. **Batch operations** - use `DefaultSettingsInstaller` for bulk creation
 4. **Optimized queries** - `findAllForInstallationByKey` filters at DB level
 
 ## Database Schema Migration

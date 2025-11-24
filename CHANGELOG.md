@@ -10,7 +10,7 @@
     - Cascading resolution logic (Personal → Departmental → Global)
     - JSON deserialization to objects using Symfony Serializer
     - Comprehensive logging with LoggerInterface
-  - **InstallSettings service** for bulk creation of default settings
+  - **DefaultSettingsInstaller service** for bulk creation of default settings
   - Soft-delete support with `ApplicationSettingStatus` enum (Active/Deleted)
   - Event system with `ApplicationSettingsItemChangedEvent` for change tracking
   - CLI command `app:settings:list` for viewing settings with scope filtering
@@ -32,6 +32,10 @@
   - Renamed `ApplicationSetting` → `ApplicationSettingsItem`
   - Renamed all interfaces and events accordingly
   - Updated table name from `application_setting` → `application_settings`
+- **Renamed service class for clarity** — [#67](https://github.com/mesilov/bitrix24-php-lib/issues/67)
+  - Renamed `InstallSettings` → `DefaultSettingsInstaller` for better semantic clarity
+  - Updated all references in documentation and tests
+  - Updated log message prefixes to use new class name
 - **Separated Create/Update use cases**
   - Create UseCase now only creates new settings (throws exception if exists)
   - Update UseCase for modifying existing settings (throws exception if not found)

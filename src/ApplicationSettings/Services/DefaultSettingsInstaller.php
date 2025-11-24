@@ -15,7 +15,7 @@ use Symfony\Component\Uid\Uuid;
  * This service is responsible for initializing default global settings
  * when an application is installed on a Bitrix24 portal
  */
-readonly class InstallSettings
+readonly class DefaultSettingsInstaller
 {
     public function __construct(
         private Handler $createHandler,
@@ -32,7 +32,7 @@ readonly class InstallSettings
         Uuid $uuid,
         array $defaultSettings
     ): void {
-        $this->logger->info('InstallSettings.createDefaultSettings.start', [
+        $this->logger->info('DefaultSettingsInstaller.createDefaultSettings.start', [
             'applicationInstallationId' => $uuid->toRfc4122(),
             'settingsCount' => count($defaultSettings),
         ]);
@@ -48,13 +48,13 @@ readonly class InstallSettings
 
             $this->createHandler->handle($command);
 
-            $this->logger->debug('InstallSettings.settingProcessed', [
+            $this->logger->debug('DefaultSettingsInstaller.settingProcessed', [
                 'key' => $key,
                 'isRequired' => $config['required'],
             ]);
         }
 
-        $this->logger->info('InstallSettings.createDefaultSettings.finish', [
+        $this->logger->info('DefaultSettingsInstaller.createDefaultSettings.finish', [
             'applicationInstallationId' => $uuid->toRfc4122(),
         ]);
     }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Bitrix24\Lib\Tests\Unit\ApplicationSettings\Services;
 
-use Bitrix24\Lib\ApplicationSettings\Services\InstallSettings;
+use Bitrix24\Lib\ApplicationSettings\Services\DefaultSettingsInstaller;
 use Bitrix24\Lib\ApplicationSettings\UseCase\Create\Command;
 use Bitrix24\Lib\ApplicationSettings\UseCase\Create\Handler;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -15,8 +15,8 @@ use Symfony\Component\Uid\Uuid;
 /**
  * @internal
  */
-#[CoversClass(InstallSettings::class)]
-class InstallSettingsTest extends TestCase
+#[CoversClass(DefaultSettingsInstaller::class)]
+class DefaultSettingsInstallerTest extends TestCase
 {
     /** @var Handler&\PHPUnit\Framework\MockObject\MockObject */
     private Handler $createHandler;
@@ -24,14 +24,14 @@ class InstallSettingsTest extends TestCase
     /** @var LoggerInterface&\PHPUnit\Framework\MockObject\MockObject */
     private LoggerInterface $logger;
 
-    private InstallSettings $service;
+    private DefaultSettingsInstaller $service;
 
     #[\Override]
     protected function setUp(): void
     {
         $this->createHandler = $this->createMock(Handler::class);
         $this->logger = $this->createMock(LoggerInterface::class);
-        $this->service = new InstallSettings($this->createHandler, $this->logger);
+        $this->service = new DefaultSettingsInstaller($this->createHandler, $this->logger);
     }
 
     public function testCanCreateDefaultSettings(): void
@@ -76,14 +76,14 @@ class InstallSettingsTest extends TestCase
         $this->logger->expects($this->exactly(2))
             ->method('info')
             ->willReturnCallback(function (string $message, array $context) use ($uuidV7): bool {
-                if ('InstallSettings.createDefaultSettings.start' === $message) {
+                if ('DefaultSettingsInstaller.createDefaultSettings.start' === $message) {
                     $this->assertEquals($uuidV7->toRfc4122(), $context['applicationInstallationId']);
                     $this->assertEquals(1, $context['settingsCount']);
 
                     return true;
                 }
 
-                if ('InstallSettings.createDefaultSettings.finish' === $message) {
+                if ('DefaultSettingsInstaller.createDefaultSettings.finish' === $message) {
                     $this->assertEquals($uuidV7->toRfc4122(), $context['applicationInstallationId']);
 
                     return true;
@@ -94,7 +94,7 @@ class InstallSettingsTest extends TestCase
 
         $this->logger->expects($this->once())
             ->method('debug')
-            ->with('InstallSettings.settingProcessed', $this->arrayHasKey('key'));
+            ->with('DefaultSettingsInstaller.settingProcessed', $this->arrayHasKey('key'));
 
         $this->service->createDefaultSettings($uuidV7, $defaultSettings);
     }
