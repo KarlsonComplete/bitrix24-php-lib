@@ -17,21 +17,20 @@ use Symfony\Component\Uid\Uuid;
 
 class ContactPersonRepository implements ContactPersonRepositoryInterface
 {
-    private EntityManagerInterface $entityManager;
-    private EntityRepository $repository; // Внутренний репозиторий для базовых операций
+    private readonly EntityRepository $repository; // Внутренний репозиторий для базовых операций
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(private readonly EntityManagerInterface $entityManager)
     {
-        $this->entityManager = $entityManager;
-
-        $this->repository = $entityManager->getRepository(ContactPerson::class);
+        $this->repository = $this->entityManager->getRepository(ContactPerson::class);
     }
 
+    #[\Override]
     public function save(ContactPersonInterface $contactPerson): void
     {
         $this->entityManager->persist($contactPerson);
     }
 
+    #[\Override]
     public function delete(Uuid $uuid): void
     {
         $contactPerson = $this->repository->find($uuid);
@@ -55,6 +54,7 @@ class ContactPersonRepository implements ContactPersonRepositoryInterface
         $this->save($contactPerson);
     }
 
+    #[\Override]
     public function getById(Uuid $uuid): ContactPersonInterface
     {
         $contactPerson = $this->repository
@@ -76,6 +76,7 @@ class ContactPersonRepository implements ContactPersonRepositoryInterface
         return $contactPerson;
     }
 
+    #[\Override]
     public function findByEmail(string $email, ?ContactPersonStatus $contactPersonStatus = null, ?bool $isEmailVerified = null): array
     {
         if ('' === trim($email)) {
@@ -84,8 +85,8 @@ class ContactPersonRepository implements ContactPersonRepositoryInterface
 
         $criteria = ['email' => $email];
 
-        if (null !== $contactPersonStatus) {
-            $criteria['contactPersonStatus'] = $contactPersonStatus->name;
+        if ($contactPersonStatus instanceof ContactPersonStatus) {
+            $criteria['status'] = $contactPersonStatus->name;
         }
 
         if (null !== $isEmailVerified) {
@@ -95,21 +96,23 @@ class ContactPersonRepository implements ContactPersonRepositoryInterface
         return $this->repository->findBy($criteria);
     }
 
+    #[\Override]
     public function findByPhone(PhoneNumber $phoneNumber, ?ContactPersonStatus $contactPersonStatus = null, ?bool $isPhoneVerified = null): array
     {
-            $criteria = ['phoneNumber' => $phoneNumber];
+        $criteria = ['mobilePhoneNumber' => $phoneNumber];
 
-            if (null !== $contactPersonStatus) {
-                $criteria['status'] = $contactPersonStatus->name;
-            }
+        if ($contactPersonStatus instanceof ContactPersonStatus) {
+            $criteria['status'] = $contactPersonStatus->name;
+        }
 
-            if (null !== $isPhoneVerified) {
-                $criteria['isMobilePhoneVerified'] = $isPhoneVerified;
-            }
+        if (null !== $isPhoneVerified) {
+            $criteria['isMobilePhoneVerified'] = $isPhoneVerified;
+        }
 
-            return $this->repository->findBy($criteria);
+        return $this->repository->findBy($criteria);
     }
 
+    #[\Override]
     public function findByExternalId(string $externalId, ?ContactPersonStatus $contactPersonStatus = null): array
     {
         if ('' === trim($externalId)) {
@@ -118,7 +121,7 @@ class ContactPersonRepository implements ContactPersonRepositoryInterface
 
         $criteria = ['externalId' => $externalId];
 
-        if (null !== $contactPersonStatus) {
+        if ($contactPersonStatus instanceof ContactPersonStatus) {
             $criteria['contactPersonStatus'] = $contactPersonStatus->name;
         }
 

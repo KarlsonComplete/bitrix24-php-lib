@@ -19,6 +19,7 @@ use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Bitrix24\SDK\Core\Exceptions\LogicException;
 use Carbon\CarbonImmutable;
 use libphonenumber\PhoneNumber;
+use libphonenumber\PhoneNumberType;
 use libphonenumber\PhoneNumberUtil;
 use Symfony\Component\Uid\Uuid;
 
@@ -28,28 +29,26 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
 
     private CarbonImmutable $updatedAt;
 
-    private ?bool $isEmailVerified;
+    private ?bool $isEmailVerified = false;
 
-    private ?bool $isMobilePhoneVerified;
+    private ?bool $isMobilePhoneVerified = false;
 
     public function __construct(
-        private readonly Uuid       $id,
+        private readonly Uuid $id,
         private ContactPersonStatus $status,
-        private FullName            $fullName,
-        private ?string             $email,
-        private ?CarbonImmutable    $emailVerifiedAt,
-        private ?PhoneNumber        $phoneNumber,
-        private ?CarbonImmutable    $mobilePhoneVerifiedAt,
-        private ?string             $comment,
-        private ?string             $externalId,
-        private readonly ?int       $bitrix24UserId,
-        private ?Uuid               $bitrix24PartnerId,
-        private ?UserAgentInfo      $userAgentInfo,
+        private FullName $fullName,
+        private ?string $email,
+        private ?CarbonImmutable $emailVerifiedAt,
+        private ?PhoneNumber $mobilePhoneNumber,
+        private ?CarbonImmutable $mobilePhoneVerifiedAt,
+        private ?string $comment,
+        private ?string $externalId,
+        private readonly ?int $bitrix24UserId,
+        private ?Uuid $bitrix24PartnerId,
+        private readonly ?UserAgentInfo $userAgentInfo,
     ) {
         $this->createdAt = new CarbonImmutable();
         $this->updatedAt = new CarbonImmutable();
-        $this->isEmailVerified = false;
-        $this->isMobilePhoneVerified = false;
     }
 
     #[\Override]
@@ -185,9 +184,9 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     }
 
     #[\Override]
-    public function changeMobilePhone(?PhoneNumber $phoneNumber, ?bool $isMobilePhoneVerified = null): void
+    public function changeMobilePhone(?PhoneNumber $phoneNumber): void
     {
-        if (null !== $phoneNumber) {
+        if ($phoneNumber instanceof PhoneNumber) {
             $phoneUtil = PhoneNumberUtil::getInstance();
             $isValidNumber = $phoneUtil->isValidNumber($phoneNumber);
 
@@ -195,12 +194,12 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
                 throw new InvalidArgumentException('Invalid phone number.');
             }
 
-            $this->phoneNumber = $phoneNumber;
-        }
+            $numberType = $phoneUtil->getNumberType($phoneNumber);
+            if (PhoneNumberType::MOBILE !== $numberType) {
+                throw new InvalidArgumentException('Phone number must be mobile.');
+            }
 
-        if (null !== $isMobilePhoneVerified) {
-            $this->isMobilePhoneVerified = $isMobilePhoneVerified;
-            $this->markMobilePhoneAsVerified();
+            $this->mobilePhoneNumber = $phoneNumber;
         }
 
         $this->updatedAt = new CarbonImmutable();
@@ -209,7 +208,7 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     #[\Override]
     public function getMobilePhone(): ?PhoneNumber
     {
-        return $this->phoneNumber;
+        return $this->mobilePhoneNumber;
     }
 
     #[\Override]
@@ -221,6 +220,7 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     #[\Override]
     public function markMobilePhoneAsVerified(): void
     {
+        $this->isMobilePhoneVerified = true;
         $this->mobilePhoneVerifiedAt = new CarbonImmutable();
         $this->events[] = new ContactPersonMobilePhoneVerifiedEvent(
             $this->id,
@@ -274,16 +274,19 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
         $this->updatedAt = new CarbonImmutable();
     }
 
+    #[\Override]
     public function isEmailVerified(): bool
     {
         return $this->isEmailVerified;
     }
 
+    #[\Override]
     public function isMobilePhoneVerified(): bool
     {
         return $this->isMobilePhoneVerified;
     }
 
+    #[\Override]
     public function getUserAgentInfo(): UserAgentInfo
     {
         return $this->userAgentInfo;

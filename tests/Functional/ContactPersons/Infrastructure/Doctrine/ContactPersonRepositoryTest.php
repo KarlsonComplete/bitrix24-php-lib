@@ -23,6 +23,7 @@ use Bitrix24\Lib\Tests\EntityManagerFactory;
 class ContactPersonRepositoryTest extends ContactPersonRepositoryInterfaceTest
 {
 
+    #[\Override]
     protected function createContactPersonImplementation(
         Uuid $uuid,
         CarbonImmutable $createdAt,
@@ -60,6 +61,7 @@ class ContactPersonRepositoryTest extends ContactPersonRepositoryInterfaceTest
         );
     }
 
+    #[\Override]
     protected function createContactPersonRepositoryImplementation(): ContactPersonRepositoryInterface
     {
         $entityManager = EntityManagerFactory::get();
@@ -67,6 +69,7 @@ class ContactPersonRepositoryTest extends ContactPersonRepositoryInterfaceTest
         return new ContactPersonRepository($entityManager);
     }
 
+    #[\Override]
     protected function createRepositoryFlusherImplementation(): TestRepositoryFlusherInterface
     {
         $entityManager = EntityManagerFactory::get();

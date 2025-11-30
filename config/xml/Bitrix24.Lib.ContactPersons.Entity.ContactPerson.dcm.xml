@@ -12,7 +12,7 @@
         <field name="email" type="string" column="email" nullable="true"/>
         <field name="isEmailVerified" type="boolean" column="is_email_verified" nullable="true"/>
         <field name="emailVerifiedAt" type="carbon_immutable" column="email_verified_at" nullable="true"/>
-        <field name="phoneNumber" type="phone_number" column="phone_number" nullable="true"/>
+        <field name="mobilePhoneNumber" type="phone_number" column="mobile_phone_number" nullable="true"/>
         <field name="isMobilePhoneVerified" type="boolean" column="is_mobile_phone_verified" nullable="false"/>
         <field name="mobilePhoneVerifiedAt" type="carbon_immutable" column="mobile_phone_verified_at" nullable="true"/>
         <field name="comment" type="string" column="comment" nullable="true"/>
