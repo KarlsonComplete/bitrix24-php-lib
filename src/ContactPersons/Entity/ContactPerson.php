@@ -10,6 +10,7 @@ use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonStatus
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\FullName;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\UserAgentInfo;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonBlockedEvent;
+use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonCreatedEvent;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonDeletedEvent;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonEmailChangedEvent;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonEmailVerifiedEvent;
@@ -46,9 +47,11 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
         private readonly ?int $bitrix24UserId,
         private ?Uuid $bitrix24PartnerId,
         private readonly ?UserAgentInfo $userAgentInfo,
+        private bool $isEmitContactPersonCreatedEvent = false,
     ) {
         $this->createdAt = new CarbonImmutable();
         $this->updatedAt = new CarbonImmutable();
+        $this->addContactPersonCreatedEventIfNeeded($this->isEmitContactPersonCreatedEvent);
     }
 
     #[\Override]
@@ -290,5 +293,16 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     public function getUserAgentInfo(): UserAgentInfo
     {
         return $this->userAgentInfo;
+    }
+
+    private function addContactPersonCreatedEventIfNeeded(bool $isEmitCreatedEvent): void
+    {
+        if ($isEmitCreatedEvent) {
+            // Create event and add it to events array
+            $this->events[] = new ContactPersonCreatedEvent(
+                $this->id,
+                $this->createdAt
+            );
+        }
     }
 }
