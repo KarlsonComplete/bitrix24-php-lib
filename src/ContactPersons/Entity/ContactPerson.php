@@ -47,7 +47,7 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
         private readonly ?int $bitrix24UserId,
         private ?Uuid $bitrix24PartnerId,
         private readonly ?UserAgentInfo $userAgentInfo,
-        private bool $isEmitContactPersonCreatedEvent = false,
+        private readonly bool $isEmitContactPersonCreatedEvent = false,
     ) {
         $this->createdAt = new CarbonImmutable();
         $this->updatedAt = new CarbonImmutable();
