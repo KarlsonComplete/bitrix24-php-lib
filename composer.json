@@ -42,7 +42,9 @@
     "psr/log": "^3",
     "fig/http-message-util": "^1",
     "giggsey/libphonenumber-for-php": "^8",
+    "odolbeau/phone-number-bundle": "^4",
     "darsyn/ip": "^5",
+    "darsyn/ip-doctrine": "^6",
     "nesbot/carbon": "^3",
     "moneyphp/money": "^4",
     "bitrix24/b24phpsdk": "dev-dev",
@@ -70,7 +72,8 @@
     "rector/rector": "^1",
     "roave/security-advisories": "dev-master",
     "symfony/debug-bundle": "^7",
-    "symfony/stopwatch": "^7"
+    "symfony/stopwatch": "^7",
+    "symfony/var-exporter": "^7"
   },
   "autoload": {
     "psr-4": {
