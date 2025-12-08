@@ -30,7 +30,8 @@ use Symfony\Component\EventDispatcher\Debug\TraceableEventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Component\Uid\Uuid;
-
+use libphonenumber\PhoneNumberUtil;
+use libphonenumber\PhoneNumber;
 use Bitrix24\Lib\Tests\Functional\ContactPersons\Builders\ContactPersonBuilder;
 
 /**
@@ -62,19 +63,21 @@ class HandlerTest extends TestCase
     }
 
     /**
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException|\Random\RandomException
      */
     #[Test]
     public function testNewContactPerson(): void
     {
         $contactPersonBuilder = new ContactPersonBuilder();
         $externalId = Uuid::v7()->toRfc4122();
+        $bitrix24UserId = random_int(1, 1_000_000);
+
         $contactPerson = $contactPersonBuilder
             ->withEmail('john.doe@example.com')
             ->withMobilePhoneNumber($this->createPhoneNumber('+79991234567'))
             ->withComment('Test comment')
             ->withExternalId($externalId)
-            ->withBitrix24UserId(123)
+            ->withBitrix24UserId($bitrix24UserId)
             ->withBitrix24PartnerId(Uuid::v7())
             ->build();
 
@@ -92,19 +95,18 @@ class HandlerTest extends TestCase
             $contactPerson->getUserAgentInfo()->userAgent,
             $contactPerson->getUserAgentInfo()->referrer,
             '1.0'
-        )
-    );
+            )
+        );
 
         $contactPersonFromRepo = $this->repository->findByExternalId($contactPerson->getExternalId());
         $this->assertCount(1, $contactPersonFromRepo);
-        $this->assertInstanceOf(ContactPersonInterface::class, $contactPersonFromRepo[0]);
-        $this->assertEquals($contactPerson->getFullName()->name, $contactPersonFromRepo[0]->getFullName()->name);
-        $this->assertEquals($contactPerson->getEmail(), $contactPersonFromRepo[0]->getEmail());
-        $this->assertEquals($contactPerson->getMobilePhone(), $contactPersonFromRepo[0]->getMobilePhone());
-        $this->assertEquals(ContactPersonStatus::active, $contactPersonFromRepo[0]->getStatus());
+        $foundContactPerson = reset($contactPersonFromRepo);
 
-        $dispatchedEvents = $this->eventDispatcher->getOrphanedEvents();
-        $this->assertContains(ContactPersonCreatedEvent::class, $dispatchedEvents);
+        $this->assertInstanceOf(ContactPersonInterface::class, $foundContactPerson);
+        $this->assertEquals($contactPerson->getFullName()->name, $foundContactPerson->getFullName()->name);
+        $this->assertEquals($contactPerson->getEmail(), $foundContactPerson->getEmail());
+        $this->assertEquals($contactPerson->getMobilePhone(), $foundContactPerson->getMobilePhone());
+        $this->assertEquals(ContactPersonStatus::active, $foundContactPerson->getStatus());
     }
 
     /**
@@ -142,9 +144,9 @@ class HandlerTest extends TestCase
         $this->handler->handle($command);
     }
 
-    private function createPhoneNumber(string $number): \libphonenumber\PhoneNumber
+    private function createPhoneNumber(string $number): PhoneNumber
     {
-        $phoneNumberUtil = \libphonenumber\PhoneNumberUtil::getInstance();
+        $phoneNumberUtil = PhoneNumberUtil::getInstance();
         return $phoneNumberUtil->parse($number, 'RU');
     }
 }

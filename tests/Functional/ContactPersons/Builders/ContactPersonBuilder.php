@@ -12,6 +12,7 @@ use libphonenumber\PhoneNumber;
 use libphonenumber\PhoneNumberUtil;
 use Symfony\Component\Uid\Uuid;
 use Darsyn\IP\Version\Multi as IP;
+use Bitrix24\SDK\Tests\Builders\DemoDataGenerator;
 
 class ContactPersonBuilder
 {
@@ -38,7 +39,7 @@ class ContactPersonBuilder
     public function __construct()
     {
         $this->id = Uuid::v7();
-        $this->fullName = new FullName('John', 'Doe', 'Smith');
+        $this->fullName = DemoDataGenerator::getFullName();
         $this->bitrix24UserId = random_int(1, 1_000_000);
         $this->bitrix24PartnerId = Uuid::v7();
     }
@@ -109,8 +110,8 @@ class ContactPersonBuilder
     public function build(): ContactPerson
     {
         $userAgentInfo = $this->userAgentInfo ?? new UserAgentInfo(
-            IP::factory('192.168.1.1'),
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            DemoDataGenerator::getUserAgentIp(),
+            DemoDataGenerator::getUserAgent()
         );
 
         return new ContactPerson(
@@ -125,8 +126,7 @@ class ContactPersonBuilder
             $this->externalId,
             $this->bitrix24UserId,
             $this->bitrix24PartnerId,
-            $userAgentInfo,
-            true
+            $userAgentInfo
         );
     }
 }
