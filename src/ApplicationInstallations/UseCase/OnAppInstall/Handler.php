@@ -6,6 +6,7 @@ namespace Bitrix24\Lib\ApplicationInstallations\UseCase\OnAppInstall;
 
 use Bitrix24\Lib\Services\Flusher;
 use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Entity\ApplicationInstallationInterface;
+use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Exceptions\ApplicationInstallationNotFoundException;
 use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Repository\ApplicationInstallationRepositoryInterface;
 use Bitrix24\SDK\Application\Contracts\Bitrix24Accounts\Entity\Bitrix24AccountInterface;
 use Bitrix24\SDK\Application\Contracts\Bitrix24Accounts\Entity\Bitrix24AccountStatus;
@@ -26,7 +27,7 @@ readonly class Handler
     ) {}
 
     /**
-     * @throws InvalidArgumentException|MultipleBitrix24AccountsFoundException
+     * @throws ApplicationInstallationNotFoundException|InvalidArgumentException|MultipleBitrix24AccountsFoundException
      */
     public function handle(Command $command): void
     {
@@ -40,6 +41,12 @@ readonly class Handler
         /** @var null|AggregateRootEventsEmitterInterface|ApplicationInstallationInterface $applicationInstallation */
         // todo fix https://github.com/mesilov/bitrix24-php-lib/issues/59
         $applicationInstallation = $this->applicationInstallationRepository->findByBitrix24AccountMemberId($command->memberId);
+
+        if (null === $applicationInstallation) {
+            throw new ApplicationInstallationNotFoundException(
+                sprintf('Application installation not found for member ID %s', $command->memberId)
+            );
+        }
 
         $applicationInstallation->changeApplicationStatus($command->applicationStatus);
 

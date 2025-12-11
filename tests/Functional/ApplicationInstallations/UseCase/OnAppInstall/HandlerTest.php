@@ -25,6 +25,7 @@ use Bitrix24\Lib\Tests\Functional\ApplicationInstallations\Builders\ApplicationI
 use Bitrix24\Lib\Tests\Functional\Bitrix24Accounts\Builders\Bitrix24AccountBuilder;
 use Bitrix24\SDK\Application\ApplicationStatus;
 use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Entity\ApplicationInstallationStatus;
+use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Exceptions\ApplicationInstallationNotFoundException;
 use Bitrix24\SDK\Application\Contracts\Bitrix24Accounts\Entity\Bitrix24AccountStatus;
 use Bitrix24\SDK\Application\Contracts\Bitrix24Accounts\Exceptions\Bitrix24AccountNotFoundException;
 use Bitrix24\SDK\Application\PortalLicenseFamily;
@@ -80,7 +81,7 @@ class HandlerTest extends TestCase
     }
 
     /**
-     * @throws InvalidArgumentException|Bitrix24AccountNotFoundException
+     * @throws InvalidArgumentException|Bitrix24AccountNotFoundException|ApplicationInstallationNotFoundException
      */
     #[Test]
     public function testEventOnAppInstall(): void
