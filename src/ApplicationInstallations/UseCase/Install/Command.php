@@ -11,6 +11,10 @@ use Bitrix24\SDK\Core\Credentials\AuthToken;
 use Bitrix24\SDK\Core\Credentials\Scope;
 use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Symfony\Component\Uid\Uuid;
+use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonStatus;
+use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\FullName;
+use Faker\Provider\PhoneNumber;
+use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\UserAgentInfo;
 
 /**
  * Installation can occur in 2 scenes.
@@ -39,14 +43,19 @@ readonly class Command
         public int $bitrix24UserId,
         public bool $isBitrix24UserAdmin,
         public ApplicationStatus $applicationStatus,
-        public PortalLicenseFamily $portalLicenseFamily,
-        public ?string $applicationToken = null,
-        public ?int $portalUsersCount = null,
-        public ?Uuid $contactPersonId = null,
-        public ?Uuid $bitrix24PartnerContactPersonId = null,
-        public ?Uuid $bitrix24PartnerId = null,
-        public ?string $externalId = null,
-        public ?string $comment = null,
+        public PortalLicenseFamily  $portalLicenseFamily,
+        public ?string              $applicationToken = null,
+        public ?int                 $portalUsersCount = null,
+        public ?Uuid                $contactPersonId = null,
+        public ?Uuid                $bitrix24PartnerContactPersonId = null,
+        public ?Uuid                $bitrix24PartnerId = null,
+        public ?string              $externalId = null,
+        public ?string              $comment = null,
+        public ?ContactPersonStatus $contactPersonStatus = null,
+        public ?FullName            $fullName = null,
+        public ?PhoneNumber         $mobilePhoneNumber = null,
+        public ?UserAgentInfo       $userAgentInfo = null,
+        public ?string              $email = null,
     ) {
         $this->validate();
     }

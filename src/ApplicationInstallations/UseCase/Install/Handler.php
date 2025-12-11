@@ -6,6 +6,7 @@ namespace Bitrix24\Lib\ApplicationInstallations\UseCase\Install;
 
 use Bitrix24\Lib\ApplicationInstallations\Entity\ApplicationInstallation;
 use Bitrix24\Lib\Bitrix24Accounts\Entity\Bitrix24Account;
+use Bitrix24\Lib\ContactPersons\Entity\ContactPerson;
 use Bitrix24\Lib\Services\Flusher;
 use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Entity\ApplicationInstallationInterface;
 use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Repository\ApplicationInstallationRepositoryInterface;
@@ -76,6 +77,22 @@ readonly class Handler
 
         $uuidV7 = Uuid::v7();
         $applicationInstallationId = Uuid::v7();
+        $contactPersonId = Uuid::v7();
+
+        $contactPerson = new ContactPerson(
+            $contactPersonId,
+            $command->contactPersonStatus,
+            $command->fullName,
+            $command->email,
+            null,
+            $command->mobilePhoneNumber,
+            null,
+            $command->comment,
+            $command->externalId,
+            $command->bitrix24UserId,
+            $command->bitrix24PartnerId,
+            $command->userAgentInfo
+        );
 
         $bitrix24Account = new Bitrix24Account(
             $uuidV7,
