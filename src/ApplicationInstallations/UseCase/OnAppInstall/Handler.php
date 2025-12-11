@@ -38,6 +38,7 @@ readonly class Handler
         ]);
 
         /** @var null|AggregateRootEventsEmitterInterface|ApplicationInstallationInterface $applicationInstallation */
+        // todo fix https://github.com/mesilov/bitrix24-php-lib/issues/59
         $applicationInstallation = $this->applicationInstallationRepository->findByBitrix24AccountMemberId($command->memberId);
 
         $applicationInstallation->changeApplicationStatus($command->applicationStatus);
@@ -64,18 +65,23 @@ readonly class Handler
             $memberId,
             Bitrix24AccountStatus::active,
             null,
-            null,
-            true
+            null
         );
 
-        if ([] === $bitrix24Accounts) {
+        // Filter for master accounts only
+        $masterAccounts = array_filter(
+            $bitrix24Accounts,
+            fn (Bitrix24AccountInterface $bitrix24Account): bool => $bitrix24Account->isMasterAccount()
+        );
+
+        if ([] === $masterAccounts) {
             throw new Bitrix24AccountNotFoundException('Bitrix24 account not found for member ID '.$memberId);
         }
 
-        if (1 !== count($bitrix24Accounts)) {
+        if (1 !== count($masterAccounts)) {
             throw new MultipleBitrix24AccountsFoundException('Multiple Bitrix24 accounts found for member ID '.$memberId);
         }
 
-        return reset($bitrix24Accounts);
+        return reset($masterAccounts);
     }
 }
