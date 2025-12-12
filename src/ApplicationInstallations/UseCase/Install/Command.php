@@ -51,11 +51,6 @@ readonly class Command
         public ?Uuid                $bitrix24PartnerId = null,
         public ?string              $externalId = null,
         public ?string              $comment = null,
-        public ?ContactPersonStatus $contactPersonStatus = null,
-        public ?FullName            $fullName = null,
-        public ?PhoneNumber         $mobilePhoneNumber = null,
-        public ?UserAgentInfo       $userAgentInfo = null,
-        public ?string              $email = null,
     ) {
         $this->validate();
     }

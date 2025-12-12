@@ -13,13 +13,21 @@ declare(strict_types=1);
 
 namespace Bitrix24\Lib\Tests\Functional\ContactPersons\UseCase\Install;
 
+use Bitrix24\Lib\ApplicationInstallations\Infrastructure\Doctrine\ApplicationInstallationRepository;
+use Bitrix24\Lib\Bitrix24Accounts\Infrastructure\Doctrine\Bitrix24AccountRepository;
 use Bitrix24\Lib\ContactPersons\UseCase\Install\Handler;
 use Bitrix24\Lib\ContactPersons\UseCase\Install\Command;
 use Bitrix24\Lib\ContactPersons\Infrastructure\Doctrine\ContactPersonRepository;
 use Bitrix24\Lib\Services\Flusher;
+use Bitrix24\Lib\Tests\Functional\ApplicationInstallations\Builders\ApplicationInstallationBuilder;
+use Bitrix24\Lib\Tests\Functional\Bitrix24Accounts\Builders\Bitrix24AccountBuilder;
+use Bitrix24\SDK\Application\ApplicationStatus;
+use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Entity\ApplicationInstallationStatus;
+use Bitrix24\SDK\Application\Contracts\Bitrix24Accounts\Entity\Bitrix24AccountStatus;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonInterface;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonStatus;
-use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonCreatedEvent;
+use Bitrix24\SDK\Application\PortalLicenseFamily;
+use Bitrix24\SDK\Core\Credentials\Scope;
 use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Bitrix24\Lib\Tests\EntityManagerFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -33,6 +41,7 @@ use Symfony\Component\Uid\Uuid;
 use libphonenumber\PhoneNumberUtil;
 use libphonenumber\PhoneNumber;
 use Bitrix24\Lib\Tests\Functional\ContactPersons\Builders\ContactPersonBuilder;
+use Bitrix24\Lib\ContactPersons\Enum\ContactPersonType;
 
 /**
  * @internal
@@ -45,6 +54,10 @@ class HandlerTest extends TestCase
     private Flusher $flusher;
 
     private ContactPersonRepository $repository;
+    private ApplicationInstallationRepository $applicationInstallationRepository;
+
+    private Bitrix24AccountRepository $bitrix24accountRepository;
+
 
     private TraceableEventDispatcher $eventDispatcher;
 
@@ -54,8 +67,11 @@ class HandlerTest extends TestCase
         $entityManager = EntityManagerFactory::get();
         $this->eventDispatcher = new TraceableEventDispatcher(new EventDispatcher(), new Stopwatch());
         $this->repository = new ContactPersonRepository($entityManager);
+        $this->applicationInstallationRepository = new ApplicationInstallationRepository($entityManager);
+        $this->bitrix24accountRepository = new Bitrix24AccountRepository($entityManager);
         $this->flusher = new Flusher($entityManager, $this->eventDispatcher);
         $this->handler = new Handler(
+            $this->applicationInstallationRepository,
             $this->repository,
             $this->flusher,
             new NullLogger()
@@ -94,7 +110,9 @@ class HandlerTest extends TestCase
             $contactPerson->getUserAgentInfo()->ip,
             $contactPerson->getUserAgentInfo()->userAgent,
             $contactPerson->getUserAgentInfo()->referrer,
-            '1.0'
+            '1.0',
+            null,
+            null
             )
         );
 
@@ -109,8 +127,87 @@ class HandlerTest extends TestCase
         $this->assertEquals(ContactPersonStatus::active, $foundContactPerson->getStatus());
     }
 
-    /**
-     * @throws InvalidArgumentException
+    #[Test]
+    public function testNewContactPersonAndLinkApp(): void
+    {
+        // Load account and application installation into database for uninstallation.
+        $applicationToken = Uuid::v7()->toRfc4122();
+        $memberId = Uuid::v4()->toRfc4122();
+        $externalId = Uuid::v7()->toRfc4122();
+
+        $bitrix24Account = (new Bitrix24AccountBuilder())
+            ->withApplicationScope(new Scope(['crm']))
+            ->withStatus(Bitrix24AccountStatus::new)
+            ->withApplicationToken($applicationToken)
+            ->withMemberId($memberId)
+            ->withMaster(true)
+            ->withSetToken()
+            ->withInstalled()
+            ->build();
+
+        $this->bitrix24accountRepository->save($bitrix24Account);
+
+        $applicationInstallation = (new ApplicationInstallationBuilder())
+            ->withApplicationStatus(new ApplicationStatus('F'))
+            ->withPortalLicenseFamily(PortalLicenseFamily::free)
+            ->withBitrix24AccountId($bitrix24Account->getId())
+            ->withApplicationStatusInstallation(ApplicationInstallationStatus::active)
+            ->withApplicationToken($applicationToken)
+            ->withContactPersonId(null)
+            ->withBitrix24PartnerContactPersonId(null)
+            ->withExternalId($externalId)
+            ->build();
+
+        $this->applicationInstallationRepository->save($applicationInstallation);
+
+        $this->flusher->flush();
+
+        $contactPersonBuilder = new ContactPersonBuilder();
+
+        $contactPerson = $contactPersonBuilder
+            ->withEmail('john.doe@example.com')
+            ->withMobilePhoneNumber($this->createPhoneNumber('+79991234567'))
+            ->withComment('Test comment')
+            ->withExternalId($applicationInstallation->getExternalId())
+            ->withBitrix24UserId($bitrix24Account->getBitrix24UserId())
+            ->withBitrix24PartnerId($applicationInstallation->getBitrix24PartnerId())
+            ->build();
+
+        $this->handler->handle(
+            new Command(
+                $contactPerson->getFullName(),
+                $contactPerson->getEmail(),
+                $contactPerson->getMobilePhone(),
+                $contactPerson->getComment(),
+                $contactPerson->getExternalId(),
+                $contactPerson->getBitrix24UserId(),
+                $contactPerson->getBitrix24PartnerId(),
+                $contactPerson->getUserAgentInfo()->ip,
+                $contactPerson->getUserAgentInfo()->userAgent,
+                $contactPerson->getUserAgentInfo()->referrer,
+                '1.0',
+                $bitrix24Account->getMemberId(),
+                ContactPersonType::partner
+            )
+        );
+
+        $applicationInstallationFromRepo = $this->applicationInstallationRepository->findByExternalId($applicationInstallation->getExternalId());
+        $this->assertCount(1, $applicationInstallationFromRepo);
+        $foundInstallation = reset($applicationInstallationFromRepo);
+
+        $contactPersonFromRepo = $this->repository->findByExternalId($foundInstallation->getExternalId());
+        $this->assertCount(1, $contactPersonFromRepo);
+        $foundContactPerson = reset($contactPersonFromRepo);
+
+        $this->assertNotNull($foundInstallation->getBitrix24PartnerContactPersonId());
+
+        // Можно дополнительно проверить, что именно нужное поле заполнено
+        $this->assertEquals($foundContactPerson->getId(), $foundInstallation->getBitrix24PartnerContactPersonId());
+    }
+
+
+    /*
+     * Что такое externalId? Вроде бы это подпись. Тогда по сути у нас может на 1 подпись быть 2 контактных лица.
      */
     #[Test]
     public function testContactPersonWithDuplicateExternalId(): void
@@ -124,6 +221,10 @@ class HandlerTest extends TestCase
             ->withBitrix24PartnerId(Uuid::v7())
             ->build();
 
+        $this->repository->save($contactPerson);
+
+        $this->flusher->flush();
+
         $command = new Command(
             $contactPerson->getFullName(),
             $contactPerson->getEmail(),
@@ -135,10 +236,10 @@ class HandlerTest extends TestCase
             $contactPerson->getUserAgentInfo()->ip,
             $contactPerson->getUserAgentInfo()->userAgent,
             $contactPerson->getUserAgentInfo()->referrer,
-            '1.0'
+            '1.0',
+            null,
+            null
         );
-
-        $this->handler->handle($command);
 
         $this->expectException(InvalidArgumentException::class);
         $this->handler->handle($command);

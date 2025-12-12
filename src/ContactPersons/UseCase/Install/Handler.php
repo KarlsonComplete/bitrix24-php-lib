@@ -5,17 +5,21 @@ declare(strict_types=1);
 namespace Bitrix24\Lib\ContactPersons\UseCase\Install;
 
 use Bitrix24\Lib\ContactPersons\Entity\ContactPerson;
+use Bitrix24\Lib\ContactPersons\Enum\ContactPersonType;
 use Bitrix24\Lib\Services\Flusher;
+use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Entity\ApplicationInstallationInterface;
+use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Repository\ApplicationInstallationRepositoryInterface;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonStatus;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\UserAgentInfo;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Repository\ContactPersonRepositoryInterface;
-use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
+use Bitrix24\SDK\Application\Contracts\Events\AggregateRootEventsEmitterInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Uid\Uuid;
 
 readonly class Handler
 {
     public function __construct(
+        private ApplicationInstallationRepositoryInterface $applicationInstallationRepository,
         private ContactPersonRepositoryInterface $contactPersonRepository,
         private Flusher $flusher,
         private LoggerInterface $logger
@@ -25,19 +29,15 @@ readonly class Handler
     {
         $this->logger->info('ContactPerson.Install.start', [
             'externalId' => $command->externalId,
+            'memberId' => $command->memberId,
+            'contactPersonType' => $command->contactPersonType,
         ]);
-
-        // Проверяем, существует ли контакт с таким externalId
-        if (null !== $command->externalId) {
-            $existing = $this->contactPersonRepository->findByExternalId($command->externalId);
-            if ([] !== $existing) {
-                throw new InvalidArgumentException('Contact with this external ID already exists.');
-            }
-        }
 
         $userAgentInfo = new UserAgentInfo($command->userAgentIp, $command->userAgent, $command->userAgentReferrer);
 
         $uuidV7 = Uuid::v7();
+
+        $entitiesToFlush = [];
 
         $contactPerson = new ContactPerson(
             $uuidV7,
@@ -56,7 +56,26 @@ readonly class Handler
         );
 
         $this->contactPersonRepository->save($contactPerson);
-        $this->flusher->flush($contactPerson);
+
+        $entitiesToFlush[] = $contactPerson;
+
+        if (null !== $command->memberId) {
+            /** @var null|AggregateRootEventsEmitterInterface|ApplicationInstallationInterface $activeInstallation */
+            $activeInstallation = $this->applicationInstallationRepository->findByBitrix24AccountMemberId($command->memberId);
+
+            if ($command->contactPersonType == ContactPersonType::personal) {
+                $activeInstallation->linkContactPerson($uuidV7);
+            }
+
+            if ($command->contactPersonType == ContactPersonType::partner) {
+                $activeInstallation->linkBitrix24PartnerContactPerson($uuidV7);
+            }
+
+            $this->applicationInstallationRepository->save($activeInstallation);
+            $entitiesToFlush[] = $activeInstallation;
+        }
+
+        $this->flusher->flush(...array_filter($entitiesToFlush, fn ($entity): bool => $entity instanceof AggregateRootEventsEmitterInterface));
 
         $this->logger->info('ContactPerson.Install.finish', [
             'contact_person_id' => $uuidV7,

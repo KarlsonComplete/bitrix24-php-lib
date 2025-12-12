@@ -17,9 +17,9 @@ class ApplicationInstallationBuilder
 
     private Uuid $bitrix24AccountId;
 
-    private readonly ?Uuid $contactPersonId;
+    private ?Uuid $contactPersonId;
 
-    private readonly ?Uuid $bitrix24PartnerContactPersonId;
+    private ?Uuid $bitrix24PartnerContactPersonId;
 
     private readonly ?Uuid $bitrix24PartnerId;
 
@@ -78,6 +78,20 @@ class ApplicationInstallationBuilder
     public function withBitrix24AccountId(Uuid $uuid): self
     {
         $this->bitrix24AccountId = $uuid;
+
+        return $this;
+    }
+
+    public function withContactPersonId(?Uuid $uuid): self
+    {
+        $this->contactPersonId = $uuid;
+
+        return $this;
+    }
+
+    public function withBitrix24PartnerContactPersonId(?Uuid $uuid): self
+    {
+        $this->bitrix24PartnerContactPersonId = $uuid;
 
         return $this;
     }
