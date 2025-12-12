@@ -71,7 +71,8 @@
     "roave/security-advisories": "dev-master",
     "symfony/debug-bundle": "^7",
     "symfony/property-access": "^7.3",
-    "symfony/stopwatch": "^7"
+    "symfony/stopwatch": "^7",
+    "symfony/var-exporter": "^7"
   },
   "autoload": {
     "psr-4": {

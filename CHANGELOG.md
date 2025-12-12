@@ -92,6 +92,12 @@
     - Created `BaseException` class in `src/Exceptions/` for future custom exceptions
     - Updated all tests to expect correct SDK exception types
     - Fixed PHPDoc annotations to reference correct exception types
+- **Type safety improvement in OnAppInstall Command** — [#64](https://github.com/mesilov/bitrix24-php-lib/issues/64)
+    - Changed `$applicationStatus` parameter type from `string` to `ApplicationStatus` object
+    - Improved type safety by enforcing proper value object usage
+    - Removed unnecessary string validation in Command constructor
+    - Eliminated redundant ApplicationStatus instantiation in Handler
+    - Updated all related tests to use ApplicationStatus objects
 
 ### Removed
 
