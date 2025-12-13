@@ -15,6 +15,7 @@ use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonDelete
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonEmailChangedEvent;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonEmailVerifiedEvent;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonFullNameChangedEvent;
+use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonMobilePhoneChangedEvent;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonMobilePhoneVerifiedEvent;
 use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Bitrix24\SDK\Core\Exceptions\LogicException;
@@ -206,6 +207,11 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
         }
 
         $this->updatedAt = new CarbonImmutable();
+
+        $this->events[] = new ContactPersonMobilePhoneChangedEvent(
+            $this->id,
+            $this->updatedAt,
+        );
     }
 
     #[\Override]

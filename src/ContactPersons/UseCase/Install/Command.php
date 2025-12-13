@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Bitrix24\Lib\ContactPersons\UseCase\Install;
 
+use Bitrix24\Lib\ContactPersons\Enum\ContactPersonType;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\FullName;
 use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Darsyn\IP\Version\Multi as IP;
 use libphonenumber\PhoneNumber;
 use Symfony\Component\Uid\Uuid;
-use Bitrix24\Lib\ContactPersons\Enum\ContactPersonType;
 
 readonly class Command
 {

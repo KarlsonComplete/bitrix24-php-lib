@@ -9,6 +9,7 @@ use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonInterf
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonStatus;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Exceptions\ContactPersonNotFoundException;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Repository\ContactPersonRepositoryInterface;
+use Bitrix24\SDK\Application\Contracts\Events\AggregateRootEventsEmitterInterface;
 use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
@@ -54,6 +55,11 @@ class ContactPersonRepository implements ContactPersonRepositoryInterface
         $this->save($contactPerson);
     }
 
+    /**
+     * @phpstan-return ContactPersonInterface&AggregateRootEventsEmitterInterface
+     *
+     * @throws ContactPersonNotFoundException
+     */
     #[\Override]
     public function getById(Uuid $uuid): ContactPersonInterface
     {

@@ -25,7 +25,7 @@ readonly class Handler
         private LoggerInterface $logger
     ) {}
 
-    public function handle(Command $command): ContactPerson
+    public function handle(Command $command): void
     {
         $this->logger->info('ContactPerson.Install.start', [
             'externalId' => $command->externalId,
@@ -63,11 +63,11 @@ readonly class Handler
             /** @var null|AggregateRootEventsEmitterInterface|ApplicationInstallationInterface $activeInstallation */
             $activeInstallation = $this->applicationInstallationRepository->findByBitrix24AccountMemberId($command->memberId);
 
-            if ($command->contactPersonType == ContactPersonType::personal) {
+            if (ContactPersonType::personal == $command->contactPersonType) {
                 $activeInstallation->linkContactPerson($uuidV7);
             }
 
-            if ($command->contactPersonType == ContactPersonType::partner) {
+            if (ContactPersonType::partner == $command->contactPersonType) {
                 $activeInstallation->linkBitrix24PartnerContactPerson($uuidV7);
             }
 
@@ -81,7 +81,5 @@ readonly class Handler
             'contact_person_id' => $uuidV7,
             'externalId' => $command->externalId,
         ]);
-
-        return $contactPerson;
     }
 }

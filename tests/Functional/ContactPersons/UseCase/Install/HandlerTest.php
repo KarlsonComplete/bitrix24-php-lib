@@ -23,9 +23,13 @@ use Bitrix24\Lib\Tests\Functional\ApplicationInstallations\Builders\ApplicationI
 use Bitrix24\Lib\Tests\Functional\Bitrix24Accounts\Builders\Bitrix24AccountBuilder;
 use Bitrix24\SDK\Application\ApplicationStatus;
 use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Entity\ApplicationInstallationStatus;
+use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Events\ApplicationInstallationBitrix24PartnerLinkedEvent;
+use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Events\ApplicationInstallationContactPersonLinkedEvent;
 use Bitrix24\SDK\Application\Contracts\Bitrix24Accounts\Entity\Bitrix24AccountStatus;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonInterface;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonStatus;
+use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonCreatedEvent;
+use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonEmailChangedEvent;
 use Bitrix24\SDK\Application\PortalLicenseFamily;
 use Bitrix24\SDK\Core\Credentials\Scope;
 use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
@@ -54,10 +58,10 @@ class HandlerTest extends TestCase
     private Flusher $flusher;
 
     private ContactPersonRepository $repository;
+
     private ApplicationInstallationRepository $applicationInstallationRepository;
 
     private Bitrix24AccountRepository $bitrix24accountRepository;
-
 
     private TraceableEventDispatcher $eventDispatcher;
 
@@ -117,7 +121,14 @@ class HandlerTest extends TestCase
         );
 
         $contactPersonFromRepo = $this->repository->findByExternalId($contactPerson->getExternalId());
+
+        $dispatchedEvents = $this->eventDispatcher->getOrphanedEvents();
+        $this->assertContains(ContactPersonCreatedEvent::class, $dispatchedEvents);
+        $this->assertNotContains(ApplicationInstallationContactPersonLinkedEvent::class, $dispatchedEvents);
+        $this->assertNotContains(ApplicationInstallationBitrix24PartnerLinkedEvent::class, $dispatchedEvents);
+
         $this->assertCount(1, $contactPersonFromRepo);
+
         $foundContactPerson = reset($contactPersonFromRepo);
 
         $this->assertInstanceOf(ContactPersonInterface::class, $foundContactPerson);
@@ -191,18 +202,15 @@ class HandlerTest extends TestCase
             )
         );
 
-        $applicationInstallationFromRepo = $this->applicationInstallationRepository->findByExternalId($applicationInstallation->getExternalId());
-        $this->assertCount(1, $applicationInstallationFromRepo);
-        $foundInstallation = reset($applicationInstallationFromRepo);
+        $dispatchedEvents = $this->eventDispatcher->getOrphanedEvents();
 
-        $contactPersonFromRepo = $this->repository->findByExternalId($foundInstallation->getExternalId());
-        $this->assertCount(1, $contactPersonFromRepo);
-        $foundContactPerson = reset($contactPersonFromRepo);
+        $foundInstallation = $this->applicationInstallationRepository->findByBitrix24AccountMemberId($bitrix24Account->getMemberId());
 
-        $this->assertNotNull($foundInstallation->getBitrix24PartnerContactPersonId());
+        $this->assertContains(ApplicationInstallationBitrix24PartnerLinkedEvent::class, $dispatchedEvents);
 
-        // Можно дополнительно проверить, что именно нужное поле заполнено
-        $this->assertEquals($foundContactPerson->getId(), $foundInstallation->getBitrix24PartnerContactPersonId());
+        $foundContactPerson = $this->repository->getById($foundInstallation->getBitrix24PartnerContactPersonId());
+        $this->assertNotNull($foundContactPerson);
+
     }
 
 
