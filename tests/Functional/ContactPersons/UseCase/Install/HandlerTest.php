@@ -23,6 +23,7 @@ use Bitrix24\Lib\Tests\Functional\ApplicationInstallations\Builders\ApplicationI
 use Bitrix24\Lib\Tests\Functional\Bitrix24Accounts\Builders\Bitrix24AccountBuilder;
 use Bitrix24\SDK\Application\ApplicationStatus;
 use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Entity\ApplicationInstallationStatus;
+use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Events\ApplicationInstallationBitrix24PartnerContactPersonLinkedEvent;
 use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Events\ApplicationInstallationBitrix24PartnerLinkedEvent;
 use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Events\ApplicationInstallationContactPersonLinkedEvent;
 use Bitrix24\SDK\Application\Contracts\Bitrix24Accounts\Entity\Bitrix24AccountStatus;
@@ -203,14 +204,11 @@ class HandlerTest extends TestCase
         );
 
         $dispatchedEvents = $this->eventDispatcher->getOrphanedEvents();
-
         $foundInstallation = $this->applicationInstallationRepository->findByBitrix24AccountMemberId($bitrix24Account->getMemberId());
-
-        $this->assertContains(ApplicationInstallationBitrix24PartnerLinkedEvent::class, $dispatchedEvents);
-
         $foundContactPerson = $this->repository->getById($foundInstallation->getBitrix24PartnerContactPersonId());
-        $this->assertNotNull($foundContactPerson);
 
+        $this->assertContains(ApplicationInstallationBitrix24PartnerContactPersonLinkedEvent::class, $dispatchedEvents);
+        $this->assertNotNull($foundContactPerson);
     }
 
 
