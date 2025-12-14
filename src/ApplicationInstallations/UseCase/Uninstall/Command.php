@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Bitrix24\Lib\ApplicationInstallations\UseCase\Uninstall;
 
 use Bitrix24\Lib\Bitrix24Accounts\ValueObjects\Domain;
+use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 
 readonly class Command
 {
@@ -16,14 +17,17 @@ readonly class Command
         $this->validate();
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     private function validate(): void
     {
         if ('' === $this->applicationToken) {
-            throw new \InvalidArgumentException('applicationToken must be a non-empty string.');
+            throw new InvalidArgumentException('applicationToken must be a non-empty string.');
         }
 
         if ('' === $this->memberId) {
-            throw new \InvalidArgumentException('Member ID must be a non-empty string.');
+            throw new InvalidArgumentException('Member ID must be a non-empty string.');
         }
     }
 }
