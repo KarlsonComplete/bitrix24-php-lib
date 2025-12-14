@@ -34,7 +34,7 @@
     }
   },
   "require": {
-    "php": "^8.3",
+    "php": "8.3.* || 8.4.*",
     "ext-json": "*",
     "ext-curl": "*",
     "ext-bcmath": "*",
@@ -61,13 +61,13 @@
     "symfony/dotenv": "^7"
   },
   "require-dev": {
-    "lendable/composer-license-checker": "^1.2",
-    "friendsofphp/php-cs-fixer": "^3.64",
-    "monolog/monolog": "^3",
+    "doctrine/migrations": "^3",
     "fakerphp/faker": "^1",
+    "friendsofphp/php-cs-fixer": "^3.64",
+    "lendable/composer-license-checker": "^1.2",
+    "monolog/monolog": "^3",
     "phpstan/phpstan": "^1",
     "phpunit/phpunit": "^11",
-    "doctrine/migrations": "^3",
     "psalm/phar": "^5",
     "rector/rector": "^1",
     "roave/security-advisories": "dev-master",

@@ -105,6 +105,8 @@ class ApplicationInstallationRepository extends EntityRepository implements Appl
     /**
      * Find application installation by application token.
      *
+     * TODO: Create issue in b24-php-sdk to add this method to ApplicationInstallationRepositoryInterface
+     *
      * @param non-empty-string $applicationToken
      *
      * @throws InvalidArgumentException
