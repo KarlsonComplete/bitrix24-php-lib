@@ -31,9 +31,9 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
 
     private CarbonImmutable $updatedAt;
 
-    private ?bool $isEmailVerified = false;
+    private bool $isEmailVerified = false;
 
-    private ?bool $isMobilePhoneVerified = false;
+    private bool $isMobilePhoneVerified = false;
 
     public function __construct(
         private readonly Uuid $id,
@@ -47,7 +47,7 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
         private ?string $externalId,
         private readonly ?int $bitrix24UserId,
         private ?Uuid $bitrix24PartnerId,
-        private readonly ?UserAgentInfo $userAgentInfo,
+        private readonly UserAgentInfo $userAgentInfo,
         private readonly bool $isEmitContactPersonCreatedEvent = false,
     ) {
         $this->createdAt = new CarbonImmutable();

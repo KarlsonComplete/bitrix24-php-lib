@@ -75,7 +75,7 @@ readonly class Handler
             $entitiesToFlush[] = $activeInstallation;
         }
 
-        $this->flusher->flush(...array_filter($entitiesToFlush, fn ($entity): bool => $entity instanceof AggregateRootEventsEmitterInterface));
+        $this->flusher->flush($activeInstallation,$contactPerson);
 
         $this->logger->info('ContactPerson.Install.finish', [
             'contact_person_id' => $uuidV7,
