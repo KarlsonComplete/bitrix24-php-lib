@@ -6,6 +6,7 @@ namespace Bitrix24\Lib\ContactPersons\UseCase\Install;
 
 use Bitrix24\Lib\ContactPersons\Enum\ContactPersonType;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\FullName;
+use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\UserAgentInfo;
 use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
 use Darsyn\IP\Version\Multi as IP;
 use libphonenumber\PhoneNumber;
@@ -19,12 +20,9 @@ readonly class Command
         public ?PhoneNumber $mobilePhoneNumber,
         public ?string $comment,
         public ?string $externalId,
-        public ?int $bitrix24UserId,
+        public int $bitrix24UserId,
         public ?Uuid $bitrix24PartnerId,
-        public ?IP $userAgentIp,
-        public ?string $userAgent,
-        public ?string $userAgentReferrer,
-        public string $userAgentVersion,
+        public UserAgentInfo $userAgentInfo,
         public ?string $memberId,
         public ?ContactPersonType $contactPersonType
     ) {

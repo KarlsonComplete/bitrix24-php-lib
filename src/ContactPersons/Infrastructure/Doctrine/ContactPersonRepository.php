@@ -18,7 +18,7 @@ use Symfony\Component\Uid\Uuid;
 
 class ContactPersonRepository implements ContactPersonRepositoryInterface
 {
-    private readonly EntityRepository $repository; // Внутренний репозиторий для базовых операций
+    private readonly EntityRepository $repository;
 
     public function __construct(private readonly EntityManagerInterface $entityManager)
     {
@@ -128,7 +128,7 @@ class ContactPersonRepository implements ContactPersonRepositoryInterface
         $criteria = ['externalId' => $externalId];
 
         if ($contactPersonStatus instanceof ContactPersonStatus) {
-            $criteria['contactPersonStatus'] = $contactPersonStatus->name;
+            $criteria['status'] = $contactPersonStatus->name;
         }
 
         return $this->repository->findBy($criteria);

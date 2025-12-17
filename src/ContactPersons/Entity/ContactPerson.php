@@ -45,7 +45,7 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
         private ?CarbonImmutable $mobilePhoneVerifiedAt,
         private ?string $comment,
         private ?string $externalId,
-        private readonly ?int $bitrix24UserId,
+        private readonly int $bitrix24UserId,
         private ?Uuid $bitrix24PartnerId,
         private readonly UserAgentInfo $userAgentInfo,
         private readonly bool $isEmitContactPersonCreatedEvent = false,
@@ -202,10 +202,9 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
             if (PhoneNumberType::MOBILE !== $numberType) {
                 throw new InvalidArgumentException('Phone number must be mobile.');
             }
-
-            $this->mobilePhoneNumber = $phoneNumber;
         }
 
+        $this->mobilePhoneNumber = $phoneNumber;
         $this->updatedAt = new CarbonImmutable();
 
         $this->events[] = new ContactPersonMobilePhoneChangedEvent(

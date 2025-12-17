@@ -33,8 +33,6 @@ readonly class Handler
             'contactPersonType' => $command->contactPersonType,
         ]);
 
-        $userAgentInfo = new UserAgentInfo($command->userAgentIp, $command->userAgent, $command->userAgentReferrer);
-
         $uuidV7 = Uuid::v7();
 
         $entitiesToFlush = [];
@@ -51,7 +49,7 @@ readonly class Handler
             $command->externalId,
             $command->bitrix24UserId,
             $command->bitrix24PartnerId,
-            $userAgentInfo,
+            $command->userAgentInfo,
             true
         );
 
