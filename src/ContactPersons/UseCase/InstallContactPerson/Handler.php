@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Bitrix24\Lib\ContactPersons\UseCase\Install;
+namespace Bitrix24\Lib\ContactPersons\UseCase\InstallContactPerson;
 
 use Bitrix24\Lib\ContactPersons\Entity\ContactPerson;
 use Bitrix24\Lib\ContactPersons\Enum\ContactPersonType;
@@ -27,15 +27,12 @@ readonly class Handler
 
     public function handle(Command $command): void
     {
-        $this->logger->info('ContactPerson.Install.start', [
-            'externalId' => $command->externalId,
-            'memberId' => $command->memberId,
-            'contactPersonType' => $command->contactPersonType,
+        $this->logger->info('ContactPerson.InstallContactPerson.start', [
+            'applicationInstallationId' => $command->applicationInstallationId,
+            'bitrix24UserId' => $command->bitrix24UserId,
         ]);
 
         $uuidV7 = Uuid::v7();
-
-        $entitiesToFlush = [];
 
         $contactPerson = new ContactPerson(
             $uuidV7,
@@ -55,29 +52,17 @@ readonly class Handler
 
         $this->contactPersonRepository->save($contactPerson);
 
-        $entitiesToFlush[] = $contactPerson;
+        /** @var null|AggregateRootEventsEmitterInterface|ApplicationInstallationInterface $activeInstallation */
+        $activeInstallation = $this->applicationInstallationRepository->getById($command->applicationInstallationId);
 
-        if (null !== $command->memberId) {
-            /** @var null|AggregateRootEventsEmitterInterface|ApplicationInstallationInterface $activeInstallation */
-            $activeInstallation = $this->applicationInstallationRepository->findByBitrix24AccountMemberId($command->memberId);
+        $activeInstallation->linkContactPerson($uuidV7);
+        $this->applicationInstallationRepository->save($activeInstallation);
 
-            if (ContactPersonType::personal == $command->contactPersonType) {
-                $activeInstallation->linkContactPerson($uuidV7);
-            }
+        $this->flusher->flush();
 
-            if (ContactPersonType::partner == $command->contactPersonType) {
-                $activeInstallation->linkBitrix24PartnerContactPerson($uuidV7);
-            }
-
-            $this->applicationInstallationRepository->save($activeInstallation);
-            $entitiesToFlush[] = $activeInstallation;
-        }
-
-        $this->flusher->flush($activeInstallation,$contactPerson);
-
-        $this->logger->info('ContactPerson.Install.finish', [
-            'contact_person_id' => $uuidV7,
-            'externalId' => $command->externalId,
+        $this->logger->info('ContactPerson.InstallContactPerson.finish', [
+            'contact_person_id' => $uuidV7->toRfc4122(),
+            'applicationInstallationId' => $command->applicationInstallationId,
         ]);
     }
 }

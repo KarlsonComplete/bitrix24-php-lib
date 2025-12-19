@@ -15,8 +15,8 @@ namespace Bitrix24\Lib\Tests\Functional\ContactPersons\UseCase\Install;
 
 use Bitrix24\Lib\ApplicationInstallations\Infrastructure\Doctrine\ApplicationInstallationRepository;
 use Bitrix24\Lib\Bitrix24Accounts\Infrastructure\Doctrine\Bitrix24AccountRepository;
-use Bitrix24\Lib\ContactPersons\UseCase\Install\Handler;
-use Bitrix24\Lib\ContactPersons\UseCase\Install\Command;
+use Bitrix24\Lib\ContactPersons\UseCase\InstallContactPerson\Handler;
+use Bitrix24\Lib\ContactPersons\UseCase\InstallContactPerson\Command;
 use Bitrix24\Lib\ContactPersons\Infrastructure\Doctrine\ContactPersonRepository;
 use Bitrix24\Lib\Services\Flusher;
 use Bitrix24\Lib\Tests\Functional\ApplicationInstallations\Builders\ApplicationInstallationBuilder;
@@ -209,46 +209,6 @@ class HandlerTest extends TestCase
 
         $this->assertContains(ApplicationInstallationBitrix24PartnerContactPersonLinkedEvent::class, $dispatchedEvents);
         $this->assertNotNull($foundContactPerson);
-    }
-
-
-    /*
-     * Что такое externalId? Вроде бы это подпись. Тогда по сути у нас может на 1 подпись быть 2 контактных лица.
-     */
-    #[Test]
-    public function testContactPersonWithDuplicateExternalId(): void
-    {
-        $contactPersonBuilder = new ContactPersonBuilder();
-        $contactPerson = $contactPersonBuilder
-            ->withEmail('alice.cooper@example.com')
-            ->withMobilePhoneNumber($this->createPhoneNumber('+79991112222'))
-            ->withExternalId('duplicate-ext')
-            ->withBitrix24UserId(789)
-            ->withBitrix24PartnerId(Uuid::v7())
-            ->build();
-
-        $this->repository->save($contactPerson);
-
-        $this->flusher->flush();
-
-        $command = new Command(
-            $contactPerson->getFullName(),
-            $contactPerson->getEmail(),
-            $contactPerson->getMobilePhone(),
-            $contactPerson->getComment(),
-            $contactPerson->getExternalId(),
-            $contactPerson->getBitrix24UserId(),
-            $contactPerson->getBitrix24PartnerId(),
-            $contactPerson->getUserAgentInfo()->ip,
-            $contactPerson->getUserAgentInfo()->userAgent,
-            $contactPerson->getUserAgentInfo()->referrer,
-            '1.0',
-            null,
-            null
-        );
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->handler->handle($command);
     }
 
     private function createPhoneNumber(string $number): PhoneNumber
