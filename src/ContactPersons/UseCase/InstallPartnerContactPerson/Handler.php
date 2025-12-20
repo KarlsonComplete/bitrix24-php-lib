@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Bitrix24\Lib\ContactPersons\UseCase\InstallContactPerson;
+namespace Bitrix24\Lib\ContactPersons\UseCase\InstallPartnerContactPerson;
 
 use Bitrix24\Lib\ContactPersons\Entity\ContactPerson;
 use Bitrix24\Lib\ContactPersons\Enum\ContactPersonType;
@@ -27,7 +27,7 @@ readonly class Handler
 
     public function handle(Command $command): void
     {
-        $this->logger->info('ContactPerson.InstallContactPerson.start', [
+        $this->logger->info('ContactPerson.InstallPartnerContactPerson.start', [
             'applicationInstallationId' => $command->applicationInstallationId,
             'bitrix24UserId' => $command->bitrix24UserId,
         ]);
@@ -55,12 +55,12 @@ readonly class Handler
 
         $this->contactPersonRepository->save($contactPerson);
 
-        $activeInstallation->linkContactPerson($uuidV7);
+        $activeInstallation->linkBitrix24PartnerContactPerson($uuidV7);
         $this->applicationInstallationRepository->save($activeInstallation);
 
         $this->flusher->flush();
 
-        $this->logger->info('ContactPerson.InstallContactPerson.finish', [
+        $this->logger->info('ContactPerson.InstallPartnerContactPerson.finish', [
             'contact_person_id' => $uuidV7->toRfc4122(),
         ]);
     }
