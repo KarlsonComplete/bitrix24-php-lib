@@ -58,7 +58,7 @@ readonly class Handler
         $activeInstallation->linkBitrix24PartnerContactPerson($uuidV7);
         $this->applicationInstallationRepository->save($activeInstallation);
 
-        $this->flusher->flush();
+        $this->flusher->flush($contactPerson,$activeInstallation);
 
         $this->logger->info('ContactPerson.InstallPartnerContactPerson.finish', [
             'contact_person_id' => $uuidV7->toRfc4122(),

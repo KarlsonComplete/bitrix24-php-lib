@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Bitrix24\Lib\Tests\Functional\ContactPersons\UseCase\InstallContactPerson;
+namespace Bitrix24\Lib\Tests\Functional\ContactPersons\UseCase\InstallPartnerContactPerson;
 
 use Bitrix24\Lib\ApplicationInstallations\Infrastructure\Doctrine\ApplicationInstallationRepository;
 use Bitrix24\Lib\Bitrix24Accounts\Infrastructure\Doctrine\Bitrix24AccountRepository;
-use Bitrix24\Lib\ContactPersons\UseCase\InstallContactPerson\Handler;
-use Bitrix24\Lib\ContactPersons\UseCase\InstallContactPerson\Command;
+use Bitrix24\Lib\ContactPersons\UseCase\InstallPartnerContactPerson\Handler;
+use Bitrix24\Lib\ContactPersons\UseCase\InstallPartnerContactPerson\Command;
 use Bitrix24\Lib\ContactPersons\Infrastructure\Doctrine\ContactPersonRepository;
 use Bitrix24\Lib\Services\Flusher;
 use Bitrix24\Lib\Tests\Functional\ApplicationInstallations\Builders\ApplicationInstallationBuilder;
@@ -88,7 +88,7 @@ class HandlerTest extends TestCase
      * @throws InvalidArgumentException|\Random\RandomException
      */
     #[Test]
-    public function testInstallContactPersonSuccess(): void
+    public function testInstallPartnerContactPersonSuccess(): void
     {
         // Подготовка Bitrix24 аккаунта и установки приложения
         $applicationToken = Uuid::v7()->toRfc4122();
@@ -150,20 +150,20 @@ class HandlerTest extends TestCase
         // Проверки: событие, связь и наличие контакта
         $dispatchedEvents = $this->eventDispatcher->getOrphanedEvents();
         $this->assertContains(ContactPersonCreatedEvent::class, $dispatchedEvents);
-        $this->assertContains(ApplicationInstallationContactPersonLinkedEvent::class, $dispatchedEvents);
+        $this->assertContains(ApplicationInstallationBitrix24PartnerContactPersonLinkedEvent::class, $dispatchedEvents);
 
         // Перечитаем установку и проверим привязку контактного лица (без поиска по externalId)
         $foundInstallation = $this->applicationInstallationRepository->getById($applicationInstallation->getId());
-        $this->assertNotNull($foundInstallation->getContactPersonId());
+        $this->assertNotNull($foundInstallation->getBitrix24PartnerContactPersonId());
 
-        $contactPersonId = $foundInstallation->getContactPersonId();
-        $foundContactPerson = $this->repository->getById($contactPersonId);
+        $bitrix24PartnerContactPersonId = $foundInstallation->getBitrix24PartnerContactPersonId();
+        $foundContactPerson = $this->repository->getById($bitrix24PartnerContactPersonId);
         $this->assertInstanceOf(ContactPersonInterface::class, $foundContactPerson);
-        $this->assertEquals($foundContactPerson->getId(), $contactPersonId);
+        $this->assertEquals($foundContactPerson->getId(), $bitrix24PartnerContactPersonId);
     }
 
     #[Test]
-    public function testInstallContactPersonWithWrongApplicationInstallationId(): void
+    public function testInstallPartnerContactPersonWithWrongApplicationInstallationId(): void
     {
         // Подготовим входные данные контакта (без реальной установки)
         $contactPersonBuilder = new ContactPersonBuilder();
