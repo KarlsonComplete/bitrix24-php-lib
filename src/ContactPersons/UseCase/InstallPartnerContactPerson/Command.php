@@ -4,26 +4,23 @@ declare(strict_types=1);
 
 namespace Bitrix24\Lib\ContactPersons\UseCase\InstallPartnerContactPerson;
 
-use Bitrix24\Lib\ContactPersons\Enum\ContactPersonType;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\FullName;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\UserAgentInfo;
-use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
-use Darsyn\IP\Version\Multi as IP;
 use libphonenumber\PhoneNumber;
 use Symfony\Component\Uid\Uuid;
 
 readonly class Command
 {
     public function __construct(
-        public Uuid               $applicationInstallationId,
-        public FullName           $fullName,
-        public int                $bitrix24UserId,
-        public UserAgentInfo      $userAgentInfo,
-        public ?string            $email,
-        public ?PhoneNumber       $mobilePhoneNumber,
-        public ?string            $comment,
-        public ?string            $externalId,
-        public ?Uuid              $bitrix24PartnerId,
+        public Uuid $applicationInstallationId,
+        public FullName $fullName,
+        public int $bitrix24UserId,
+        public UserAgentInfo $userAgentInfo,
+        public ?string $email,
+        public ?PhoneNumber $mobilePhoneNumber,
+        public ?string $comment,
+        public ?string $externalId,
+        public ?Uuid $bitrix24PartnerId,
     ) {
         $this->validate();
     }

@@ -11,26 +11,23 @@
 
 declare(strict_types=1);
 
-namespace Bitrix24\Lib\Tests\Functional\ContactPersons\UseCase\InstallContactPerson;
+namespace Bitrix24\Lib\Tests\Functional\ContactPersons\UseCase\UnlinkContactPerson;
 
 use Bitrix24\Lib\ApplicationInstallations\Infrastructure\Doctrine\ApplicationInstallationRepository;
 use Bitrix24\Lib\Bitrix24Accounts\Infrastructure\Doctrine\Bitrix24AccountRepository;
-use Bitrix24\Lib\ContactPersons\UseCase\InstallContactPerson\Handler;
-use Bitrix24\Lib\ContactPersons\UseCase\InstallContactPerson\Command;
+use Bitrix24\Lib\ContactPersons\UseCase\UnlinkContactPerson\Handler;
+use Bitrix24\Lib\ContactPersons\UseCase\UnlinkContactPerson\Command;
 use Bitrix24\Lib\ContactPersons\Infrastructure\Doctrine\ContactPersonRepository;
 use Bitrix24\Lib\Services\Flusher;
 use Bitrix24\Lib\Tests\Functional\ApplicationInstallations\Builders\ApplicationInstallationBuilder;
 use Bitrix24\Lib\Tests\Functional\Bitrix24Accounts\Builders\Bitrix24AccountBuilder;
 use Bitrix24\SDK\Application\ApplicationStatus;
 use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Entity\ApplicationInstallationStatus;
-use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Events\ApplicationInstallationBitrix24PartnerContactPersonLinkedEvent;
-use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Events\ApplicationInstallationBitrix24PartnerLinkedEvent;
-use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Events\ApplicationInstallationContactPersonLinkedEvent;
+use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Events\ApplicationInstallationContactPersonUnlinkedEvent;
 use Bitrix24\SDK\Application\Contracts\Bitrix24Accounts\Entity\Bitrix24AccountStatus;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonInterface;
-use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonStatus;
-use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonCreatedEvent;
-use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonEmailChangedEvent;
+use Bitrix24\SDK\Application\Contracts\ContactPersons\Events\ContactPersonDeletedEvent;
+use Bitrix24\SDK\Application\Contracts\ContactPersons\Exceptions\ContactPersonNotFoundException;
 use Bitrix24\SDK\Application\PortalLicenseFamily;
 use Bitrix24\SDK\Core\Credentials\Scope;
 use Bitrix24\SDK\Core\Exceptions\InvalidArgumentException;
@@ -47,7 +44,6 @@ use Symfony\Component\Uid\Uuid;
 use libphonenumber\PhoneNumberUtil;
 use libphonenumber\PhoneNumber;
 use Bitrix24\Lib\Tests\Functional\ContactPersons\Builders\ContactPersonBuilder;
-use Bitrix24\Lib\ContactPersons\Enum\ContactPersonType;
 
 /**
  * @internal
@@ -88,7 +84,7 @@ class HandlerTest extends TestCase
      * @throws InvalidArgumentException|\Random\RandomException
      */
     #[Test]
-    public function testInstallContactPersonSuccess(): void
+    public function testUninstallContactPersonSuccess(): void
     {
         // Подготовка Bitrix24 аккаунта и установки приложения
         $applicationToken = Uuid::v7()->toRfc4122();
@@ -119,9 +115,8 @@ class HandlerTest extends TestCase
             ->build();
 
         $this->applicationInstallationRepository->save($applicationInstallation);
-        $this->flusher->flush();
 
-        // Данные контакта
+        // Создаём контакт и привязываем к установке
         $contactPersonBuilder = new ContactPersonBuilder();
         $contactPerson = $contactPersonBuilder
             ->withEmail('john.doe@example.com')
@@ -129,51 +124,38 @@ class HandlerTest extends TestCase
             ->withComment('Test comment')
             ->withExternalId($externalId)
             ->withBitrix24UserId($bitrix24Account->getBitrix24UserId())
-            ->withBitrix24PartnerId($applicationInstallation->getBitrix24PartnerId() ?? Uuid::v7())
             ->build();
+
+        $this->repository->save($contactPerson);
+        $applicationInstallation->linkContactPerson($contactPerson->getId());
+        $this->applicationInstallationRepository->save($applicationInstallation);
+        $this->flusher->flush();
 
         // Запуск use-case
         $this->handler->handle(
             new Command(
                 $applicationInstallation->getId(),
-                $contactPerson->getFullName(),
-                $bitrix24Account->getBitrix24UserId(),
-                $contactPerson->getUserAgentInfo(),
-                $contactPerson->getEmail(),
-                $contactPerson->getMobilePhone(),
-                $contactPerson->getComment(),
-                $contactPerson->getExternalId(),
-                $contactPerson->getBitrix24PartnerId(),
+                'Deleted by test'
             )
         );
 
-        // Проверки: событие, связь и наличие контакта
+        // Проверки: события отвязки и удаления контакта
         $dispatchedEvents = $this->eventDispatcher->getOrphanedEvents();
-        $this->assertContains(ContactPersonCreatedEvent::class, $dispatchedEvents);
-        $this->assertContains(ApplicationInstallationContactPersonLinkedEvent::class, $dispatchedEvents);
+        $this->assertContains(ContactPersonDeletedEvent::class, $dispatchedEvents);
+        $this->assertContains(ApplicationInstallationContactPersonUnlinkedEvent::class, $dispatchedEvents);
 
-        // Перечитаем установку и проверим привязку контактного лица (без поиска по externalId)
+        // Перечитаем установку и проверим, что контакт отвязан
         $foundInstallation = $this->applicationInstallationRepository->getById($applicationInstallation->getId());
-        $this->assertNotNull($foundInstallation->getContactPersonId());
+        $this->assertNull($foundInstallation->getContactPersonId());
 
-        $uuid = $foundInstallation->getContactPersonId();
-        $foundContactPerson = $this->repository->getById($uuid);
-        $this->assertInstanceOf(ContactPersonInterface::class, $foundContactPerson);
-        $this->assertEquals($foundContactPerson->getId(), $uuid);
+        // Контакт всё ещё доступен в репозитории (с пометкой deleted), сам факт наличия достаточен для данного теста
+        $this->expectException(ContactPersonNotFoundException::class);
+        $this->repository->getById($contactPerson->getId());
     }
 
     #[Test]
-    public function testInstallContactPersonWithWrongApplicationInstallationId(): void
+    public function testUninstallContactPersonWithWrongApplicationInstallationId(): void
     {
-        // Подготовим входные данные контакта (без реальной установки)
-        $contactPersonBuilder = new ContactPersonBuilder();
-        $contactPerson = $contactPersonBuilder
-            ->withEmail('john.doe@example.com')
-            ->withMobilePhoneNumber($this->createPhoneNumber('+79991234567'))
-            ->withComment('Test comment')
-            ->withExternalId(Uuid::v7()->toRfc4122())
-            ->build();
-
         $uuidV7 = Uuid::v7();
 
         $this->expectException(ApplicationInstallationNotFoundException::class);
@@ -181,14 +163,7 @@ class HandlerTest extends TestCase
         $this->handler->handle(
             new Command(
                 $uuidV7,
-                $contactPerson->getFullName(),
-                random_int(1, 1_000_000),
-                $contactPerson->getUserAgentInfo(),
-                $contactPerson->getEmail(),
-                $contactPerson->getMobilePhone(),
-                $contactPerson->getComment(),
-                $contactPerson->getExternalId(),
-                $contactPerson->getBitrix24PartnerId(),
+                'Deleted by test'
             )
         );
     }

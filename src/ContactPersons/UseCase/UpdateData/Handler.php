@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Bitrix24\Lib\ContactPersons\UseCase\UpdateData;
 
 use Bitrix24\Lib\Services\Flusher;
-use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Entity\ApplicationInstallationInterface;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonInterface;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\FullName;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Repository\ContactPersonRepositoryInterface;
@@ -33,7 +32,6 @@ readonly class Handler
             'externalId' => $command->externalId,
             'bitrix24PartnerId' => $command->bitrix24PartnerId?->toRfc4122() ?? null,
         ]);
-
 
         /** @var AggregateRootEventsEmitterInterface|ContactPersonInterface $contactPerson */
         $contactPerson = $this->contactPersonRepository->getById($command->contactPersonId);

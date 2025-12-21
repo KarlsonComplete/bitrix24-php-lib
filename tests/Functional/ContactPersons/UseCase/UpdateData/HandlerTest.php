@@ -94,7 +94,7 @@ class HandlerTest extends TestCase
         $this->flusher->flush();
 
         $externalId = Uuid::v7()->toRfc4122();
-        $bitrix24PartnerId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
 
         // Обновляем контактное лицо через команду
         $this->handler->handle(
@@ -104,15 +104,15 @@ class HandlerTest extends TestCase
                 'jane.doe@example.com',
                 $this->createPhoneNumber('+79997654321'),
                 $externalId,
-                $bitrix24PartnerId,
+                $uuidV7,
             )
         );
 
 
         // Проверяем, что изменения сохранились
         $updatedContactPerson = $this->repository->getById($contactPerson->getId());
-        $phoneUtil = PhoneNumberUtil::getInstance();
-        $formattedPhone = $phoneUtil->format($updatedContactPerson->getMobilePhone(), PhoneNumberFormat::E164);
+        $phoneNumberUtil = PhoneNumberUtil::getInstance();
+        $formattedPhone = $phoneNumberUtil->format($updatedContactPerson->getMobilePhone(), PhoneNumberFormat::E164);
 
         $dispatchedEvents = $this->eventDispatcher->getOrphanedEvents();
         $this->assertContains(ContactPersonEmailChangedEvent::class, $dispatchedEvents);

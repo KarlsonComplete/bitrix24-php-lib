@@ -129,7 +129,7 @@ class HandlerTest extends TestCase
             ->withComment('Test comment')
             ->withExternalId($externalId)
             ->withBitrix24UserId($bitrix24Account->getBitrix24UserId())
-            ->withBitrix24PartnerId(null === $applicationInstallation->getBitrix24PartnerId() ? Uuid::v7() : $applicationInstallation->getBitrix24PartnerId())
+            ->withBitrix24PartnerId($applicationInstallation->getBitrix24PartnerId() ?? Uuid::v7())
             ->build();
 
         // Запуск use-case
@@ -156,10 +156,10 @@ class HandlerTest extends TestCase
         $foundInstallation = $this->applicationInstallationRepository->getById($applicationInstallation->getId());
         $this->assertNotNull($foundInstallation->getBitrix24PartnerContactPersonId());
 
-        $bitrix24PartnerContactPersonId = $foundInstallation->getBitrix24PartnerContactPersonId();
-        $foundContactPerson = $this->repository->getById($bitrix24PartnerContactPersonId);
+        $uuid = $foundInstallation->getBitrix24PartnerContactPersonId();
+        $foundContactPerson = $this->repository->getById($uuid);
         $this->assertInstanceOf(ContactPersonInterface::class, $foundContactPerson);
-        $this->assertEquals($foundContactPerson->getId(), $bitrix24PartnerContactPersonId);
+        $this->assertEquals($foundContactPerson->getId(), $uuid);
     }
 
     #[Test]
@@ -174,13 +174,13 @@ class HandlerTest extends TestCase
             ->withExternalId(Uuid::v7()->toRfc4122())
             ->build();
 
-        $wrongInstallationId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
 
         $this->expectException(ApplicationInstallationNotFoundException::class);
 
         $this->handler->handle(
             new Command(
-                $wrongInstallationId,
+                $uuidV7,
                 $contactPerson->getFullName(),
                 random_int(1, 1_000_000),
                 $contactPerson->getUserAgentInfo(),

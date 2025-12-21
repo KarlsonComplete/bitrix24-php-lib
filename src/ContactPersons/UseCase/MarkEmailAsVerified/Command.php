@@ -10,5 +10,5 @@ readonly class Command
 {
     public function __construct(
         public Uuid $contactPersonId,
-    ){}
+    ) {}
 }

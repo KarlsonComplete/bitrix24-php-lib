@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace Bitrix24\Lib\ContactPersons\UseCase\InstallPartnerContactPerson;
 
 use Bitrix24\Lib\ContactPersons\Entity\ContactPerson;
-use Bitrix24\Lib\ContactPersons\Enum\ContactPersonType;
 use Bitrix24\Lib\Services\Flusher;
 use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Entity\ApplicationInstallationInterface;
 use Bitrix24\SDK\Application\Contracts\ApplicationInstallations\Repository\ApplicationInstallationRepositoryInterface;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\ContactPersonStatus;
-use Bitrix24\SDK\Application\Contracts\ContactPersons\Entity\UserAgentInfo;
 use Bitrix24\SDK\Application\Contracts\ContactPersons\Repository\ContactPersonRepositoryInterface;
 use Bitrix24\SDK\Application\Contracts\Events\AggregateRootEventsEmitterInterface;
 use Psr\Log\LoggerInterface;
@@ -32,8 +30,8 @@ readonly class Handler
             'bitrix24UserId' => $command->bitrix24UserId,
         ]);
 
-        /** @var null|AggregateRootEventsEmitterInterface|ApplicationInstallationInterface $activeInstallation */
-        $activeInstallation = $this->applicationInstallationRepository->getById($command->applicationInstallationId);
+        /** @var null|AggregateRootEventsEmitterInterface|ApplicationInstallationInterface $applicationInstallation */
+        $applicationInstallation = $this->applicationInstallationRepository->getById($command->applicationInstallationId);
 
         $uuidV7 = Uuid::v7();
 
@@ -55,10 +53,10 @@ readonly class Handler
 
         $this->contactPersonRepository->save($contactPerson);
 
-        $activeInstallation->linkBitrix24PartnerContactPerson($uuidV7);
-        $this->applicationInstallationRepository->save($activeInstallation);
+        $applicationInstallation->linkBitrix24PartnerContactPerson($uuidV7);
+        $this->applicationInstallationRepository->save($applicationInstallation);
 
-        $this->flusher->flush($contactPerson,$activeInstallation);
+        $this->flusher->flush($contactPerson, $applicationInstallation);
 
         $this->logger->info('ContactPerson.InstallPartnerContactPerson.finish', [
             'contact_person_id' => $uuidV7->toRfc4122(),
