@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Bitrix24\Lib\ContactPersons\UseCase\UnlinkPartnerContactPerson;
+namespace Bitrix24\Lib\ContactPersons\UseCase\Unlink;
 
 use Symfony\Component\Uid\Uuid;
 
 readonly class Command
 {
     public function __construct(
-        public Uuid $applicationInstallationId,
+        public Uuid $contactPersonId,
         public ?string $comment = null,
     ) {
         $this->validate();

@@ -41,7 +41,6 @@ class ContactPersonBuilder
         $this->id = Uuid::v7();
         $this->fullName = DemoDataGenerator::getFullName();
         $this->bitrix24UserId = random_int(1, 1_000_000);
-        $this->bitrix24PartnerId = Uuid::v7();
     }
 
     public function withStatus(ContactPersonStatus $contactPersonStatus): self
@@ -93,7 +92,7 @@ class ContactPersonBuilder
         return $this;
     }
 
-    public function withBitrix24PartnerId(Uuid $uuid): self
+    public function withBitrix24PartnerId(?Uuid $uuid): self
     {
         $this->bitrix24PartnerId = $uuid;
 

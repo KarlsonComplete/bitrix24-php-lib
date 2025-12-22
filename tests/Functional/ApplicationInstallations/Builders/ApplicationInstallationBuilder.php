@@ -21,7 +21,7 @@ class ApplicationInstallationBuilder
 
     private ?Uuid $bitrix24PartnerContactPersonId;
 
-    private readonly ?Uuid $bitrix24PartnerId;
+    private ?Uuid $bitrix24PartnerId = null;
 
     private ?string $externalId = null;
 
@@ -43,7 +43,6 @@ class ApplicationInstallationBuilder
         $this->bitrix24AccountId = Uuid::v7();
         $this->bitrix24PartnerContactPersonId = Uuid::v7();
         $this->contactPersonId = Uuid::v7();
-        $this->bitrix24PartnerId = Uuid::v7();
         $this->portalUsersCount = random_int(1, 1_000_000);
     }
 
@@ -57,6 +56,13 @@ class ApplicationInstallationBuilder
     public function withApplicationToken(string $applicationToken): self
     {
         $this->applicationToken = $applicationToken;
+
+        return $this;
+    }
+
+    public function withBitrix24PartnerId(?Uuid $bitrix24PartnerId): self
+    {
+        $this->bitrix24PartnerId = $bitrix24PartnerId;
 
         return $this;
     }

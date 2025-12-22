@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Bitrix24\Lib\ContactPersons\UseCase\InstallContactPerson;
+namespace Bitrix24\Lib\ContactPersons\UseCase\Install;
 
 use Bitrix24\Lib\ContactPersons\Entity\ContactPerson;
 use Bitrix24\Lib\Services\Flusher;
@@ -28,6 +28,7 @@ readonly class Handler
         $this->logger->info('ContactPerson.InstallContactPerson.start', [
             'applicationInstallationId' => $command->applicationInstallationId,
             'bitrix24UserId' => $command->bitrix24UserId,
+            'bitrix24PartnerId' => $command->bitrix24PartnerId?->toRfc4122() ?? ''
         ]);
 
         /** @var null|AggregateRootEventsEmitterInterface|ApplicationInstallationInterface $applicationInstallation */
@@ -53,7 +54,12 @@ readonly class Handler
 
         $this->contactPersonRepository->save($contactPerson);
 
-        $applicationInstallation->linkContactPerson($uuidV7);
+        if ($contactPerson->isPartner()) {
+            $applicationInstallation->linkBitrix24PartnerContactPerson($uuidV7);
+        }else{
+            $applicationInstallation->linkContactPerson($uuidV7);
+        }
+
         $this->applicationInstallationRepository->save($applicationInstallation);
 
         $this->flusher->flush($contactPerson, $applicationInstallation);

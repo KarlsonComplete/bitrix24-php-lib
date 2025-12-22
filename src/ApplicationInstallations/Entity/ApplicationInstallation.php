@@ -347,6 +347,10 @@ class ApplicationInstallation extends AggregateRoot implements ApplicationInstal
     #[\Override]
     public function unlinkContactPerson(): void
     {
+        if (null === $this->contactPersonId) {
+            return;
+        }
+
         $this->updatedAt = new CarbonImmutable();
 
         $this->events[] = new Events\ApplicationInstallationContactPersonUnlinkedEvent(
@@ -374,6 +378,10 @@ class ApplicationInstallation extends AggregateRoot implements ApplicationInstal
     #[\Override]
     public function unlinkBitrix24PartnerContactPerson(): void
     {
+        if (null === $this->bitrix24PartnerContactPersonId) {
+            return;
+        }
+
         $this->updatedAt = new CarbonImmutable();
 
         $this->events[] = new Events\ApplicationInstallationBitrix24PartnerContactPersonUnlinkedEvent(

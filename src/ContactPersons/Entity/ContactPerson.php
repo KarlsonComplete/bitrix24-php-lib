@@ -181,6 +181,15 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
         );
     }
 
+    public function isPartner(): bool
+    {
+        if ($this->getBitrix24PartnerId() !== null) {
+            return true;
+        }
+
+        return false;
+    }
+
     #[\Override]
     public function getEmailVerifiedAt(): ?CarbonImmutable
     {

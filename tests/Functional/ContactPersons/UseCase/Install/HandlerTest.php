@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Bitrix24\Lib\Tests\Functional\ContactPersons\UseCase\InstallContactPerson;
+namespace Bitrix24\Lib\Tests\Functional\ContactPersons\UseCase\Install;
 
 use Bitrix24\Lib\ApplicationInstallations\Infrastructure\Doctrine\ApplicationInstallationRepository;
 use Bitrix24\Lib\Bitrix24Accounts\Infrastructure\Doctrine\Bitrix24AccountRepository;
-use Bitrix24\Lib\ContactPersons\UseCase\InstallContactPerson\Handler;
-use Bitrix24\Lib\ContactPersons\UseCase\InstallContactPerson\Command;
+use Bitrix24\Lib\ContactPersons\UseCase\Install\Handler;
+use Bitrix24\Lib\ContactPersons\UseCase\Install\Command;
 use Bitrix24\Lib\ContactPersons\Infrastructure\Doctrine\ContactPersonRepository;
 use Bitrix24\Lib\Services\Flusher;
 use Bitrix24\Lib\Tests\Functional\ApplicationInstallations\Builders\ApplicationInstallationBuilder;
@@ -84,9 +84,6 @@ class HandlerTest extends TestCase
         );
     }
 
-    /**
-     * @throws InvalidArgumentException|\Random\RandomException
-     */
     #[Test]
     public function testInstallContactPersonSuccess(): void
     {
@@ -129,7 +126,7 @@ class HandlerTest extends TestCase
             ->withComment('Test comment')
             ->withExternalId($externalId)
             ->withBitrix24UserId($bitrix24Account->getBitrix24UserId())
-            ->withBitrix24PartnerId($applicationInstallation->getBitrix24PartnerId() ?? Uuid::v7())
+            ->withBitrix24PartnerId($applicationInstallation->getBitrix24PartnerId())
             ->build();
 
         // Запуск use-case
@@ -157,6 +154,82 @@ class HandlerTest extends TestCase
         $this->assertNotNull($foundInstallation->getContactPersonId());
 
         $uuid = $foundInstallation->getContactPersonId();
+        $foundContactPerson = $this->repository->getById($uuid);
+        $this->assertInstanceOf(ContactPersonInterface::class, $foundContactPerson);
+        $this->assertEquals($foundContactPerson->getId(), $uuid);
+    }
+
+    #[Test]
+    public function testInstallPartnerContactPersonSuccess(): void
+    {
+        // Подготовка Bitrix24 аккаунта и установки приложения
+        $applicationToken = Uuid::v7()->toRfc4122();
+        $memberId = Uuid::v4()->toRfc4122();
+        $externalId = Uuid::v7()->toRfc4122();
+        $bitrix24PartnerId = Uuid::v7();
+
+        $bitrix24Account = (new Bitrix24AccountBuilder())
+            ->withApplicationScope(new Scope(['crm']))
+            ->withStatus(Bitrix24AccountStatus::new)
+            ->withApplicationToken($applicationToken)
+            ->withMemberId($memberId)
+            ->withMaster(true)
+            ->withSetToken()
+            ->withInstalled()
+            ->build();
+
+        $this->bitrix24accountRepository->save($bitrix24Account);
+
+        $applicationInstallation = (new ApplicationInstallationBuilder())
+            ->withApplicationStatus(new ApplicationStatus('F'))
+            ->withPortalLicenseFamily(PortalLicenseFamily::free)
+            ->withBitrix24AccountId($bitrix24Account->getId())
+            ->withApplicationStatusInstallation(ApplicationInstallationStatus::active)
+            ->withApplicationToken($applicationToken)
+            ->withContactPersonId(null)
+            ->withBitrix24PartnerId($bitrix24PartnerId)
+            ->withExternalId($externalId)
+            ->build();
+
+        $this->applicationInstallationRepository->save($applicationInstallation);
+        $this->flusher->flush();
+
+        // Данные контакта
+        $contactPersonBuilder = new ContactPersonBuilder();
+        $contactPerson = $contactPersonBuilder
+            ->withEmail('john.doe@example.com')
+            ->withMobilePhoneNumber($this->createPhoneNumber('+79991234567'))
+            ->withComment('Test comment')
+            ->withExternalId($externalId)
+            ->withBitrix24UserId($bitrix24Account->getBitrix24UserId())
+            ->withBitrix24PartnerId($applicationInstallation->getBitrix24PartnerId())
+            ->build();
+
+        // Запуск use-case
+        $this->handler->handle(
+            new Command(
+                $applicationInstallation->getId(),
+                $contactPerson->getFullName(),
+                $bitrix24Account->getBitrix24UserId(),
+                $contactPerson->getUserAgentInfo(),
+                $contactPerson->getEmail(),
+                $contactPerson->getMobilePhone(),
+                $contactPerson->getComment(),
+                $contactPerson->getExternalId(),
+                $contactPerson->getBitrix24PartnerId(),
+            )
+        );
+
+        // Проверки: событие, связь и наличие контакта
+        $dispatchedEvents = $this->eventDispatcher->getOrphanedEvents();
+        $this->assertContains(ContactPersonCreatedEvent::class, $dispatchedEvents);
+        $this->assertContains(ApplicationInstallationBitrix24PartnerContactPersonLinkedEvent::class, $dispatchedEvents);
+
+        // Перечитаем установку и проверим привязку контактного лица (без поиска по externalId)
+        $foundInstallation = $this->applicationInstallationRepository->getById($applicationInstallation->getId());
+        $this->assertNotNull($foundInstallation->getBitrix24PartnerContactPersonId());
+
+        $uuid = $foundInstallation->getBitrix24PartnerContactPersonId();
         $foundContactPerson = $this->repository->getById($uuid);
         $this->assertInstanceOf(ContactPersonInterface::class, $foundContactPerson);
         $this->assertEquals($foundContactPerson->getId(), $uuid);
