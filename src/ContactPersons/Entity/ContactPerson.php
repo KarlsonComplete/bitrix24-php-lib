@@ -171,10 +171,15 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     }
 
     #[\Override]
-    public function markEmailAsVerified(): void
+    public function markEmailAsVerified(?CarbonImmutable $verifiedAt = null): void
     {
         $this->isEmailVerified = true;
-        $this->emailVerifiedAt = new CarbonImmutable();
+
+        if (null == $verifiedAt) {
+            $verifiedAt = new CarbonImmutable();
+        }
+        $this->emailVerifiedAt = $verifiedAt;
+
         $this->events[] = new ContactPersonEmailVerifiedEvent(
             $this->id,
             $this->emailVerifiedAt,
@@ -235,10 +240,13 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     }
 
     #[\Override]
-    public function markMobilePhoneAsVerified(): void
+    public function markMobilePhoneAsVerified(?CarbonImmutable $verifiedAt = null): void
     {
         $this->isMobilePhoneVerified = true;
-        $this->mobilePhoneVerifiedAt = new CarbonImmutable();
+        if (null == $verifiedAt) {
+            $verifiedAt = new CarbonImmutable();
+        }
+        $this->mobilePhoneVerifiedAt = $verifiedAt;
         $this->events[] = new ContactPersonMobilePhoneVerifiedEvent(
             $this->id,
             $this->mobilePhoneVerifiedAt,
