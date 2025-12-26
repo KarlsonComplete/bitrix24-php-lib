@@ -28,7 +28,7 @@ readonly class Handler
         $this->logger->info('ContactPerson.InstallContactPerson.start', [
             'applicationInstallationId' => $command->applicationInstallationId,
             'bitrix24UserId' => $command->bitrix24UserId,
-            'bitrix24PartnerId' => $command->bitrix24PartnerId?->toRfc4122() ?? ''
+            'bitrix24PartnerId' => $command->bitrix24PartnerId?->toRfc4122() ?? '',
         ]);
 
         /** @var null|AggregateRootEventsEmitterInterface|ApplicationInstallationInterface $applicationInstallation */
@@ -56,7 +56,7 @@ readonly class Handler
 
         if ($contactPerson->isPartner()) {
             $applicationInstallation->linkBitrix24PartnerContactPerson($uuidV7);
-        }else{
+        } else {
             $applicationInstallation->linkContactPerson($uuidV7);
         }
 

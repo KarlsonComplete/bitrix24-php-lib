@@ -45,6 +45,7 @@ use Symfony\Component\Uid\Uuid;
 use libphonenumber\PhoneNumberUtil;
 use libphonenumber\PhoneNumber;
 use Bitrix24\Lib\Tests\Functional\ContactPersons\Builders\ContactPersonBuilder;
+use Doctrine\DBAL\Schema\Name\OptionallyQualifiedName;
 
 /**
  * @internal
@@ -67,6 +68,7 @@ class HandlerTest extends TestCase
     #[\Override]
     protected function setUp(): void
     {
+        $this->truncateAllTables();
         $entityManager = EntityManagerFactory::get();
         $this->eventDispatcher = new TraceableEventDispatcher(new EventDispatcher(), new Stopwatch());
         $this->repository = new ContactPersonRepository($entityManager);
@@ -329,5 +331,38 @@ class HandlerTest extends TestCase
     {
         $phoneNumberUtil = PhoneNumberUtil::getInstance();
         return $phoneNumberUtil->parse($number, 'RU');
+    }
+
+    private function truncateAllTables(): void
+    {
+        $entityManager = EntityManagerFactory::get();
+        $connection = $entityManager->getConnection();
+        $schemaManager = $connection->createSchemaManager();
+
+        $names = $schemaManager->introspectTableNames();
+
+        if ($names === []) {
+            return;
+        }
+
+        $quotedTables = [];
+
+        foreach ($names as $name) {
+            $tableName = $name->toString();
+            $quotedTables[] = $tableName;
+        }
+
+        $sql = 'TRUNCATE ' . implode(', ', $quotedTables) . ' RESTART IDENTITY CASCADE';
+
+        $connection->beginTransaction();
+        try {
+            $connection->executeStatement($sql);
+            $connection->commit();
+        } catch (\Throwable $throwable) {
+            $connection->rollBack();
+            throw $throwable;
+        }
+
+        $entityManager->clear();
     }
 }

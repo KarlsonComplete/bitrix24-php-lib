@@ -35,17 +35,15 @@ readonly class Handler
 
         $entitiesToFlush = [];
         if ($contactPerson->isPartner()) {
-            if ($applicationInstallation->getBitrix24PartnerContactPersonId() !== null){
+            if (null !== $applicationInstallation->getBitrix24PartnerContactPersonId()) {
                 $applicationInstallation->unlinkBitrix24PartnerContactPerson();
                 $this->applicationInstallationRepository->save($applicationInstallation);
                 $entitiesToFlush[] = $applicationInstallation;
             }
-        }else{
-            if ($applicationInstallation->getContactPersonId() !== null){
-                $applicationInstallation->unlinkContactPerson();
-                $this->applicationInstallationRepository->save($applicationInstallation);
-                $entitiesToFlush[] = $applicationInstallation;
-            }
+        } elseif (null !== $applicationInstallation->getContactPersonId()) {
+            $applicationInstallation->unlinkContactPerson();
+            $this->applicationInstallationRepository->save($applicationInstallation);
+            $entitiesToFlush[] = $applicationInstallation;
         }
 
         $contactPerson->markAsDeleted($command->comment);

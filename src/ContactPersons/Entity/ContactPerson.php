@@ -175,11 +175,7 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     {
         $this->isEmailVerified = true;
 
-        if (null == $verifiedAt) {
-            $verifiedAt = new CarbonImmutable();
-        }
-        $this->emailVerifiedAt = $verifiedAt;
-
+        $this->emailVerifiedAt = $verifiedAt ?? new CarbonImmutable();
         $this->events[] = new ContactPersonEmailVerifiedEvent(
             $this->id,
             $this->emailVerifiedAt,
@@ -188,11 +184,7 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
 
     public function isPartner(): bool
     {
-        if ($this->getBitrix24PartnerId() !== null) {
-            return true;
-        }
-
-        return false;
+        return $this->getBitrix24PartnerId() instanceof Uuid;
     }
 
     #[\Override]
@@ -243,10 +235,7 @@ class ContactPerson extends AggregateRoot implements ContactPersonInterface
     public function markMobilePhoneAsVerified(?CarbonImmutable $verifiedAt = null): void
     {
         $this->isMobilePhoneVerified = true;
-        if (null == $verifiedAt) {
-            $verifiedAt = new CarbonImmutable();
-        }
-        $this->mobilePhoneVerifiedAt = $verifiedAt;
+        $this->mobilePhoneVerifiedAt = $verifiedAt ?? new CarbonImmutable();
         $this->events[] = new ContactPersonMobilePhoneVerifiedEvent(
             $this->id,
             $this->mobilePhoneVerifiedAt,

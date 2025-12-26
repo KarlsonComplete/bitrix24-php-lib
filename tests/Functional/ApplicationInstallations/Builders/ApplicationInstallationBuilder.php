@@ -60,9 +60,9 @@ class ApplicationInstallationBuilder
         return $this;
     }
 
-    public function withBitrix24PartnerId(?Uuid $bitrix24PartnerId): self
+    public function withBitrix24PartnerId(?Uuid $uuid): self
     {
-        $this->bitrix24PartnerId = $bitrix24PartnerId;
+        $this->bitrix24PartnerId = $uuid;
 
         return $this;
     }

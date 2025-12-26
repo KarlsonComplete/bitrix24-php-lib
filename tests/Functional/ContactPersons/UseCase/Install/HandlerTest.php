@@ -166,7 +166,7 @@ class HandlerTest extends TestCase
         $applicationToken = Uuid::v7()->toRfc4122();
         $memberId = Uuid::v4()->toRfc4122();
         $externalId = Uuid::v7()->toRfc4122();
-        $bitrix24PartnerId = Uuid::v7();
+        $uuidV7 = Uuid::v7();
 
         $bitrix24Account = (new Bitrix24AccountBuilder())
             ->withApplicationScope(new Scope(['crm']))
@@ -187,7 +187,7 @@ class HandlerTest extends TestCase
             ->withApplicationStatusInstallation(ApplicationInstallationStatus::active)
             ->withApplicationToken($applicationToken)
             ->withContactPersonId(null)
-            ->withBitrix24PartnerId($bitrix24PartnerId)
+            ->withBitrix24PartnerId($uuidV7)
             ->withExternalId($externalId)
             ->build();
 

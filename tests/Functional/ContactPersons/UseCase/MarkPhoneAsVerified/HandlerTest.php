@@ -66,10 +66,11 @@ class HandlerTest extends TestCase
         $contactPersonBuilder = new ContactPersonBuilder();
         $externalId = Uuid::v7()->toRfc4122();
         $bitrix24UserId = random_int(1, 1_000_000);
+        $phoneNumber = $this->createPhoneNumber('+79991234567');
 
         $contactPerson = $contactPersonBuilder
             ->withEmail('john.doe@example.com')
-            ->withMobilePhoneNumber($this->createPhoneNumber('+79991234567'))
+            ->withMobilePhoneNumber($phoneNumber)
             ->withComment('Test comment')
             ->withExternalId($externalId)
             ->withBitrix24UserId($bitrix24UserId)
@@ -81,9 +82,7 @@ class HandlerTest extends TestCase
 
         $this->assertFalse($contactPerson->isMobilePhoneVerified());
 
-        $this->handler->handle(
-            new Command($contactPerson->getId())
-        );
+        $this->handler->handle(new Command($contactPerson->getId(), $phoneNumber));
 
         $updatedContactPerson = $this->repository->getById($contactPerson->getId());
         $this->assertTrue($updatedContactPerson->isMobilePhoneVerified());
@@ -111,7 +110,33 @@ class HandlerTest extends TestCase
         $this->assertFalse($contactPerson->isMobilePhoneVerified());
 
         $this->expectException(ContactPersonNotFoundException::class);
-        $this->handler->handle(new Command(Uuid::v7()));
+        $this->handler->handle(new Command(Uuid::v7(), $this->createPhoneNumber('+79991234567')));
+    }
+
+    #[Test]
+    public function testConfirmPhoneVerificationFailsOnPhoneMismatch(): void
+    {
+        $contactPersonBuilder = new ContactPersonBuilder();
+        $externalId = Uuid::v7()->toRfc4122();
+        $bitrix24UserId = random_int(1, 1_000_000);
+
+        $phoneNumber = $this->createPhoneNumber('+79991234567');
+        $expectedDifferentPhone = $this->createPhoneNumber('+79990000000');
+
+        $contactPerson = $contactPersonBuilder
+            ->withEmail('john.doe@example.com')
+            ->withMobilePhoneNumber($phoneNumber)
+            ->withComment('Test comment')
+            ->withExternalId($externalId)
+            ->withBitrix24UserId($bitrix24UserId)
+            ->withBitrix24PartnerId(Uuid::v7())
+            ->build();
+
+        $this->repository->save($contactPerson);
+        $this->flusher->flush();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->handler->handle(new Command($contactPerson->getId(), $expectedDifferentPhone));
     }
 
     private function createPhoneNumber(string $number): PhoneNumber
